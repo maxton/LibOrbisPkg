@@ -4,13 +4,13 @@ using System.Text;
 
 namespace LibOrbisPkg.PKG
 {
-  class PkgWriter : Util.WriterBase
+  public class PkgWriter : Util.WriterBase
   {
     public PkgWriter(System.IO.Stream s) : base(true, s) { }
     public void WriteHeader(in Pkg.Header hdr)
     {
       s.Position = 0x00;
-      Write(hdr.CNTMagic);
+      Write(Encoding.ASCII.GetBytes(hdr.CNTMagic));
       s.Position = 0x04;
       Write((uint)hdr.flags);
       s.Position = 0x08;
@@ -32,11 +32,11 @@ namespace LibOrbisPkg.PKG
       s.Position = 0x28;
       Write(hdr.body_size);
       s.Position = 0x40;
-      Write(hdr.content_id); // Length = PKG_CONTENT_ID_SIZE
+      Write(Encoding.ASCII.GetBytes(hdr.content_id)); // Length = PKG_CONTENT_ID_SIZE
       s.Position = 0x70;
-      Write(hdr.drm_type);
+      Write((uint)hdr.drm_type);
       s.Position = 0x74;
-      Write(hdr.content_type);
+      Write((uint)hdr.content_type);
       s.Position = 0x78;
       Write((uint)hdr.content_flags);
       s.Position = 0x7C;

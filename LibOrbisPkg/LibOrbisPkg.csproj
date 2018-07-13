@@ -21,6 +21,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <LangVersion>7.3</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,6 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -41,8 +43,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GP4\Gp4Project.cs" />
-    <Compile Include="GP4\Gp4Reader.cs" />
-    <Compile Include="GP4\Gp4Writer.cs" />
     <Compile Include="PFS\FlatPathTable.cs" />
     <Compile Include="PFS\FSTree.cs" />
     <Compile Include="PFS\PFSBuilder.cs" />

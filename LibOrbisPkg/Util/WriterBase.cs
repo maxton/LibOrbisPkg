@@ -7,7 +7,7 @@ namespace LibOrbisPkg.Util
   public class WriterBase
   {
     [StructLayout(LayoutKind.Explicit, Size = 8)]
-    private struct storage
+    private unsafe struct storage
     {
       [FieldOffset(0)]
       public byte u8;
@@ -30,7 +30,7 @@ namespace LibOrbisPkg.Util
       [FieldOffset(0)]
       public double f64;
       [FieldOffset(0)]
-      public byte[] buf;
+      public fixed byte buf[8];
     }
 
     private storage buffer;
@@ -40,13 +40,16 @@ namespace LibOrbisPkg.Util
     {
       s = stream;
       this.flipEndian = flipEndian;
-      buffer.buf = new byte[8];
     }
     private void WriteEndian(int count)
     {
-      if (flipEndian)
-        Array.Reverse(buffer.buf, 0, count);
-      s.Write(buffer.buf, 0, count);
+      unsafe
+      {
+        if (flipEndian)
+          for (int i = count - 1; i >= 0; i--) s.WriteByte(buffer.buf[i]);
+        else
+          for (int i = 0; i < count; i++) s.WriteByte(buffer.buf[i]);
+      }
     }
     protected void Write(byte b) => s.WriteByte(b);
     protected void Write(sbyte sb) => Write((byte)sb);

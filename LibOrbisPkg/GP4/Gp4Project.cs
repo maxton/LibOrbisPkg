@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,10 +17,11 @@ namespace LibOrbisPkg.GP4
     public int version;
     [XmlElement(ElementName = "volume")]
     public Volume volume;
-    [XmlElement(ElementName = "files")]
+    [XmlArrayItem(Type = typeof(File), ElementName = "file")]
+    [XmlArray(ElementName = "files")]
     public Files files;
     [XmlElement(ElementName = "rootdir")]
-    public Dir[] RootDir;
+    public List<Dir> RootDir = new List<Dir>();
 
     public static void WriteTo(Gp4Project proj, System.IO.Stream s)
     {
@@ -37,11 +39,11 @@ namespace LibOrbisPkg.GP4
   public class Volume
   {
     [XmlElement(ElementName = "volume_type")]
-    public VolumeType Type;
+    public string Type;
     [XmlElement(ElementName = "volume_id")]
     public string Id;
     [XmlElement(ElementName = "volume_ts")]
-    public DateTime TimeStamp;
+    public string TimeStamp;
     [XmlElement(ElementName = "package")]
     public PackageInfo Package;
   }
@@ -59,10 +61,27 @@ namespace LibOrbisPkg.GP4
     public string Passcode;
   }
 
-  public class Files : List<File>
+  public class Files : ICollection<File>
   {
     [XmlAttribute("img_no")]
     public int ImageNum;
+    [XmlIgnore]
+    public List<File> Items = new List<File>();
+    [XmlIgnore]
+    public int Count => Items.Count;
+    [XmlIgnore]
+    public bool IsReadOnly => false;
+    public void Add(File item) => Items.Add(item);
+    public void Clear() => Items.Clear();
+    public bool Contains(File item) => Items.Contains(item);
+    public void CopyTo(File[] array, int arrayIndex) => Items.CopyTo(array, arrayIndex);
+    public bool Remove(File item) => Items.Remove(item);
+    IEnumerator IEnumerable.GetEnumerator() => Items.GetEnumerator();
+    public IEnumerator<File> GetEnumerator()
+    {
+      foreach (var item in Items) yield return item;
+    }
+
   }
 
   public class File
@@ -73,10 +92,12 @@ namespace LibOrbisPkg.GP4
     public string OrigPath;
   }
 
-  public class Dir : List<Dir>
+  public class Dir
   {
     [XmlAttribute("targ_name")]
     public string TargetName;
+    [XmlElement(ElementName = "dir")]
+    public List<Dir> Items = new List<Dir>();
   }
 
 }

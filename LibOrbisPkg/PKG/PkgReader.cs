@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Text;
+using LibOrbisPkg.Util;
 
 namespace LibOrbisPkg.PKG
 {
-  class PkgReader : Util.ReaderBase
+  public class PkgReader : Util.ReaderBase
   {
     public PkgReader(System.IO.Stream s) : base(true, s)
     {
@@ -14,8 +16,8 @@ namespace LibOrbisPkg.PKG
     {
       var hdr = new Pkg.Header();
       s.Position = 0x00;
-      hdr.CNTMagic = ReadBytes(4);
-      if (!hdr.CNTMagic.Equals(Pkg.Magic))
+      hdr.CNTMagic = s.ReadASCIINullTerminated(4);
+      if (hdr.CNTMagic != Pkg.MAGIC)
         throw new Exception("Invalid CNT header");
       s.Position = 0x04;
       hdr.flags = (PKGFlags)UInt();
@@ -38,11 +40,11 @@ namespace LibOrbisPkg.PKG
       s.Position = 0x28;
       hdr.body_size = ULong();
       s.Position = 0x40;
-      hdr.content_id = ReadBytes(Pkg.Header.PKG_CONTENT_ID_SIZE); // Length = PKG_CONTENT_ID_SIZE
+      hdr.content_id = s.ReadASCIINullTerminated(Pkg.Header.PKG_CONTENT_ID_SIZE); // Length = PKG_CONTENT_ID_SIZE
       s.Position = 0x70;
-      hdr.drm_type = UInt();
+      hdr.drm_type = (DrmType)UInt();
       s.Position = 0x74;
-      hdr.content_type = UInt();
+      hdr.content_type = (ContentType)UInt();
       s.Position = 0x78;
       hdr.content_flags = (ContentFlags)UInt();
       s.Position = 0x7C;

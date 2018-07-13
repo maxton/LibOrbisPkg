@@ -42,14 +42,17 @@ namespace LibOrbisPkg.PKG
     SS_THEME = 0x2,
   };
 
+  [Flags]
   public enum PKGFlags : uint
   {
+    Unknown = 0x01,
     VER_1 = 0x01000000,
     VER_2 = 0x02000000,
     INTERNAL = 0x40000000,
     FINALIZED = 0x80000000,
   }
 
+  [Flags]
   public enum ContentFlags : uint
   {
     FIRST_PATCH = 0x00100000,
@@ -58,7 +61,7 @@ namespace LibOrbisPkg.PKG
     PS_CLOUD = 0x00800000,
     GD_AC = 0x02000000,
     NON_GAME = 0x04000000,
-    x8000000 = 0x08000000, /* has data? */
+    Unk_x8000000 = 0x08000000, /* has data? */
     SUBSEQUENT_PATCH = 0x40000000,
     DELTA_PATCH = 0x41000000,
     CUMULATIVE_PATCH = 0x60000000,
@@ -689,122 +692,69 @@ namespace LibOrbisPkg.PKG
     public const int PKG_TABLE_ENTRY_SIZE = 0x20;
     public const int PKG_ENTRY_KEYSET_SIZE = 0x20;
     public const int HASH_SIZE = 0x20;
-    public static readonly byte[] Magic = { 0x7F, 0x43, 0x4E, 0x54 };
+    public const string MAGIC = "\u007FCNT";
     public Header header;
 
-
-    [StructLayout(LayoutKind.Explicit, Size = PKG_HEADER_SIZE)]
     public struct Header
     {
       public const int PKG_CONTENT_ID_SIZE = 0x30;
       public const int PKG_HEADER_SIZE = 0x5A0;
       public const int PKG_ENTRY_KEYSET_ENC_SIZE = 0x100;
-      [FieldOffset(0x00)]
-      public byte[] CNTMagic;
-      [FieldOffset(0x04)]
+      public string CNTMagic;
       public PKGFlags flags;
-      [FieldOffset(0x08)]
       public uint unk_0x08;
-      [FieldOffset(0x0C)]
       public uint unk_0x0C; /* 0xF */
-      [FieldOffset(0x10)]
       public uint entry_count;
-      [FieldOffset(0x14)]
       public ushort sc_entry_count;
-      [FieldOffset(0x16)]
       public ushort entry_count_2; /* same as entry_count */
-      [FieldOffset(0x18)]
       public uint entry_table_offset;
-      [FieldOffset(0x1C)]
       public uint main_ent_data_size;
-      [FieldOffset(0x20)]
       public ulong body_offset;
-      [FieldOffset(0x28)]
       public ulong body_size;
-      [FieldOffset(0x40)]
-      public byte[] content_id; // Length = PKG_CONTENT_ID_SIZE
-      [FieldOffset(0x70)]
-      public uint drm_type;
-      [FieldOffset(0x74)]
-      public uint content_type;
-      [FieldOffset(0x78)]
+      public string content_id; // Length = PKG_CONTENT_ID_SIZE
+      public DrmType drm_type;
+      public ContentType content_type;
       public ContentFlags content_flags;
-      [FieldOffset(0x7C)]
       public uint promote_size;
-      [FieldOffset(0x80)]
       public uint version_date;
-      [FieldOffset(0x84)]
       public uint version_hash;
-      [FieldOffset(0x88)]
       public uint unk_0x88; /* for delta patches only? */
-      [FieldOffset(0x8C)]
       public uint unk_0x8C; /* for delta patches only? */
-      [FieldOffset(0x90)]
       public uint unk_0x90; /* for delta patches only? */
-      [FieldOffset(0x94)]
       public uint unk_0x94; /* for delta patches only? */
-      [FieldOffset(0x98)]
       public uint iro_tag;
-      [FieldOffset(0x9C)]
       public uint ekc_version; /* drm type version */
-      [FieldOffset(0x100)]
       public byte[] sc_entries1_hash;
-      [FieldOffset(0x120)]
       public byte[] sc_entries2_hash;
-      [FieldOffset(0x140)]
       public byte[] digest_table_hash;
-      [FieldOffset(0x160)]
       public byte[] body_digest;
 
       // TODO: i think these fields are actually members of element of container array
-      [FieldOffset(0x400)]
       public uint unk_0x400;
-      [FieldOffset(0x404)]
       public uint pfs_image_count;
-      [FieldOffset(0x408)]
       public ulong pfs_flags;
-      [FieldOffset(0x410)]
       public ulong pfs_image_offset;
-      [FieldOffset(0x418)]
       public ulong pfs_image_size;
-      [FieldOffset(0x420)]
       public ulong mount_image_offset;
-      [FieldOffset(0x428)]
       public ulong mount_image_size;
-      [FieldOffset(0x430)]
       public ulong package_size;
-      [FieldOffset(0x438)]
       public uint pfs_signed_size;
-      [FieldOffset(0x43C)]
       public uint pfs_cache_size;
-      [FieldOffset(0x440)]
       public byte[] pfs_image_digest;
-      [FieldOffset(0x460)]
       public byte[] pfs_signed_digest;
-      [FieldOffset(0x480)]
       public ulong pfs_split_size_nth_0;
-      [FieldOffset(0x488)]
       public ulong pfs_split_size_nth_1;
     }
-
-    [StructLayout(LayoutKind.Explicit, Size = PKG_TABLE_ENTRY_SIZE)]
+    
     public struct PkgTableEntry
     {
-      [FieldOffset(0x00)]
       public byte[] raw_data; // PKG_TABLE_ENTRY_SIZE
-      [FieldOffset(0x00)]
       public EntryId id;
-      [FieldOffset(0x04)]
       public uint unk1;
-      [FieldOffset(0x08)]
       public uint flags1;
-      [FieldOffset(0x0C)]
       public uint flags2;
-      [FieldOffset(0x10)]
       public uint offset;
-      [FieldOffset(0x14)]
       public uint size;
-      [FieldOffset(0x18)]
       public ulong pad;
 
       uint key_index() => (flags2 & 0xF000) >> 12;
@@ -817,13 +767,10 @@ namespace LibOrbisPkg.PKG
     const string PKG_ENTRY_NAME__SHAREPARAM_JSON = "shareparam.json";
 
     const uint PKG_SC_ENTRY_ID_START = (uint)EntryId.LICENSE_DAT;
-
-    [StructLayout(LayoutKind.Explicit, Size = PKG_ENTRY_KEYSET_SIZE)]
+    
     public struct pkg_entry_keyset
     {
-      [FieldOffset(0)]
       public byte[] key;
-      [FieldOffset(16)]
       public byte[] iv;
     };
 
