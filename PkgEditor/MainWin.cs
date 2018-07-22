@@ -34,7 +34,7 @@ namespace PkgEditor
       using (var fs = File.OpenRead(filename))
       {
         var proj = LibOrbisPkg.GP4.Gp4Project.ReadFrom(fs);
-        OpenTab(new Views.ObjectView(proj), Path.GetFileName(filename));
+        OpenTab(new Views.GP4View(proj), Path.GetFileName(filename));
       }
     }
 
@@ -71,6 +71,11 @@ namespace PkgEditor
     private void openPKGToolStripMenuItem_Click(object sender, EventArgs e)
     {
       ShowOpenFileDialog("Open PKG Package", "PKG|*.pkg", openPkg);
+    }
+
+    private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      tabs.TabPages.Remove(tabs.SelectedTab);
     }
   }
 }

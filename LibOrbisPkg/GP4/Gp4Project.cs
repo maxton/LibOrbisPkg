@@ -90,6 +90,7 @@ namespace LibOrbisPkg.GP4
     public string TargetPath;
     [XmlAttribute("orig_path")]
     public string OrigPath;
+    public string FileName => TargetPath.Substring(TargetPath.LastIndexOf('/') + 1);
   }
 
   public class Dir
