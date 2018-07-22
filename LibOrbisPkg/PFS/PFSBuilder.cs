@@ -45,7 +45,7 @@ namespace LibOrbisPkg.PFS
 
       Console.WriteLine("Setting up root structure...");
       SetupRootStructure();
-      BuildFSTree(root, p.RootDirectory);
+      BuildFSTree(root, p.proj, p.projDir);
       allDirs = root.GetAllChildrenDirs();
       allFiles = root.GetAllChildrenFiles();
       allNodes = new List<FSNode>(allDirs);
@@ -67,8 +67,8 @@ namespace LibOrbisPkg.PFS
 
       Console.WriteLine("Writing image file...");
       hdr.Ndblock = allFiles.Sum((f) => CeilDiv(f.Size, hdr.BlockSize));
-      using (var stream = File.Create(p.ImageFilename))
       {
+        var stream = p.output;
         Console.WriteLine("Writing header...");
         hdr.WriteToStream(stream);
         Console.WriteLine("Writing inodes...");
@@ -224,25 +224,45 @@ namespace LibOrbisPkg.PFS
     /// <summary>
     /// Takes a directory and a root node, and recursively makes a filesystem tree.
     /// </summary>
-    /// <param name="root"></param>
-    /// <param name="rootDir"></param>
-    void BuildFSTree(FSDir root, string rootDir)
+    /// <param name="root">Root directory of the image</param>
+    /// <param name="proj">GP4 Project</param>
+    /// <param name="projDir">Directory of GP4 file</param>
+    void BuildFSTree(FSDir root, GP4.Gp4Project proj, string projDir)
     {
-      foreach (var d in Directory.EnumerateDirectories(rootDir))
+      void AddDirs(FSDir parent, List<GP4.Dir> imgDir)
       {
-        FSDir dir;
-        root.Dirs.Add(dir = new FSDir { name = Path.GetFileName(d), Parent = root });
-        BuildFSTree(dir, d);
+        foreach (var d in imgDir)
+        {
+          FSDir dir;
+          parent.Dirs.Add(dir = new FSDir { name = d.TargetName, Parent = parent });
+          AddDirs(dir, d.Items);
+        }
+      }
+      FSDir FindDir(string name)
+      {
+        FSDir dir = root;
+        var breadcrumbs = name.Split('/');
+        foreach(var crumb in breadcrumbs)
+        {
+          dir = dir.Dirs.Where(d => d.name == crumb).First();
+        }
+        return dir;
       }
 
-      foreach (var f in Directory.EnumerateFiles(rootDir))
+      AddDirs(root, proj.RootDir[0].Items);
+
+      foreach (var f in proj.files)
       {
-        root.Files.Add(new FSFile
+        var lastSlash = f.TargetPath.LastIndexOf('/') + 1;
+        var name = f.TargetPath.Substring(lastSlash);
+        var source = Path.Combine(projDir, f.OrigPath);
+        var parent = lastSlash == 0 ? root : FindDir(f.TargetPath.Substring(0, lastSlash - 1));
+        parent.Files.Add(new FSFile
         {
-          Parent = root,
-          name = Path.GetFileName(f),
-          OrigFileName = f,
-          Size = new FileInfo(f).Length
+          Parent = parent,
+          name = name,
+          OrigFileName = source,
+          Size = new FileInfo(source).Length
         });
       }
     }

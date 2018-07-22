@@ -2,8 +2,9 @@
 {
   public class PfsProperties
   {
-    public string RootDirectory;
+    public GP4.Gp4Project proj;
     public uint BlockSize;
-    public string ImageFilename;
+    public System.IO.Stream output;
+    public string projDir;
   }
 }
