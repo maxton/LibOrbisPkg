@@ -68,13 +68,21 @@ namespace PkgEditor.Views
         AddDir(d, root);
     }
 
-    private void PopulateFiles(string dir)
+    private void PopulateFiles(string prefix, List<Dir> d)
     {
-      var files = proj.files.Where(f => f.TargetPath.LastIndexOf('/') < dir.Length && f.TargetPath.StartsWith(dir));
       filesListView.Items.Clear();
+      foreach (var dir in d)
+      {
+        var item = filesListView.Items.Add(new ListViewItem(dir.TargetName));
+        item.ImageIndex = 0;
+        item.Tag = dir;
+      }
+      var files = proj.files.Where(f => f.TargetPath.LastIndexOf('/') < prefix.Length && f.TargetPath.StartsWith(prefix));
       foreach (var f in files)
       {
-        filesListView.Items.Add(new ListViewItem(f.FileName));
+        var item = filesListView.Items.Add(new ListViewItem(f.FileName));
+        item.ImageIndex = 1;
+        item.Tag = f;
       }
     }
     
@@ -87,7 +95,7 @@ namespace PkgEditor.Views
         prefix = node.Text + "/" + prefix;
         node = node.Parent;
       }
-      PopulateFiles(prefix);
+      PopulateFiles(prefix, e.Node.Tag == proj.RootDir ? proj.RootDir[0].Items : (e.Node.Tag as Dir).Items);
     }
 
     private void propertyChanged(object sender, EventArgs e)

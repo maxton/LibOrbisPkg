@@ -28,6 +28,8 @@
     /// </summary>
     private void InitializeComponent()
     {
+            this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GP4View));
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.dirsTreeView = new System.Windows.Forms.TreeView();
             this.filesListView = new System.Windows.Forms.ListView();
@@ -38,6 +40,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.textBoxContentId = new System.Windows.Forms.TextBox();
             this.button1 = new System.Windows.Forms.Button();
+            this.folderFileIcons = new System.Windows.Forms.ImageList(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -82,6 +85,7 @@
             this.filesListView.Location = new System.Drawing.Point(0, 0);
             this.filesListView.Name = "filesListView";
             this.filesListView.Size = new System.Drawing.Size(461, 317);
+            this.filesListView.SmallImageList = this.folderFileIcons;
             this.filesListView.TabIndex = 0;
             this.filesListView.UseCompatibleStateImageBehavior = false;
             this.filesListView.View = System.Windows.Forms.View.Details;
@@ -143,6 +147,13 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // folderFileIcons
+            // 
+            this.folderFileIcons.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("folderFileIcons.ImageStream")));
+            this.folderFileIcons.TransparentColor = System.Drawing.Color.Transparent;
+            this.folderFileIcons.Images.SetKeyName(0, "Folder_small.png");
+            this.folderFileIcons.Images.SetKeyName(1, "File_small.png");
+            // 
             // GP4View
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -176,5 +187,6 @@
     private System.Windows.Forms.ColumnHeader columnHeader1;
     private System.Windows.Forms.ColumnHeader columnHeader2;
     private System.Windows.Forms.Button button1;
+    private System.Windows.Forms.ImageList folderFileIcons;
   }
 }
