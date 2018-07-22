@@ -34,7 +34,7 @@ namespace PkgEditor
       using (var fs = File.OpenRead(filename))
       {
         var proj = LibOrbisPkg.GP4.Gp4Project.ReadFrom(fs);
-        OpenTab(new Views.GP4View(proj), Path.GetFileName(filename));
+        OpenTab(new Views.GP4View(proj, filename), Path.GetFileName(filename));
       }
     }
 
@@ -47,15 +47,17 @@ namespace PkgEditor
       }
     }
 
-    public void OpenTab(UserControl c, string name)
+    public void OpenTab(Views.View c, string name)
     {
       var x = new TabPage(name);
       c.Name = name;
       x.Controls.Add(c);
       //c.SetBrowser(this);
+      c.SaveStatusChanged += UpdateSaveButtons;
       c.Dock = DockStyle.Fill;
       tabs.TabPages.Add(x);
       tabs.SelectedTab = x;
+      UpdateSaveButtons();
     }
     
     private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -76,6 +78,25 @@ namespace PkgEditor
     private void closeToolStripMenuItem_Click(object sender, EventArgs e)
     {
       tabs.TabPages.Remove(tabs.SelectedTab);
+    }
+
+    private Views.View CurrentView => tabs.SelectedTab?.Controls[0] as Views.View;
+    private void UpdateSaveButtons(object sender = null, EventArgs e = null)
+    {
+      var v = CurrentView;
+      if (v == null) return;
+      saveToolStripMenuItem.Enabled = v.CanSave;
+      saveAsToolStripMenuItem.Enabled = v.CanSaveAs;
+    }
+
+    private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      CurrentView?.Save();
+    }
+
+    private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      CurrentView?.SaveAs();
     }
   }
 }

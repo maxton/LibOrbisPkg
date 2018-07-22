@@ -10,8 +10,11 @@ using System.Collections;
 
 namespace PkgEditor.Views
 {
-  public partial class ObjectView : UserControl
+  public partial class ObjectView : View
   {
+    public override bool CanSave => false;
+    public override bool CanSaveAs => false;
+
     public ObjectView(object obj)
     {
       InitializeComponent();

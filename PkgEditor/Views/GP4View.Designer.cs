@@ -31,12 +31,13 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.dirsTreeView = new System.Windows.Forms.TreeView();
             this.filesListView = new System.Windows.Forms.ListView();
+            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.textBoxPasscode = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.textBoxContentId = new System.Windows.Forms.TextBox();
-            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.button1 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -85,12 +86,24 @@
             this.filesListView.UseCompatibleStateImageBehavior = false;
             this.filesListView.View = System.Windows.Forms.View.Details;
             // 
+            // columnHeader1
+            // 
+            this.columnHeader1.Text = "Name";
+            this.columnHeader1.Width = 200;
+            // 
+            // columnHeader2
+            // 
+            this.columnHeader2.Text = "Size";
+            this.columnHeader2.Width = 100;
+            // 
             // textBoxPasscode
             // 
             this.textBoxPasscode.Location = new System.Drawing.Point(3, 55);
+            this.textBoxPasscode.MaxLength = 32;
             this.textBoxPasscode.Name = "textBoxPasscode";
             this.textBoxPasscode.Size = new System.Drawing.Size(232, 20);
             this.textBoxPasscode.TabIndex = 1;
+            this.textBoxPasscode.TextChanged += new System.EventHandler(this.propertyChanged);
             // 
             // label1
             // 
@@ -113,24 +126,28 @@
             // textBoxContentId
             // 
             this.textBoxContentId.Location = new System.Drawing.Point(3, 16);
+            this.textBoxContentId.MaxLength = 36;
             this.textBoxContentId.Name = "textBoxContentId";
             this.textBoxContentId.Size = new System.Drawing.Size(275, 20);
             this.textBoxContentId.TabIndex = 3;
+            this.textBoxContentId.TextChanged += new System.EventHandler(this.propertyChanged);
             // 
-            // columnHeader1
+            // button1
             // 
-            this.columnHeader1.Text = "Name";
-            this.columnHeader1.Width = 200;
-            // 
-            // columnHeader2
-            // 
-            this.columnHeader2.Text = "Size";
-            this.columnHeader2.Width = 100;
+            this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.button1.Location = new System.Drawing.Point(625, 3);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 49);
+            this.button1.TabIndex = 5;
+            this.button1.Text = "Build PFS";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // GP4View
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.textBoxContentId);
             this.Controls.Add(this.label1);
@@ -158,5 +175,6 @@
     private System.Windows.Forms.TextBox textBoxContentId;
     private System.Windows.Forms.ColumnHeader columnHeader1;
     private System.Windows.Forms.ColumnHeader columnHeader2;
+    private System.Windows.Forms.Button button1;
   }
 }
