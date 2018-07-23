@@ -1,0 +1,33 @@
+version: 0.1.{build}
+
+branches:
+  only:
+    - master
+
+image: Visual Studio 2017
+
+configuration: Release
+
+platform: Any CPU
+assembly_info:
+  patch: true
+  file: '**\AssemblyInfo.*'
+  assembly_version: '{version}.0'
+  assembly_file_version: '{version}.0'
+  assembly_informational_version: '{version}.0'
+
+build:
+  project: LibOrbisPkg.sln
+  parallel: true
+  verbosity: minimal
+
+after_build:
+ - >
+   7z a LibOrbisPkg-%APPVEYOR_BUILD_VERSION%.zip 
+   %APPVEYOR_BUILD_FOLDER%\PkgTool\bin\Release\PkgTool.exe
+   %APPVEYOR_BUILD_FOLDER%\PkgEditor\bin\Release\PkgEditor.exe
+   %APPVEYOR_BUILD_FOLDER%\LibOrbisPkg\bin\Release\LibOrbisPkg.dll
+   %APPVEYOR_BUILD_FOLDER%\README.md
+   %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
+artifacts:
+- path: LibForge-%APPVEYOR_BUILD_VERSION%.zip
