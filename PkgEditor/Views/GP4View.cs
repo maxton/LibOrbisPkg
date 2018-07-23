@@ -39,7 +39,7 @@ namespace PkgEditor.Views
         this.path = path;
         contentIdTextBox.Text = proj.volume.Package.ContentId;
         passcodeTextBox.Text = proj.volume.Package.Passcode;
-        PopulateDirs(proj.RootDir[0].Items);
+        PopulateDirs(proj.RootDir);
       }
       loaded = true;
     }
@@ -95,7 +95,7 @@ namespace PkgEditor.Views
         prefix = node.Text + "/" + prefix;
         node = node.Parent;
       }
-      PopulateFiles(prefix, e.Node.Tag == proj.RootDir ? proj.RootDir[0].Items : (e.Node.Tag as Dir).Items);
+      PopulateFiles(prefix, e.Node.Tag == proj.RootDir ? proj.RootDir : (e.Node.Tag as Dir).Items);
     }
 
     private void propertyChanged(object sender, EventArgs e)

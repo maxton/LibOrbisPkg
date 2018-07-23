@@ -249,7 +249,7 @@ namespace LibOrbisPkg.PFS
         return dir;
       }
 
-      AddDirs(root, proj.RootDir[0].Items);
+      AddDirs(root, proj.RootDir);
 
       foreach (var f in proj.files)
       {

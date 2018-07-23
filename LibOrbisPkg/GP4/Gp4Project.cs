@@ -20,7 +20,8 @@ namespace LibOrbisPkg.GP4
     [XmlArrayItem(Type = typeof(File), ElementName = "file")]
     [XmlArray(ElementName = "files")]
     public Files files;
-    [XmlElement(ElementName = "rootdir")]
+    [XmlArrayItem(Type = typeof(Dir), ElementName = "dir")]
+    [XmlArray(ElementName = "rootdir")]
     public List<Dir> RootDir = new List<Dir>();
 
     public static void WriteTo(Gp4Project proj, System.IO.Stream s)
