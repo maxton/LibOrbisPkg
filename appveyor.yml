@@ -30,4 +30,4 @@ after_build:
    %APPVEYOR_BUILD_FOLDER%\README.md
    %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
 artifacts:
-- path: LibForge-%APPVEYOR_BUILD_VERSION%.zip
+- path: LibOrbisPkg-%APPVEYOR_BUILD_VERSION%.zip
