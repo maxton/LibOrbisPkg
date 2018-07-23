@@ -50,7 +50,49 @@ namespace LibOrbisPkg.GP4
 
   public enum VolumeType
   {
+    bd25,
+    bd50,
+    bd50_50,
+    bd50_25,
+    bd25_50,
+    exfat,
+    pfs_plain,
+    pfs_signed,
+    pfs_nested,
+    pkg_ps4_app,
+    pkg_ps4_patch,
+    pkg_ps4_remaster,
     pkg_ps4_ac_data,
+    pkg_ps4_ac_nodata,
+    pkg_ps4_sf_theme,
+    pkg_ps4_theme,
+  }
+
+  public static class VolumeTypeUtil
+  {
+    public static VolumeType OfString(string s)
+    {
+      switch (s)
+      {
+        case "bd25": return VolumeType.bd25;
+        case "bd50": return VolumeType.bd50;
+        case "bd50_50": return VolumeType.bd50_50;
+        case "bd50_25": return VolumeType.bd50_25;
+        case "bd25_50": return VolumeType.bd25_50;
+        case "exfat": return VolumeType.exfat;
+        case "pfs_plain": return VolumeType.pfs_plain;
+        case "pfs_signed": return VolumeType.pfs_signed;
+        case "pfs_nested": return VolumeType.pfs_nested;
+        case "pkg_ps4_app": return VolumeType.pkg_ps4_app;
+        case "pkg_ps4_patch": return VolumeType.pkg_ps4_patch;
+        case "pkg_ps4_remaster": return VolumeType.pkg_ps4_remaster;
+        case "pkg_ps4_ac_data": return VolumeType.pkg_ps4_ac_data;
+        case "pkg_ps4_ac_nodata": return VolumeType.pkg_ps4_ac_nodata;
+        case "pkg_ps4_sf_theme": return VolumeType.pkg_ps4_sf_theme;
+        case "pkg_ps4_theme": return VolumeType.pkg_ps4_theme;
+        default: throw new Exception("Unknown Volume Type: " + s);
+      }
+    }
   }
 
   public class PackageInfo
@@ -91,6 +133,7 @@ namespace LibOrbisPkg.GP4
     [XmlAttribute("orig_path")]
     public string OrigPath;
     public string FileName => TargetPath.Substring(TargetPath.LastIndexOf('/') + 1);
+    public string DirName => TargetPath.Substring(0, TargetPath.LastIndexOf('/') + 1);
   }
 
   public class Dir

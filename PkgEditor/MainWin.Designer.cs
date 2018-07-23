@@ -91,6 +91,7 @@
             // 
             // closeToolStripMenuItem
             // 
+            this.closeToolStripMenuItem.Enabled = false;
             this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
             this.closeToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.W)));
             this.closeToolStripMenuItem.Size = new System.Drawing.Size(195, 22);

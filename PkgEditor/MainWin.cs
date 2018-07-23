@@ -58,6 +58,7 @@ namespace PkgEditor
       tabs.TabPages.Add(x);
       tabs.SelectedTab = x;
       UpdateSaveButtons();
+      closeToolStripMenuItem.Enabled = true;
     }
     
     private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -78,6 +79,10 @@ namespace PkgEditor
     private void closeToolStripMenuItem_Click(object sender, EventArgs e)
     {
       tabs.TabPages.Remove(tabs.SelectedTab);
+      if(tabs.TabPages.Count == 0)
+      {
+        closeToolStripMenuItem.Enabled = false;
+      }
     }
 
     private Views.View CurrentView => tabs.SelectedTab?.Controls[0] as Views.View;

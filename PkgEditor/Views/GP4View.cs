@@ -37,8 +37,8 @@ namespace PkgEditor.Views
       {
         this.proj = proj;
         this.path = path;
-        textBoxContentId.Text = proj.volume.Package.ContentId;
-        textBoxPasscode.Text = proj.volume.Package.Passcode;
+        contentIdTextBox.Text = proj.volume.Package.ContentId;
+        passcodeTextBox.Text = proj.volume.Package.Passcode;
         PopulateDirs(proj.RootDir[0].Items);
       }
       loaded = true;
@@ -100,8 +100,12 @@ namespace PkgEditor.Views
 
     private void propertyChanged(object sender, EventArgs e)
     {
-      if(loaded)
+      if (loaded)
+      {
         Modified = true;
+        proj.volume.Package.ContentId = contentIdTextBox.Text;
+        proj.volume.Package.Passcode = passcodeTextBox.Text;
+      }
     }
 
     private void button1_Click(object sender, EventArgs e)
@@ -126,6 +130,66 @@ namespace PkgEditor.Views
           Console.WriteLine("Done! Saved to {0}", ofd.FileName);
         }
       }
+    }
+
+    private void filesListView_AfterLabelEdit(object sender, LabelEditEventArgs e)
+    {
+      if (e.Label == "" || e.Label == null)
+      {
+        e.CancelEdit = true;
+        return;
+      }
+      var item = filesListView.Items[e.Item];
+      if(item.Tag is LibOrbisPkg.GP4.File)
+      {
+        var f = item.Tag as LibOrbisPkg.GP4.File;
+        var newName = f.DirName + e.Label;
+        if(newName != f.TargetPath)
+        {
+          Modified = true;
+          f.TargetPath = newName;
+        }
+        else
+        {
+          e.CancelEdit = true;
+        }
+      }
+      else
+      {
+        // TODO: dirs
+        e.CancelEdit = true;
+      }
+    }
+
+
+    private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      foreach(var i in filesListView.SelectedItems)
+      {
+        var item = i as ListViewItem;
+        if (item.Tag is LibOrbisPkg.GP4.File)
+        {
+          var f = item.Tag as LibOrbisPkg.GP4.File;
+          proj.files.Remove(f);
+          filesListView.Items.Remove(item);
+          Modified = true;
+        }
+        else
+        {
+          // TODO: dirs
+        }
+      }
+    }
+
+    private void renameToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      filesListView.SelectedItems[0].BeginEdit();
+    }
+
+    private void fileViewContextMenu_Opening(object sender, CancelEventArgs e)
+    {
+      renameToolStripMenuItem.Enabled = filesListView.SelectedItems.Count == 1;
+      deleteToolStripMenuItem.Enabled = filesListView.SelectedItems.Count > 0;
     }
   }
 }
