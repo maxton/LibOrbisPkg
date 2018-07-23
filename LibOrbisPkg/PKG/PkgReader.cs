@@ -62,7 +62,7 @@ namespace LibOrbisPkg.PKG
       s.Position = 0x94;
       hdr.unk_0x94 = UInt(); /* for delta patches only? */
       s.Position = 0x98;
-      hdr.iro_tag = UInt();
+      hdr.iro_tag = (IROTag)UInt();
       s.Position = 0x9C;
       hdr.ekc_version = UInt(); /* drm type version */
       s.Position = 0x100;

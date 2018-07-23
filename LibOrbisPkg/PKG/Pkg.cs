@@ -36,6 +36,7 @@ namespace LibOrbisPkg.PKG
 
   public enum IROTag : int
   {
+    None = 0,
     /* SHAREfactory theme */
     SF_THEME = 0x1,
     /* System Software theme */
@@ -722,7 +723,7 @@ namespace LibOrbisPkg.PKG
       public uint unk_0x8C; /* for delta patches only? */
       public uint unk_0x90; /* for delta patches only? */
       public uint unk_0x94; /* for delta patches only? */
-      public uint iro_tag;
+      public IROTag iro_tag;
       public uint ekc_version; /* drm type version */
       public byte[] sc_entries1_hash;
       public byte[] sc_entries2_hash;
@@ -748,17 +749,16 @@ namespace LibOrbisPkg.PKG
     
     public struct PkgTableEntry
     {
-      public byte[] raw_data; // PKG_TABLE_ENTRY_SIZE
       public EntryId id;
-      public uint unk1;
+      public uint name_table_offset;
       public uint flags1;
       public uint flags2;
       public uint offset;
       public uint size;
       public ulong pad;
 
-      uint key_index() => (flags2 & 0xF000) >> 12;
-      bool is_encrypted() => (flags1 & 0x80000000) != 0;
+      uint KeyIndex => (flags2 & 0xF000) >> 12;
+      bool Encrypted => (flags1 & 0x80000000) != 0;
     }
 
 
@@ -822,6 +822,6 @@ namespace LibOrbisPkg.PKG
     uint size;
 
     uint key_index;
-    int is_encrypted;
+    public bool Encrypted => (flags1 & 0x80000000u) != 0;
   }
 }

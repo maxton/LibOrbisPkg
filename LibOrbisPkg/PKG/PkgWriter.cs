@@ -54,7 +54,7 @@ namespace LibOrbisPkg.PKG
       s.Position = 0x94;
       Write(hdr.unk_0x94); /* for delta patches only? */
       s.Position = 0x98;
-      Write(hdr.iro_tag);
+      Write((uint)hdr.iro_tag);
       s.Position = 0x9C;
       Write(hdr.ekc_version); /* drm type version */
       s.Position = 0x100;
