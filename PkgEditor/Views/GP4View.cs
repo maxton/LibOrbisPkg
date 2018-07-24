@@ -58,7 +58,24 @@ namespace PkgEditor.Views
     public override bool CanSaveAs => true;
     public override void Save()
     {
+      using (var fs = File.OpenWrite(path))
+      {
+        fs.SetLength(0);
+        Gp4Project.WriteTo(proj, fs);
+      }
       Modified = false;
+    }
+    public override void SaveAs()
+    {
+      var ofd = new SaveFileDialog
+      {
+        Filter = "GP4 Projects|*.gp4",
+      };
+      if(ofd.ShowDialog() == DialogResult.OK)
+      {
+        path = ofd.FileName;
+        Save();
+      }
     }
 
     private void PopulateDirs()
