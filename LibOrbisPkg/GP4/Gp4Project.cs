@@ -17,7 +17,7 @@ namespace LibOrbisPkg.GP4
     public int version;
     [XmlElement(ElementName = "volume")]
     public Volume volume;
-    [XmlArrayItem(Type = typeof(File), ElementName = "file")]
+    [XmlArrayItem(Type = typeof(Gp4File), ElementName = "file")]
     [XmlArray(ElementName = "files")]
     public Files files;
     [XmlArrayItem(Type = typeof(Dir), ElementName = "dir")]
@@ -33,7 +33,92 @@ namespace LibOrbisPkg.GP4
     public static Gp4Project ReadFrom(System.IO.Stream s)
     {
       XmlSerializer mySerializer = new XmlSerializer(typeof(Gp4Project));
-      return (Gp4Project)mySerializer.Deserialize(s);
+      var proj = (Gp4Project)mySerializer.Deserialize(s);
+      // Fixup dir tree
+      void setParent(List<Dir> dirs, Dir parent)
+      {
+        foreach(var dir in dirs)
+        {
+          dir.Parent = parent;
+          setParent(dir.Children, dir);
+        }
+      }
+      setParent(proj.RootDir, null);
+      return proj;
+    }
+
+    public void RenameFile(Gp4File f, string newName)
+    {
+      f.TargetPath = f.DirName + newName;
+    }
+
+    public void RenameDir(Dir d, string newName)
+    {
+      var origPath = d.Path;
+      d.TargetName = newName;
+      var newPath = d.Path;
+      foreach (var file in files)
+      {
+        if (file.TargetPath.StartsWith(origPath))
+        {
+          file.TargetPath = newPath + file.FileName;
+        }
+      }
+    }
+
+    /// <summary>
+    /// Deletes the given file from this project.
+    /// </summary>
+    public void DeleteFile(Gp4File f)
+    {
+      files.Remove(f);
+    }
+
+    /// <summary>
+    /// Deletes the directory and all files and subdirectories.
+    /// </summary>
+    public void DeleteDir(Dir d)
+    {
+      var path = d.Path;
+      var deleteQueue = new List<Gp4File>();
+      // This covers all children files, too.
+      foreach (var f in files)
+      {
+        if (f.TargetPath.StartsWith(path))
+          deleteQueue.Add(f);
+      }
+      foreach (var f in deleteQueue)
+      {
+        files.Remove(f);
+      }
+      RootDir.Remove(d);
+      DeleteDirs(d);
+    }
+
+    public Dir AddDir(Dir parent, string name)
+    {
+      var newDir = new Dir
+      {
+        TargetName = name,
+        Parent = parent,
+        Children = new List<Dir>(),
+      };
+      (parent?.Children ?? RootDir).Add(newDir);
+      return newDir;
+    }
+
+    /// <summary>
+    /// Unlinks all directories in the given directory's subtree.
+    /// </summary>
+    private static void DeleteDirs(Dir dir)
+    {
+      dir.Parent?.Children.Remove(dir);
+      dir.Parent = null;
+      // Work on a copy of the children so we can modify the original list
+      foreach (var d2 in dir.Children.ToList())
+        DeleteDirs(d2);
+      dir.Children.Clear();
+      dir.Children = null;
     }
   }
 
@@ -104,30 +189,30 @@ namespace LibOrbisPkg.GP4
     public string Passcode;
   }
 
-  public class Files : ICollection<File>
+  public class Files : ICollection<Gp4File>
   {
     [XmlAttribute("img_no")]
     public int ImageNum;
     [XmlIgnore]
-    public List<File> Items = new List<File>();
+    public List<Gp4File> Items = new List<Gp4File>();
     [XmlIgnore]
     public int Count => Items.Count;
     [XmlIgnore]
     public bool IsReadOnly => false;
-    public void Add(File item) => Items.Add(item);
+    public void Add(Gp4File item) => Items.Add(item);
     public void Clear() => Items.Clear();
-    public bool Contains(File item) => Items.Contains(item);
-    public void CopyTo(File[] array, int arrayIndex) => Items.CopyTo(array, arrayIndex);
-    public bool Remove(File item) => Items.Remove(item);
+    public bool Contains(Gp4File item) => Items.Contains(item);
+    public void CopyTo(Gp4File[] array, int arrayIndex) => Items.CopyTo(array, arrayIndex);
+    public bool Remove(Gp4File item) => Items.Remove(item);
     IEnumerator IEnumerable.GetEnumerator() => Items.GetEnumerator();
-    public IEnumerator<File> GetEnumerator()
+    public IEnumerator<Gp4File> GetEnumerator()
     {
       foreach (var item in Items) yield return item;
     }
 
   }
 
-  public class File
+  public class Gp4File
   {
     [XmlAttribute("targ_path")]
     public string TargetPath;
@@ -142,7 +227,23 @@ namespace LibOrbisPkg.GP4
     [XmlAttribute("targ_name")]
     public string TargetName;
     [XmlElement(ElementName = "dir")]
-    public List<Dir> Items = new List<Dir>();
+    public List<Dir> Children = new List<Dir>();
+    [XmlIgnore]
+    public Dir Parent;
+    public string Path
+    {
+      get
+      {
+        var prefix = "";
+        var dir = this;
+        while (dir != null)
+        {
+          prefix = dir.TargetName + "/" + prefix;
+          dir = dir.Parent;
+        }
+        return prefix;
+      }
+    }
   }
 
 }

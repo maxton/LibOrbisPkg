@@ -235,7 +235,7 @@ namespace LibOrbisPkg.PFS
         {
           FSDir dir;
           parent.Dirs.Add(dir = new FSDir { name = d.TargetName, Parent = parent });
-          AddDirs(dir, d.Items);
+          AddDirs(dir, d.Children);
         }
       }
       FSDir FindDir(string name)

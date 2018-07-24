@@ -14,6 +14,9 @@ namespace PkgEditor.Views
   public partial class GP4View : View
   {
     private Gp4Project proj;
+    /// <summary>
+    /// The full path to the current active project
+    /// </summary>
     private string path;
     private bool loaded = false;
     private bool modified = false;
@@ -29,6 +32,11 @@ namespace PkgEditor.Views
         OnSaveStatusChanged();
       }
     }
+    /// <summary>
+    /// The current path that's being displayed in the file listview
+    /// </summary>
+    private string listViewPath = "";
+    private Dir currentDir = null;
 
     public GP4View(Gp4Project proj, string path) : base()
     {
@@ -39,7 +47,9 @@ namespace PkgEditor.Views
         this.path = path;
         contentIdTextBox.Text = proj.volume.Package.ContentId;
         passcodeTextBox.Text = proj.volume.Package.Passcode;
-        PopulateDirs(proj.RootDir);
+        currentDir = null;
+        PopulateDirs();
+
       }
       loaded = true;
     }
@@ -51,36 +61,46 @@ namespace PkgEditor.Views
       Modified = false;
     }
 
-    private void PopulateDirs(List<Dir> dirs)
+    private void PopulateDirs()
     {
       void AddDir(Dir d, TreeNode n)
       {
         var node = n.Nodes.Add(d.TargetName);
         node.Tag = d;
-        foreach (var dir in d.Items)
+        if(d == currentDir)
+        {
+          dirsTreeView.SelectedNode = node;
+        }
+        foreach (var dir in d.Children)
           AddDir(dir, node);
       }
 
       dirsTreeView.Nodes.Clear();
       var root = dirsTreeView.Nodes.Add("Image0");
       root.Tag = proj.RootDir;
-      foreach (var d in dirs)
+      foreach (var d in proj.RootDir)
         AddDir(d, root);
+      dirsTreeView.ExpandAll();
+      if(currentDir == null)
+      {
+        dirsTreeView.SelectedNode = root;
+      }
     }
 
-    private void PopulateFiles(string prefix, List<Dir> d)
+    private void PopulateFiles()
     {
       filesListView.Items.Clear();
-      foreach (var dir in d)
+      foreach (var dir in currentDir?.Children ?? proj.RootDir)
       {
         var item = filesListView.Items.Add(new ListViewItem(dir.TargetName));
         item.ImageIndex = 0;
         item.Tag = dir;
       }
-      var files = proj.files.Where(f => f.TargetPath.LastIndexOf('/') < prefix.Length && f.TargetPath.StartsWith(prefix));
+      var files = proj.files.Where(f => f.TargetPath.LastIndexOf('/') < listViewPath.Length && f.TargetPath.StartsWith(listViewPath));
       foreach (var f in files)
       {
-        var item = filesListView.Items.Add(new ListViewItem(f.FileName));
+        var item = filesListView.Items.Add(
+          new ListViewItem(new string[] { f.FileName, f.OrigPath }));
         item.ImageIndex = 1;
         item.Tag = f;
       }
@@ -88,14 +108,17 @@ namespace PkgEditor.Views
     
     private void dirsTreeView_AfterSelect(object sender, TreeViewEventArgs e)
     {
-      var prefix = "";
-      var node = e.Node;
-      while(node.Tag != proj.RootDir)
+      if (e.Node.Tag is Dir dir)
       {
-        prefix = node.Text + "/" + prefix;
-        node = node.Parent;
+        listViewPath = dir.Path;
+        currentDir = dir;
       }
-      PopulateFiles(prefix, e.Node.Tag == proj.RootDir ? proj.RootDir : (e.Node.Tag as Dir).Items);
+      else
+      {
+        listViewPath = "";
+        currentDir = null;
+      }
+      PopulateFiles();
     }
 
     private void propertyChanged(object sender, EventArgs e)
@@ -134,51 +157,59 @@ namespace PkgEditor.Views
 
     private void filesListView_AfterLabelEdit(object sender, LabelEditEventArgs e)
     {
-      if (e.Label == "" || e.Label == null)
-      {
-        e.CancelEdit = true;
-        return;
-      }
       var item = filesListView.Items[e.Item];
-      if(item.Tag is LibOrbisPkg.GP4.File)
+      if (e.Label == "" || e.Label == null || e.Label == item.Text)
+        goto cancel;
+      // Ensure you don't rename something to an existing name
+      foreach (ListViewItem i in filesListView.Items)
       {
-        var f = item.Tag as LibOrbisPkg.GP4.File;
-        var newName = f.DirName + e.Label;
-        if(newName != f.TargetPath)
+        if (i.Text == e.Label)
         {
-          Modified = true;
-          f.TargetPath = newName;
-        }
-        else
-        {
-          e.CancelEdit = true;
+          item.BeginEdit();
+          goto cancel;
         }
       }
-      else
+      if (item.Tag is Gp4File f)
       {
-        // TODO: dirs
+        if (e.Label == f.FileName) goto cancel;
+        proj.RenameFile(f, e.Label);
+        Modified = true;
+      }
+      else if(item.Tag is Dir d)
+      {
+        if (d.TargetName == e.Label) goto cancel;
+        proj.RenameDir(d, e.Label);
+        Modified = true;
+        PopulateDirs();
+      }
+      return;
+      cancel:
         e.CancelEdit = true;
-      }
     }
 
 
     private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
     {
-      foreach(var i in filesListView.SelectedItems)
+      if(filesListView.SelectedItems.Count == 0)
+      {
+        return;
+      }
+
+      foreach (var i in filesListView.SelectedItems)
       {
         var item = i as ListViewItem;
-        if (item.Tag is LibOrbisPkg.GP4.File)
+        if (item.Tag is Gp4File f)
         {
-          var f = item.Tag as LibOrbisPkg.GP4.File;
-          proj.files.Remove(f);
-          filesListView.Items.Remove(item);
-          Modified = true;
+          proj.DeleteFile(f);
         }
-        else
+        else if (item.Tag is Dir d)
         {
-          // TODO: dirs
+          proj.DeleteDir(d);
         }
       }
+      Modified = true;
+      PopulateDirs();
+      PopulateFiles();
     }
 
     private void renameToolStripMenuItem_Click(object sender, EventArgs e)
@@ -190,6 +221,89 @@ namespace PkgEditor.Views
     {
       renameToolStripMenuItem.Enabled = filesListView.SelectedItems.Count == 1;
       deleteToolStripMenuItem.Enabled = filesListView.SelectedItems.Count > 0;
+    }
+
+    private void filesListView_DragEnter(object sender, DragEventArgs e)
+    {
+      if (e.Data.GetDataPresent(DataFormats.FileDrop))
+      {
+        e.Effect = DragDropEffects.Copy;
+      }
+    }
+
+    private void AddFile(string targetPath, string origPath)
+    {
+      var f = origPath;
+      var projDir = Path.GetDirectoryName(path);
+      if (origPath.StartsWith(projDir))
+      {
+        f = origPath.Substring(projDir.Length + 1);
+      }
+      var fileEntry = new Gp4File
+      {
+        OrigPath = f,
+        TargetPath = targetPath + Path.GetFileName(origPath)
+      };
+      proj.files.Add(fileEntry);
+    }
+
+    private void AddFileTree(Dir parent, string path)
+    {
+      var newDir = proj.AddDir(parent, Path.GetFileName(path));
+      foreach (var d in Directory.EnumerateDirectories(path))
+      {
+        AddFileTree(newDir, d);
+      }
+      var targetPath = newDir.Path;
+      foreach(var f in Directory.EnumerateFiles(path))
+      {
+        AddFile(targetPath, f);
+      }
+    }
+
+    private void filesListView_DragDrop(object sender, DragEventArgs e)
+    {
+      var files = ((string[])e.Data.GetData(DataFormats.FileDrop));
+      foreach(var file in files)
+      {
+        if (File.Exists(file))
+        {
+          AddFile(listViewPath, file);
+        }
+        else if (Directory.Exists(file))
+        {
+          AddFileTree(currentDir, file);
+          PopulateDirs();
+        }
+      }
+      PopulateFiles();
+    }
+
+    private void newFolderToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      var dir = proj.AddDir(currentDir, "New Folder");
+      PopulateFiles();
+      foreach(ListViewItem item in filesListView.Items)
+      {
+        if(item.Tag == dir)
+        {
+          item.BeginEdit();
+        }
+      }
+    }
+
+    private void filesListView_DoubleClick(object sender, EventArgs e)
+    {
+      if(filesListView.SelectedItems.Count == 1)
+      {
+        if(filesListView.SelectedItems[0].Tag is Dir d)
+        {
+          currentDir = d;
+          listViewPath = d.Path;
+          PopulateDirs();
+          PopulateFiles();
+        }
+      }
     }
   }
 }

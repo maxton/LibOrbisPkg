@@ -38,6 +38,7 @@
             this.fileViewContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.renameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.newFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.folderFileIcons = new System.Windows.Forms.ImageList(this.components);
             this.passcodeTextBox = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -73,6 +74,7 @@
             // dirsTreeView
             // 
             this.dirsTreeView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dirsTreeView.HideSelection = false;
             this.dirsTreeView.Location = new System.Drawing.Point(0, 0);
             this.dirsTreeView.Name = "dirsTreeView";
             this.dirsTreeView.Size = new System.Drawing.Size(232, 317);
@@ -81,6 +83,7 @@
             // 
             // filesListView
             // 
+            this.filesListView.AllowDrop = true;
             this.filesListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1,
             this.columnHeader2});
@@ -96,39 +99,50 @@
             this.filesListView.UseCompatibleStateImageBehavior = false;
             this.filesListView.View = System.Windows.Forms.View.Details;
             this.filesListView.AfterLabelEdit += new System.Windows.Forms.LabelEditEventHandler(this.filesListView_AfterLabelEdit);
+            this.filesListView.DragDrop += new System.Windows.Forms.DragEventHandler(this.filesListView_DragDrop);
+            this.filesListView.DragEnter += new System.Windows.Forms.DragEventHandler(this.filesListView_DragEnter);
+            this.filesListView.DoubleClick += new System.EventHandler(this.filesListView_DoubleClick);
             // 
             // columnHeader1
             // 
             this.columnHeader1.Text = "Name";
-            this.columnHeader1.Width = 200;
+            this.columnHeader1.Width = 219;
             // 
             // columnHeader2
             // 
-            this.columnHeader2.Text = "Size";
-            this.columnHeader2.Width = 100;
+            this.columnHeader2.Text = "Source";
+            this.columnHeader2.Width = 144;
             // 
             // fileViewContextMenu
             // 
             this.fileViewContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.renameToolStripMenuItem,
-            this.deleteToolStripMenuItem});
+            this.deleteToolStripMenuItem,
+            this.newFolderToolStripMenuItem});
             this.fileViewContextMenu.Name = "contextMenuStrip1";
-            this.fileViewContextMenu.Size = new System.Drawing.Size(118, 48);
+            this.fileViewContextMenu.Size = new System.Drawing.Size(135, 70);
             this.fileViewContextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.fileViewContextMenu_Opening);
             // 
             // renameToolStripMenuItem
             // 
             this.renameToolStripMenuItem.Name = "renameToolStripMenuItem";
-            this.renameToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
+            this.renameToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
             this.renameToolStripMenuItem.Text = "Rename";
             this.renameToolStripMenuItem.Click += new System.EventHandler(this.renameToolStripMenuItem_Click);
             // 
             // deleteToolStripMenuItem
             // 
             this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
-            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
+            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
             this.deleteToolStripMenuItem.Text = "Delete";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
+            // 
+            // newFolderToolStripMenuItem
+            // 
+            this.newFolderToolStripMenuItem.Name = "newFolderToolStripMenuItem";
+            this.newFolderToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+            this.newFolderToolStripMenuItem.Text = "New Folder";
+            this.newFolderToolStripMenuItem.Click += new System.EventHandler(this.newFolderToolStripMenuItem_Click);
             // 
             // folderFileIcons
             // 
@@ -222,5 +236,6 @@
     private System.Windows.Forms.ContextMenuStrip fileViewContextMenu;
     private System.Windows.Forms.ToolStripMenuItem renameToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem newFolderToolStripMenuItem;
   }
 }
