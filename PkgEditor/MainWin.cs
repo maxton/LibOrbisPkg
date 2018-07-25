@@ -103,5 +103,37 @@ namespace PkgEditor
     {
       CurrentView?.SaveAs();
     }
+
+    private void newGp4ProjectMenuItem_Click(object sender, EventArgs e)
+    {
+      var proj = new LibOrbisPkg.GP4.Gp4Project
+      {
+        files = new LibOrbisPkg.GP4.Files(),
+        Format = "gp4",
+        RootDir = new List<LibOrbisPkg.GP4.Dir>(),
+        version = 1000,
+        volume = new LibOrbisPkg.GP4.Volume
+        {
+          Type = "pkg_ps4_ac_data",
+          TimeStamp = DateTime.UtcNow.ToString("s").Replace('T', ' '),
+          Package = new LibOrbisPkg.GP4.PackageInfo
+          {
+            ContentId = "XXXXXX-CUSA00000_00-ZZZZZZZZZZZZZZZZ",
+            Passcode = "00000000000000000000000000000000"
+          }
+        }
+      };
+      var sfd = new SaveFileDialog()
+      {
+        Title = "Choose project location...",
+        Filter = "GP4 Projects|*.gp4",
+      };
+      if(sfd.ShowDialog() == DialogResult.OK)
+      {
+        var view = new Views.GP4View(proj, sfd.FileName);
+        OpenTab(view, "*" + Path.GetFileName(sfd.FileName));
+        view.Modified = true;
+      }
+    }
   }
 }

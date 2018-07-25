@@ -22,7 +22,7 @@ namespace PkgEditor.Views
     private string path;
     private bool loaded = false;
     private bool modified = false;
-    private bool Modified
+    public bool Modified
     {
       get => modified;
       set {
@@ -53,7 +53,6 @@ namespace PkgEditor.Views
         PopulateDirs();
 
       }
-      loaded = true;
     }
 
     public override bool CanSave => Modified;
