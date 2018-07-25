@@ -6,6 +6,8 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using LibOrbisPkg.GP4;
+using LibOrbisPkg.PFS;
+using LibOrbisPkg.PKG;
 using System.IO;
 using System.Windows.Forms;
 
@@ -148,7 +150,7 @@ namespace PkgEditor.Views
       }
     }
 
-    private void button1_Click(object sender, EventArgs e)
+    private void buildPfs_Click(object sender, EventArgs e)
     {
       var ofd = new SaveFileDialog();
       ofd.Filter = "PFS Image|*.dat";
@@ -158,15 +160,34 @@ namespace PkgEditor.Views
         var logBox = new LogWindow();
         Console.SetOut(logBox.GetWriter());
         logBox.Show();
-        using (var fs = System.IO.File.OpenWrite(ofd.FileName))
+        using (var fs = File.OpenWrite(ofd.FileName))
         {
-          new LibOrbisPkg.PFS.PfsBuilder().BuildPfs(new LibOrbisPkg.PFS.PfsProperties
+          new PfsBuilder().BuildPfs(new LibOrbisPkg.PFS.PfsProperties
           {
             BlockSize = 65536,
             output = fs,
             proj = proj,
             projDir = Path.GetDirectoryName(path)
           });
+          Console.WriteLine("Done! Saved to {0}", ofd.FileName);
+        }
+      }
+    }
+
+    private void buildPkg_Click(object sender, EventArgs e)
+    {
+      var ofd = new SaveFileDialog();
+      ofd.Filter = "PKG Image|*.pkg";
+      ofd.Title = "Choose output path for PKG";
+      ofd.FileName = proj.volume.Package.ContentId + ".pkg";
+      if (ofd.ShowDialog() == DialogResult.OK)
+      {
+        var logBox = new LogWindow();
+        Console.SetOut(logBox.GetWriter());
+        logBox.Show();
+        using (var fs = File.OpenWrite(ofd.FileName))
+        {
+          new PkgBuilder(proj, Path.GetDirectoryName(path)).Write(fs);
           Console.WriteLine("Done! Saved to {0}", ofd.FileName);
         }
       }

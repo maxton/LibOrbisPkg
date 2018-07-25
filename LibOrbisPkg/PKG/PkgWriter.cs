@@ -7,6 +7,20 @@ namespace LibOrbisPkg.PKG
   public class PkgWriter : Util.WriterBase
   {
     public PkgWriter(System.IO.Stream s) : base(true, s) { }
+    public void WritePkg(Pkg pkg)
+    {
+      WriteHeader(pkg.Header);
+      s.Position = 0xFE0;
+      Write(pkg.PackageDigest);
+      s.Position = 0x1000;
+      Write(pkg.UnkKey);
+      s.Position = (long)pkg.Header.body_offset;
+      foreach (var entry in pkg.Entries)
+      {
+        entry.Write(s);
+      }
+    }
+
     public void WriteHeader(in Header hdr)
     {
       s.Position = 0x00;

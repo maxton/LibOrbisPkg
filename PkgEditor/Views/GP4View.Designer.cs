@@ -44,7 +44,8 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.contentIdTextBox = new System.Windows.Forms.TextBox();
-            this.button1 = new System.Windows.Forms.Button();
+            this.buildPfsButton = new System.Windows.Forms.Button();
+            this.buildPkgButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -187,22 +188,34 @@
             this.contentIdTextBox.TabIndex = 3;
             this.contentIdTextBox.TextChanged += new System.EventHandler(this.propertyChanged);
             // 
-            // button1
+            // buildPfsButton
             // 
-            this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button1.Location = new System.Drawing.Point(625, 3);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 49);
-            this.button1.TabIndex = 5;
-            this.button1.Text = "Build PFS";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.buildPfsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buildPfsButton.Location = new System.Drawing.Point(625, 3);
+            this.buildPfsButton.Name = "buildPfsButton";
+            this.buildPfsButton.Size = new System.Drawing.Size(75, 49);
+            this.buildPfsButton.TabIndex = 5;
+            this.buildPfsButton.Text = "Build PFS";
+            this.buildPfsButton.UseVisualStyleBackColor = true;
+            this.buildPfsButton.Click += new System.EventHandler(this.buildPfs_Click);
+            // 
+            // buildPkgButton
+            // 
+            this.buildPkgButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buildPkgButton.Location = new System.Drawing.Point(544, 3);
+            this.buildPkgButton.Name = "buildPkgButton";
+            this.buildPkgButton.Size = new System.Drawing.Size(75, 49);
+            this.buildPkgButton.TabIndex = 6;
+            this.buildPkgButton.Text = "Build PKG";
+            this.buildPkgButton.UseVisualStyleBackColor = true;
+            this.buildPkgButton.Click += new System.EventHandler(this.buildPkg_Click);
             // 
             // GP4View
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.buildPkgButton);
+            this.Controls.Add(this.buildPfsButton);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.contentIdTextBox);
             this.Controls.Add(this.label1);
@@ -231,11 +244,12 @@
     private System.Windows.Forms.TextBox contentIdTextBox;
     private System.Windows.Forms.ColumnHeader columnHeader1;
     private System.Windows.Forms.ColumnHeader columnHeader2;
-    private System.Windows.Forms.Button button1;
+    private System.Windows.Forms.Button buildPfsButton;
     private System.Windows.Forms.ImageList folderFileIcons;
     private System.Windows.Forms.ContextMenuStrip fileViewContextMenu;
     private System.Windows.Forms.ToolStripMenuItem renameToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem newFolderToolStripMenuItem;
+    private System.Windows.Forms.Button buildPkgButton;
   }
 }

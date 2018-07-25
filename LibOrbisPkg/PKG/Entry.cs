@@ -19,7 +19,7 @@ namespace LibOrbisPkg.PKG
   /// <summary>
   /// The representation of an entry in the PKG entry table.
   /// </summary>
-  public struct MetaEntry
+  public class MetaEntry
   {
     public EntryId id;
     public uint NameTableOffset;
@@ -123,6 +123,7 @@ namespace LibOrbisPkg.PKG
       if (name == null || name == "") return 0;
       if(!Names.ContainsKey(name))
       {
+        nameList.Add(name);
         Names[name] = length;
         length += name.Length + 1;
       }
@@ -172,7 +173,7 @@ namespace LibOrbisPkg.PKG
 
   public class MetasEntry : Entry
   {
-    public List<MetaEntry> Metas;
+    public List<MetaEntry> Metas = new List<MetaEntry>();
     public override EntryId Id => EntryId.METAS;
     public override uint Length => (uint) Metas.Count * 32;
     public override string Name => null;

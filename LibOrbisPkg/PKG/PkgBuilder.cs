@@ -10,12 +10,46 @@ namespace LibOrbisPkg.PKG
   public class PkgBuilder
   {
     private GP4.Gp4Project project;
-    private string projectPath;
+    private string projectDir;
 
-    public PkgBuilder(GP4.Gp4Project proj, string src_path)
+    public PkgBuilder(GP4.Gp4Project proj, string proj_dir)
     {
       project = proj;
-      projectPath = src_path;
+      projectDir = proj_dir;
+    }
+
+    /// <summary>
+    /// Writes your PKG to the given stream.
+    /// Assumes exclusive use of the stream (writes are absolute, relative to 0)
+    /// </summary>
+    /// <param name="s"></param>
+    /// <returns>Completed Pkg structure</returns>
+    public Pkg Write(Stream s)
+    {
+      var pkg = BuildPkg();
+
+      // Write PFS first, to get stream length
+      s.Position = (long) pkg.Header.pfs_image_offset;
+      var pfsStream = new OffsetStream(s, s.Position);
+      new PFS.PfsBuilder().BuildPfs(new PFS.PfsProperties
+      {
+        BlockSize = 65536,
+        output = pfsStream,
+        proj = project,
+        projDir = projectDir,
+      });
+      var align = s.Length % 65536;
+      if (align != 0)
+        s.SetLength(s.Length + 65536 - align);
+
+      pkg.Header.body_size = pkg.Header.pfs_image_offset - pkg.Header.body_offset;
+      pkg.Header.package_size = (ulong)s.Length;
+      pkg.Header.mount_image_size = (ulong)s.Length;
+      pkg.Header.pfs_image_size = (ulong)pfsStream.Length;
+      // Now write header
+      s.Position = 0;
+      new PkgWriter(s).WritePkg(pkg);
+      return pkg;
     }
 
     public Pkg BuildPkg()
@@ -93,13 +127,13 @@ namespace LibOrbisPkg.PKG
       pkg.Metas = new MetasEntry();
       pkg.Digests = new GenericEntry(EntryId.DIGESTS);
       pkg.EntryNames = new NameTableEntry();
-      pkg.LicenseDat = new GenericEntry(EntryId.LICENSE_DAT);
-      pkg.LicenseInfo = new GenericEntry(EntryId.LICENSE_INFO);
+      pkg.LicenseDat = new GenericEntry(EntryId.LICENSE_DAT) { FileData = new byte[1024] };
+      pkg.LicenseInfo = new GenericEntry(EntryId.LICENSE_INFO) { FileData = new byte[512] };
       var paramSfoPath = project.files.Where(f => f.TargetPath == "sce_sys/param.sfo").First().OrigPath;
-      using (var paramSfo = File.OpenRead(Path.Combine(projectPath, paramSfoPath)))
+      using (var paramSfo = File.OpenRead(Path.Combine(projectDir, paramSfoPath)))
         pkg.ParamSfo = new GenericEntry(EntryId.PARAM_SFO, "param.sfo")
         {
-          FileData = paramSfo.ReadBytes((int)paramSfo.Length)
+          FileData = SFO.ParamSfo.Update(paramSfo)
         };
       pkg.PsReservedDat = new GenericEntry(EntryId.PSRESERVED_DAT) { FileData = new byte[0x2000] };
       pkg.Entries = new List<Entry>
@@ -115,10 +149,18 @@ namespace LibOrbisPkg.PKG
         pkg.ParamSfo,
         pkg.PsReservedDat
       };
+      pkg.Digests.FileData = new byte[pkg.Entries.Count * Pkg.HASH_SIZE];
+
+      // 1st pass: set names
+      foreach (var entry in pkg.Entries)
+      {
+        pkg.EntryNames.GetOffset(entry.Name);
+      }
+      // 2nd pass: set sizes, offsets in meta table
       var dataOffset = 0x2000u;
       foreach(var entry in pkg.Entries)
       {
-        pkg.Metas.Metas.Add(new MetaEntry
+        var e = new MetaEntry
         {
           id = entry.Id,
           NameTableOffset = pkg.EntryNames.GetOffset(entry.Name),
@@ -127,15 +169,24 @@ namespace LibOrbisPkg.PKG
           // TODO
           Flags1 = 0,
           Flags2 = 0,
-        });
-        dataOffset += entry.Length;
+        };
+        pkg.Metas.Metas.Add(e);
+        if(entry == pkg.Metas)
+        {
+          e.DataSize = (uint)pkg.Entries.Count * 32;
+        }
+
+        dataOffset += e.DataSize;
+
+        var align = dataOffset % 16;
+        if (align != 0)
+          dataOffset += 16 - align;
       }
       pkg.Metas.Metas.Sort((e1, e2) => e1.id.CompareTo(e2.id));
-
       pkg.Header.entry_count = (uint)pkg.Entries.Count;
       pkg.Header.entry_count_2 = (ushort)pkg.Entries.Count;
       pkg.Header.body_size = dataOffset;
-      // TODO: pkg.Header.package_size
+      // TODO: mount_image_size, package_size
       return pkg;
     }
 
