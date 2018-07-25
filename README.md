@@ -13,7 +13,6 @@ All code in this repository is licensed under the GNU LGPL version 3, which can 
 PkgEditor is a GUI tool with which you can edit GP4 projects, and build PKG and PFS archives.
 Click `File -> Open GP4...`, then click `Build PKG` to create a PKG.
 
-Screenshot:
 ![Screenshot](https://i.imgur.com/BsNFQDo.png)
 
 ### PkgTool
