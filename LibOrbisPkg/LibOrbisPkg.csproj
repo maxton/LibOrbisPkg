@@ -44,6 +44,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GP4\Gp4Project.cs" />
+    <Compile Include="PKG\Entry.cs" />
+    <Compile Include="PKG\Enums.cs" />
+    <Compile Include="PKG\PkgBuilder.cs" />
     <Compile Include="PFS\FlatPathTable.cs" />
     <Compile Include="PFS\FSTree.cs" />
     <Compile Include="PFS\PFSBuilder.cs" />
@@ -53,6 +56,7 @@
     <Compile Include="PKG\PkgReader.cs" />
     <Compile Include="PKG\PkgWriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Util\OffsetStream.cs" />
     <Compile Include="Util\ReaderBase.cs" />
     <Compile Include="Util\StreamExtensions.cs" />
     <Compile Include="Util\WriterBase.cs" />

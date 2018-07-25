@@ -7,7 +7,7 @@ namespace LibOrbisPkg.PKG
   public class PkgWriter : Util.WriterBase
   {
     public PkgWriter(System.IO.Stream s) : base(true, s) { }
-    public void WriteHeader(in Pkg.Header hdr)
+    public void WriteHeader(in Header hdr)
     {
       s.Position = 0x00;
       Write(Encoding.ASCII.GetBytes(hdr.CNTMagic));

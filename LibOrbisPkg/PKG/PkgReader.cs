@@ -12,9 +12,9 @@ namespace LibOrbisPkg.PKG
     {
     }
 
-    public Pkg.Header ReadHeader()
+    public Header ReadHeader()
     {
-      var hdr = new Pkg.Header();
+      var hdr = new Header();
       s.Position = 0x00;
       hdr.CNTMagic = s.ReadASCIINullTerminated(4);
       if (hdr.CNTMagic != Pkg.MAGIC)
@@ -40,7 +40,7 @@ namespace LibOrbisPkg.PKG
       s.Position = 0x28;
       hdr.body_size = ULong();
       s.Position = 0x40;
-      hdr.content_id = s.ReadASCIINullTerminated(Pkg.Header.PKG_CONTENT_ID_SIZE); // Length = PKG_CONTENT_ID_SIZE
+      hdr.content_id = s.ReadASCIINullTerminated(Pkg.PKG_CONTENT_ID_SIZE); // Length = PKG_CONTENT_ID_SIZE
       s.Position = 0x70;
       hdr.drm_type = (DrmType)UInt();
       s.Position = 0x74;
