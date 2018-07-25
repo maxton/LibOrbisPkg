@@ -1,0 +1,229 @@
+//--------------------------------------
+//--- 010 Editor v6.0.2 Binary Template
+//
+// File: PS4PFS.bt
+// Author:
+// Revision:
+// Purpose:
+//--------------------------------------
+LittleEndian();
+
+typedef union {
+    time_t time;
+    uint64 time_64;
+} time_t64;
+
+
+typedef struct {
+    uint32 unk;
+    uint32 unk2;
+    uint64 inode_blocks_sz;
+    
+    uint64 unk3;
+    struct { 
+        time_t64 unk1_tv_sec;
+        time_t64 unk2_tv_sec;
+        time_t64 unk3_tv_sec;
+        time_t64 unk4_tv_sec; 
+        uint32 unk1_tv_nsec;
+        uint32 unk2_tv_nsec;
+        uint32 unk3_tv_nsec;
+        uint32 unk4_tv_nsec;
+    } times;
+    int32 uid;
+    int32 gid;
+    int64 pad[2];
+    int64 blocks;
+    struct {
+        uchar hmac[32];
+        uint64 blkno;
+    } sigs[blocks];
+} inode_blocks_sig;
+
+typedef struct {
+    int16 mode;
+    int16 nlink;
+    int32 unk;
+    int64 size;
+    int64 size2;
+    struct { 
+        time_t64 unk1_tv_sec;
+        time_t64 unk2_tv_sec;
+        time_t64 unk3_tv_sec;
+        time_t64 unk4_tv_sec; 
+        uint32 unk1_tv_nsec;
+        uint32 unk2_tv_nsec;
+        uint32 unk3_tv_nsec;
+        uint32 unk4_tv_nsec;
+    } times;
+    int32 uid;
+    int32 gid;
+    int64 unk2[2];
+    int64 blocks;
+    int64 db[12];
+    int64 ib[5];
+} di_d64;
+
+typedef struct {
+    int64 unk[5];
+} idxBlockDescriptor;
+
+
+typedef struct {
+    struct {
+        uint16 o_read : 1;
+        uint16 o_write : 1;
+        uint16 o_execute : 1;
+        uint16 g_read : 1;
+        uint16 g_write : 1;
+        uint16 g_execute : 1;
+        uint16 u_read : 1;
+        uint16 u_write : 1;
+        uint16 u_execute : 1;
+        uint16 unk : 5;
+        uint16 dir : 1;
+        uint16 file : 1;
+    } mode;
+    uint16 nlink;
+    struct {
+        uint compressed : 1;
+        uint unk : 3;
+        uint readonly : 1;
+        uint unk2 : 12;
+        uint internal : 1;
+    } flags;
+    uint64 size;
+    uint64 size_compressed;
+    struct { 
+        time_t64 unk1_tv_sec;
+        time_t64 unk2_tv_sec;
+        time_t64 unk3_tv_sec;
+        time_t64 unk4_tv_sec; 
+        uint32 unk1_tv_nsec;
+        uint32 unk2_tv_nsec;
+        uint32 unk3_tv_nsec;
+        uint32 unk4_tv_nsec;
+    } times;
+    uint32 uid;
+    uint32 gid;
+    uint64 unk2[2];
+    uint32 blocks;
+    int db[12];
+    uint32 ib[5];
+} di_d32 <read=DID32READ>;
+
+string DID32READ( di_d32 &m )
+{
+ char outbuf[100];
+ 
+ SPrintf(outbuf, "%s, size %u (%u blocks) start %x", 
+    m.mode.dir ? "Directory" : "File", m.size, m.blocks, m.db[0]);
+ return outbuf;
+}
+
+
+
+// modes:
+// 0x8 : read-only
+// 0x4 : compressed
+// 0x2 : ??
+// 0x1 : encrypted
+
+typedef struct {
+    local int start = FTell();
+    int64 version; // 1
+    int64 magic; // 20130305 (march 5 2013???)
+    int32 id[2];
+    uchar fmode;
+    uchar clean;
+    uchar ronly;
+    uchar rsv;
+    struct {
+        uint16 is_signed : 1;
+        uint16 is_64_bit : 1;
+        uint16 encrypted: 1;
+        uint16 unk_always_1 : 1;
+        uint16 unk : 12;
+    } mode;
+    int16 unk1;
+    int32 blocksz;
+    int32 nbackup;
+    int64 nblock;
+    int64 dinodeCount; // changes
+    int64 ndblock; // changes
+    int64 dinodeBlockCount; // changes
+    int64 superroot_ino; // zeroes
+    inode_blocks_sig inode_64;
+    FSeek(start + 0x370);
+    byte crypt_seed[16];
+} PFS_HDR;
+
+
+typedef struct {
+    int32 ino;
+    int32 type;
+    int32 namelen;
+    int32 entsize;
+    char name[];
+    if((FTell() & 7) != 0)
+        char space[(FTell() + 7 & (~7)) - FTell()];
+} dirent<read=DIRENTRD>;
+
+string DIRENTRD(dirent& di){
+    return di.name;
+}
+typedef struct {
+    int32 dib_num;
+    int32 numdirs;
+} dirent_block;
+
+typedef struct {
+    local int offset = FTell();
+    PFS_HDR header;
+    //idxBlockDescriptor blocks[header.dinodeBlockCount];
+    FSeek(offset + header.blocksz);
+    local int numDirs;
+    local int total;
+    if(header.mode.encrypted) {
+        char encrypted_data[0];
+    } else {
+        struct dinode_block {
+            local int maxPerSector = header.blocksz / sizeof(di_d32);
+            local int i;
+            local int j;
+            total = 0;
+            for(i = 0; i < header.dinodeBlockCount; i++) {
+                FSeek(offset + header.blocksz + header.blocksz * i);
+                for(j = 0; j < maxPerSector && total < header.dinodeCount; j++){
+                    di_d32 dinode;
+                    if(dinode[i].mode.dir) numDirs++;
+                    total++;
+                }
+            }
+        } dinodes;
+        
+        
+        FSeek(offset + header.blocksz * dinodes.dinode[0].db[0]);
+        local int min_size = 280;
+        struct {
+            local int i;
+            local int cont;
+            local int blocks;
+            for(i =0; i< header.dinodeCount; i++) {
+                if((dinodes.dinode[i].mode.dir) != 1) continue;
+                FSeek(offset + header.blocksz * dinodes.dinode[i].db[0]);
+                
+                cont = true;
+                  while(cont == true){
+                    dirent d;
+                    
+                    cont = d.ino != 0;
+                  }
+            }
+        } dirent_blocks;
+    } // not encrypted
+} PFS_IMAGE;
+
+if(FTell() == 0) {
+    PFS_IMAGE image;
+}
