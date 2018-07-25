@@ -7,6 +7,24 @@ Without a proper open PKG tool, the PS4 homebrew scene cannot flourish.
 
 All code in this repository is licensed under the GNU LGPL version 3, which can be found in LICENSE.txt.
 
+## Usage
+
+### PkgEditor
+PkgEditor is a GUI tool with which you can edit GP4 projects, and build PKG and PFS archives.
+Click `File -> Open GP4...`, then click `Build PKG` to create a PKG.
+
+Screenshot:
+![Screenshot](https://i.imgur.com/BsNFQDo.png)
+
+### PkgTool
+```
+PkgTool.exe <verb> <input> <output>
+
+Verbs:
+  makepfs <input_project.gp4> <output_pfs.dat>
+  makepkg <input_project.gp4> <output_directory>
+ ```
+
 ## TODO
 
 - Reverse encryption and signatures
