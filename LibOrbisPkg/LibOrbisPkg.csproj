@@ -57,10 +57,14 @@
     <Compile Include="PKG\PkgWriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SFO\ParamSfo.cs" />
+    <Compile Include="Util\Crypto.cs" />
+    <Compile Include="Util\Keys.cs" />
     <Compile Include="Util\OffsetStream.cs" />
     <Compile Include="Util\ReaderBase.cs" />
     <Compile Include="Util\StreamExtensions.cs" />
+    <Compile Include="Util\SubStream.cs" />
     <Compile Include="Util\WriterBase.cs" />
+    <Compile Include="Util\XTSDecryptionStream.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

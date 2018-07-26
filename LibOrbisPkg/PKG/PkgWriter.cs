@@ -14,9 +14,15 @@ namespace LibOrbisPkg.PKG
       Write(pkg.PackageDigest);
       s.Position = 0x1000;
       Write(pkg.UnkKey);
+    }
+
+    public void WriteBody(Pkg pkg)
+    {
       s.Position = (long)pkg.Header.body_offset;
       foreach (var entry in pkg.Entries)
       {
+        // Align to 16 bytes
+        s.Position += (16 - (s.Position % 16)) % 16;
         entry.Write(s);
       }
     }

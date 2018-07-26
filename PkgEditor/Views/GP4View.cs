@@ -184,7 +184,7 @@ namespace PkgEditor.Views
         var logBox = new LogWindow();
         Console.SetOut(logBox.GetWriter());
         logBox.Show();
-        using (var fs = File.OpenWrite(ofd.FileName))
+        using (var fs = File.Open(ofd.FileName, FileMode.Create))
         {
           new PkgBuilder(proj, Path.GetDirectoryName(path)).Write(fs);
           Console.WriteLine("Done! Saved to {0}", ofd.FileName);

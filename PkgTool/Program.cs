@@ -36,9 +36,11 @@ namespace PkgTool
             var project = Gp4Project.ReadFrom(File.OpenRead(proj));
             var outputPath = args[2];
 
-            using (var outFile = File.OpenWrite(Path.Combine(
+            using (var outFile = File.Open(
+              Path.Combine(
                 outputPath,
-                $"{project.volume.Package.ContentId}.pkg")))
+                $"{project.volume.Package.ContentId}.pkg"),
+               FileMode.Create))
             {
               new PkgBuilder(project, Path.GetDirectoryName(proj)).Write(outFile);
             }

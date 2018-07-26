@@ -27,6 +27,7 @@ namespace LibOrbisPkg.PKG
     public Pkg Write(Stream s)
     {
       var pkg = BuildPkg();
+      var writer = new PkgWriter(s);
 
       // Write PFS first, to get stream length
       s.Position = (long) pkg.Header.pfs_image_offset;
@@ -42,16 +43,65 @@ namespace LibOrbisPkg.PKG
       if (align != 0)
         s.SetLength(s.Length + 65536 - align);
 
-      pkg.Header.body_size = pkg.Header.pfs_image_offset - pkg.Header.body_offset;
-      pkg.Header.package_size = (ulong)s.Length;
-      pkg.Header.mount_image_size = (ulong)s.Length;
-      pkg.Header.pfs_image_size = (ulong)pfsStream.Length;
+      // TODO: Encrypt PFS (could also be done while writing image)
+      // TODO: Generate hashes in Entries (body)
+      // TODO: Calculate keys in entries (image key, etc)
+
+      // Write body now because it will make calculating hashes easier.
+      writer.WriteBody(pkg);
+
+      CalcHeaderHashes(pkg, s);
+
+      // Update header sizes now that we know how big things are...
+      UpdateHeaderInfo(pkg, s.Length, pfsStream.Length);
+
       // Now write header
       s.Position = 0;
-      new PkgWriter(s).WritePkg(pkg);
+      writer.WritePkg(pkg);
       return pkg;
     }
 
+    private void UpdateHeaderInfo(Pkg pkg, long stream_length, long pfs_length)
+    {
+      pkg.Header.body_size = pkg.Header.pfs_image_offset - pkg.Header.body_offset;
+      pkg.Header.package_size = (ulong)stream_length;
+      pkg.Header.mount_image_size = (ulong)stream_length;
+      pkg.Header.pfs_image_size = (ulong)pfs_length;
+    }
+
+    private void CalcHeaderHashes(Pkg pkg, Stream s)
+    {
+      // Body Digest: SHA256 hash of entire body segment
+      pkg.Header.body_digest = Crypto.Sha256(s, (long)pkg.Header.body_offset, (long)pkg.Header.body_size);
+      // Digest table hash: SHA256 hash of digest table
+      pkg.Header.digest_table_hash = Crypto.Sha256(pkg.Digests.FileData);
+
+      using (var ms = new MemoryStream())
+      {
+        // SC Entries Hash 1: Hash of 5 SC entries
+        foreach (var entry in new Entry[] { pkg.EntryKeys, pkg.ImageKey, pkg.GeneralDigests, pkg.Metas, pkg.Digests })
+        {
+          entry.Write(ms);
+        }
+        pkg.Header.sc_entries1_hash = Crypto.Sha256(ms);
+
+        // SC Entries Hash 2: Hash of 4 SC entries
+        ms.SetLength(0);
+        foreach (var entry in new Entry[] { pkg.EntryKeys, pkg.ImageKey, pkg.GeneralDigests, pkg.Metas })
+        {
+          entry.Write(ms);
+        }
+        pkg.Header.sc_entries2_hash = Crypto.Sha256(ms);
+      }
+
+      // PFS Image 1st block and full SHA256 hashes
+      pkg.Header.pfs_signed_digest = Crypto.Sha256(s, (long)pkg.Header.pfs_image_offset, 0x10000);
+      pkg.Header.pfs_image_digest = Crypto.Sha256(s, (long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size);
+    }
+
+    /// <summary>
+    /// Create the Pkg struct. Does not compute hashes or data sizes.
+    /// </summary>
     public Pkg BuildPkg()
     {
       var pkg = new Pkg();
@@ -186,7 +236,6 @@ namespace LibOrbisPkg.PKG
       pkg.Header.entry_count = (uint)pkg.Entries.Count;
       pkg.Header.entry_count_2 = (ushort)pkg.Entries.Count;
       pkg.Header.body_size = dataOffset;
-      // TODO: mount_image_size, package_size
       return pkg;
     }
 
