@@ -18,7 +18,7 @@ assembly_info:
   assembly_informational_version: '{version}.0'
   
 install:
-- sh: git submodule update --init --recursive
+- cmd: git submodule update --init --recursive
 
 build:
   project: LibOrbisPkg.sln
