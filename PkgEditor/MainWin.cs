@@ -40,11 +40,8 @@ namespace PkgEditor
 
     private void openPkg(string filename)
     {
-      using (var fs = File.OpenRead(filename))
-      {
-        var pkg = new LibOrbisPkg.PKG.PkgReader(fs).ReadHeader();
-        OpenTab(new Views.ObjectView(pkg), Path.GetFileName(filename));
-      }
+      var pkg = GameArchives.Util.LocalFile(filename);
+      OpenTab(new Views.PkgView(pkg), Path.GetFileName(filename));
     }
 
     public void OpenTab(Views.View c, string name)

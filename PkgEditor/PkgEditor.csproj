@@ -8,8 +8,9 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>PkgEditor</RootNamespace>
     <AssemblyName>PkgEditor</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -20,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -29,6 +31,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -63,6 +66,12 @@
     <Compile Include="Views\GP4View.Designer.cs">
       <DependentUpon>GP4View.cs</DependentUpon>
     </Compile>
+    <Compile Include="Views\PkgView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\PkgView.Designer.cs">
+      <DependentUpon>PkgView.cs</DependentUpon>
+    </Compile>
     <Compile Include="Views\ObjectView.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -86,13 +95,18 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <EmbeddedResource Include="Views\GP4View.resx">
       <DependentUpon>GP4View.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Views\PkgView.resx">
+      <DependentUpon>PkgView.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Views\ObjectView.resx">
       <DependentUpon>ObjectView.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="app.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -104,6 +118,14 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\GameArchives\LibArchiveExplorer\LibArchiveExplorer.csproj">
+      <Project>{29722aa8-e9fc-4b5b-9c73-31a6293dba55}</Project>
+      <Name>LibArchiveExplorer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GameArchives\Library\GameArchives.csproj">
+      <Project>{906748f0-3a55-4b20-bccb-9dc7187f1d5e}</Project>
+      <Name>GameArchives</Name>
+    </ProjectReference>
     <ProjectReference Include="..\LibOrbisPkg\LibOrbisPkg.csproj">
       <Project>{b053f491-ff0f-4cbb-b03b-520591bb0441}</Project>
       <Name>LibOrbisPkg</Name>

@@ -26,6 +26,8 @@ after_build:
    7z a LibOrbisPkg-%APPVEYOR_BUILD_VERSION%.zip 
    %APPVEYOR_BUILD_FOLDER%\PkgTool\bin\Release\PkgTool.exe
    %APPVEYOR_BUILD_FOLDER%\PkgEditor\bin\Release\PkgEditor.exe
+   %APPVEYOR_BUILD_FOLDER%\PkgEditor\bin\Release\GameArchives.dll
+   %APPVEYOR_BUILD_FOLDER%\PkgEditor\bin\Release\LibArchiveExplorer.dll
    %APPVEYOR_BUILD_FOLDER%\LibOrbisPkg\bin\Release\LibOrbisPkg.dll
    %APPVEYOR_BUILD_FOLDER%\README.md
    %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
