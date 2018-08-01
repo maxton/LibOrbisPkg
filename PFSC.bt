@@ -1,0 +1,21 @@
+char Magic[4];
+int unk; // zero
+int unk; // 2 or 6
+int blocksz;
+uint64 blocksz2; // always the same as blocksz?
+uint64 block_offsets;   // start of block offsets
+uint64 data_start;  // start of compressed sectors
+uint64 data_length; // uncompressed image size
+
+FSeek(block_offsets);
+local uint64 num_blocks = data_length / blocksz;
+uint64 blocks[num_blocks + 1];
+
+FSeek(blocks[0]);
+local uint64 i = 0;
+struct {
+    for(i = 0; i < num_blocks; i++)
+        struct {
+            byte data[blocks[i + 1] - blocks[i]];
+        } sector<optimize=false>;
+} sectors;

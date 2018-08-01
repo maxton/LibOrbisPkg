@@ -68,22 +68,22 @@ typedef struct {
     int64 unk[5];
 } idxBlockDescriptor;
 
-
 typedef struct {
-    struct {
-        uint16 o_read : 1;
-        uint16 o_write : 1;
-        uint16 o_execute : 1;
-        uint16 g_read : 1;
-        uint16 g_write : 1;
-        uint16 g_execute : 1;
-        uint16 u_read : 1;
-        uint16 u_write : 1;
-        uint16 u_execute : 1;
-        uint16 unk : 5;
-        uint16 dir : 1;
-        uint16 file : 1;
-    } mode;
+    uint16 o_read : 1;
+    uint16 o_write : 1;
+    uint16 o_execute : 1;
+    uint16 g_read : 1;
+    uint16 g_write : 1;
+    uint16 g_execute : 1;
+    uint16 u_read : 1;
+    uint16 u_write : 1;
+    uint16 u_execute : 1;
+    uint16 unk : 5;
+    uint16 dir : 1;
+    uint16 file : 1;
+} ino_mode;
+typedef struct {
+    ino_mode mode;
     uint16 nlink;
     struct {
         uint compressed : 1;
@@ -108,16 +108,64 @@ typedef struct {
     uint32 gid;
     uint64 unk2[2];
     uint32 blocks;
-    int db[12];
-    uint32 ib[5];
+    struct {
+        int blockno;
+    } db[12];
+    struct {
+        uint32 blockno;
+    } ib[5];
 } di_d32 <read=DID32READ>;
+
+typedef struct {
+    ino_mode mode;
+    uint16 nlink;
+    struct {
+        uint compressed : 1;
+        uint unk : 3;
+        uint readonly : 1;
+        uint unk2 : 12;
+        uint internal : 1;
+    } flags;
+    uint64 size;
+    uint64 size_compressed;
+    struct { 
+        time_t64 unk1_tv_sec;
+        time_t64 unk2_tv_sec;
+        time_t64 unk3_tv_sec;
+        time_t64 unk4_tv_sec; 
+        uint32 unk1_tv_nsec;
+        uint32 unk2_tv_nsec;
+        uint32 unk3_tv_nsec;
+        uint32 unk4_tv_nsec;
+    } times;
+    uint32 uid;
+    uint32 gid;
+    uint64 unk2[2];
+    uint32 blocks;
+    struct {
+        char sig[32];
+        int blockno;
+    } db[12];
+    struct {
+        char sig[32];
+        uint32 blockno;
+    } ib[5];
+} di_s32 <read=DIS32READ>;
 
 string DID32READ( di_d32 &m )
 {
  char outbuf[100];
  
  SPrintf(outbuf, "%s, size %u (%u blocks) start %x", 
-    m.mode.dir ? "Directory" : "File", m.size, m.blocks, m.db[0]);
+    m.mode.dir ? "Directory" : "File", m.size, m.blocks, m.db[0].blockno);
+ return outbuf;
+}
+string DIS32READ( di_s32 &m )
+{
+ char outbuf[100];
+ 
+ SPrintf(outbuf, "%s, size %u (%u blocks) start %x", 
+    m.mode.dir ? "Directory" : "File", m.size, m.blocks, m.db[0].blockno);
  return outbuf;
 }
 
@@ -156,6 +204,7 @@ typedef struct {
     inode_blocks_sig inode_64;
     FSeek(start + 0x370);
     byte crypt_seed[16];
+    byte unk_sig[32];
 } PFS_HDR;
 
 
@@ -195,7 +244,11 @@ typedef struct {
             for(i = 0; i < header.dinodeBlockCount; i++) {
                 FSeek(offset + header.blocksz + header.blocksz * i);
                 for(j = 0; j < maxPerSector && total < header.dinodeCount; j++){
-                    di_d32 dinode;
+                    if(header.mode.is_signed){
+                        di_s32 dinode;
+                    } else {
+                        di_d32 dinode;
+                    }
                     if(dinode[i].mode.dir) numDirs++;
                     total++;
                 }
@@ -203,7 +256,7 @@ typedef struct {
         } dinodes;
         
         
-        FSeek(offset + header.blocksz * dinodes.dinode[0].db[0]);
+        FSeek(offset + header.blocksz * dinodes.dinode[0].db[0].blockno);
         local int min_size = 280;
         struct {
             local int i;
@@ -211,7 +264,7 @@ typedef struct {
             local int blocks;
             for(i =0; i< header.dinodeCount; i++) {
                 if((dinodes.dinode[i].mode.dir) != 1) continue;
-                FSeek(offset + header.blocksz * dinodes.dinode[i].db[0]);
+                FSeek(offset + header.blocksz * dinodes.dinode[i].db[0].blockno);
                 
                 cont = true;
                   while(cont == true){
