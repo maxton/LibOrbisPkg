@@ -24,10 +24,9 @@ namespace PkgEditor.Views
       InitializeComponent();
       using (var s = pkg.GetStream())
         ObjectPreview(new LibOrbisPkg.PKG.PkgReader(s).ReadHeader());
-      // TODO: Generate EKpfs
-      // GameArchives.PFS.PFSPackage.ekpfs = LibOrbisPkg.Util.Bytes.EkPfs;
       var package = PackageReader.ReadPackageFromFile(pkg);
-      var view = new PackageView(package, PackageManager.GetInstance());
+      var innerPfs = PackageReader.ReadPackageFromFile(package.GetFile("/pfs_image.dat"));
+      var view = new PackageView(innerPfs, PackageManager.GetInstance());
       view.Dock = DockStyle.Fill;
       splitContainer1.Panel1.Controls.Add(view);
     }

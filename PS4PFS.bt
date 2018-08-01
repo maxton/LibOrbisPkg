@@ -234,7 +234,8 @@ typedef struct {
     local int numDirs;
     local int total;
     if(header.mode.encrypted) {
-        char encrypted_data[0];
+        FSeek(offset + header.blocksz);
+        char encrypted_data[header.blocksz * (header.ndblock - 1)];
     } else {
         struct dinode_block {
             local int maxPerSector = header.blocksz / sizeof(di_d32);
