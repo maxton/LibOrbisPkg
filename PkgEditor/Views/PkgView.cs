@@ -51,6 +51,23 @@ namespace PkgEditor.Views
       previewObj = obj;
     }
 
+    string toString(object obj)
+    {
+      switch (obj)
+      {
+        case Byte _:
+        case UInt16 _:
+        case UInt32 _:
+        case UInt64 _:
+        case Int16 _:
+        case Int32 _:
+        case Int64 _:
+          return string.Format("0x{0:X}", obj);
+        default:
+          return obj.ToString();
+      }
+    }
+
     /// <summary>
     /// Adds the given object's public fields to the given TreeNodeCollection.
     /// </summary>
@@ -66,7 +83,7 @@ namespace PkgEditor.Views
           var val = f.GetValue(obj);
           if (val != null)
           {
-            nodes.Add(f.Name + " = " + val.ToString());
+            nodes.Add(f.Name + " = " + toString(val));
           }
         }
         else if (f.FieldType.IsArray)
@@ -97,7 +114,7 @@ namespace PkgEditor.Views
       if (eType.IsPrimitive || eType == typeof(string) || eType.IsEnum)
         for (var i = 0; i < arr.Length; i++)
         {
-          var n = new TreeNode($"{name}[{i}] = {arr.GetValue(i)}");
+          var n = new TreeNode($"{name}[{i}] = {toString(arr.GetValue(i))}");
           node.Nodes.Add(n);
         }
       else for (var i = 0; i < arr.Length; i++)
