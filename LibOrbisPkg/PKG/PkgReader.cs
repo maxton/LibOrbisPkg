@@ -12,6 +12,26 @@ namespace LibOrbisPkg.PKG
     {
     }
 
+    public Pkg ReadPkg()
+    {
+      var header = ReadHeader();
+      s.Position = 0xFE0;
+      var packageDigest = s.ReadBytes(32);
+      var packageSignature = s.ReadBytes(256);
+      s.Position = header.entry_table_offset;
+      var metasEntry = new MetasEntry();
+      for (var i = 0; i < header.entry_count; i++)
+      {
+        metasEntry.Metas.Add(MetaEntry.Read(s));
+      }
+      return new Pkg
+      {
+        Header = header,
+        UnkKey = packageSignature,
+        Metas = metasEntry,
+      };
+    }
+
     public Header ReadHeader()
     {
       var hdr = new Header();

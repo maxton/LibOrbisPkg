@@ -18,17 +18,29 @@ namespace PkgEditor.Views
     public override bool CanSave => false;
     public override bool CanSaveAs => false;
 
-    private IFile pkg;
+    private LibOrbisPkg.PKG.Pkg pkg;
     public PkgView(IFile pkg)
     {
       InitializeComponent();
       using (var s = pkg.GetStream())
         ObjectPreview(new LibOrbisPkg.PKG.PkgReader(s).ReadHeader());
-      var package = PackageReader.ReadPackageFromFile(pkg);
-      var innerPfs = PackageReader.ReadPackageFromFile(package.GetFile("/pfs_image.dat"));
-      var view = new PackageView(innerPfs, PackageManager.GetInstance());
-      view.Dock = DockStyle.Fill;
-      splitContainer1.Panel1.Controls.Add(view);
+      using (var s = pkg.GetStream())
+        this.pkg = new LibOrbisPkg.PKG.PkgReader(s).ReadPkg();
+      try
+      {
+        var package = PackageReader.ReadPackageFromFile(pkg);
+        var innerPfs = PackageReader.ReadPackageFromFile(package.GetFile("/pfs_image.dat"));
+        var view = new PackageView(innerPfs, PackageManager.GetInstance());
+        view.Dock = DockStyle.Fill;
+        filesTab.Controls.Add(view);
+      } catch (Exception) {
+        tabControl1.TabPages.Remove(filesTab);
+      }
+
+      foreach(var e in this.pkg.Metas.Metas)
+      {
+        entriesListBox.Items.Add(e.id);
+      }
     }
 
     object previewObj;

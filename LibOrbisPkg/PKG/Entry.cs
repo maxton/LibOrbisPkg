@@ -39,6 +39,18 @@ namespace LibOrbisPkg.PKG
       s.WriteUInt32BE(DataSize);
       s.Position += 8; // pad
     }
+    public static MetaEntry Read(Stream s)
+    {
+      var ret = new MetaEntry();
+      ret.id = (EntryId)s.ReadUInt32BE();
+      ret.NameTableOffset = s.ReadUInt32BE();
+      ret.Flags1 = s.ReadUInt32BE();
+      ret.Flags2 = s.ReadUInt32BE();
+      ret.DataOffset = s.ReadUInt32BE();
+      ret.DataSize = s.ReadUInt32BE();
+      s.Position += 8;
+      return ret;
+    }
     public uint KeyIndex => (Flags2 & 0xF000) >> 12;
     public bool Encrypted => (Flags1 & 0x80000000) != 0;
   }
