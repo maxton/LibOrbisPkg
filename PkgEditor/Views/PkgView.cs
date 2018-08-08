@@ -10,6 +10,7 @@ using System.Collections;
 
 using GameArchives;
 using LibArchiveExplorer;
+using LibOrbisPkg.PKG;
 
 namespace PkgEditor.Views
 {
@@ -25,7 +26,7 @@ namespace PkgEditor.Views
       using (var s = pkg.GetStream())
         ObjectPreview(new LibOrbisPkg.PKG.PkgReader(s).ReadHeader());
       using (var s = pkg.GetStream())
-        this.pkg = new LibOrbisPkg.PKG.PkgReader(s).ReadPkg();
+        this.pkg = new PkgReader(s).ReadPkg();
       try
       {
         var package = PackageReader.ReadPackageFromFile(pkg);
@@ -39,7 +40,13 @@ namespace PkgEditor.Views
 
       foreach(var e in this.pkg.Metas.Metas)
       {
-        entriesListBox.Items.Add(e.id);
+        var lvi = new ListViewItem(new[] {
+          e.id.ToString(),
+          string.Format("0x{0:X}", e.DataSize),
+          string.Format("0x{0:X}", e.DataOffset),
+          e.Encrypted ? "Yes" : "No" });
+        lvi.Tag = e;
+        entriesListView.Items.Add(lvi);
       }
     }
 

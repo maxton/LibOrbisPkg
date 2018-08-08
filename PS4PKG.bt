@@ -99,6 +99,9 @@ typedef struct {
 	uchar pfs_signed_digest[0x20]; // PKG_HASH_SIZE
 	uint64 pfs_split_size_nth_0;
 	uint64 pfs_split_size_nth_1;
+    FSeek(0xFE0);
+    uchar PackageDigest[32];
+    uchar PackageSignature[256];
 } pkg_header;
 
 typedef enum <uint32> {
@@ -780,8 +783,6 @@ struct pkg_entry_keyset {
 #define PKG_SHAREPARAM_FILE_VERSION_MINOR 10
 
 pkg_header header;
-FSeek(0xFE0);
-uchar PackageDigest[32];
 FSeek(header.entry_table_offset);
 pkg_table_entry entries[header.entry_count];
 

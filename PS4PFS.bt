@@ -202,9 +202,12 @@ typedef struct {
     int64 dinodeBlockCount; // changes
     int64 superroot_ino; // zeroes
     inode_blocks_sig inode_64;
-    FSeek(start + 0x370);
+    FSeek(start + 0x36C);
+    int unk_index;
     byte crypt_seed[16];
-    byte unk_sig[32];
+    byte unk_digest[32];
+    byte superblock_sig[256];
+    byte fs_img_sig[256];
 } PFS_HDR;
 
 
@@ -235,7 +238,8 @@ typedef struct {
     local int total;
     if(header.mode.encrypted) {
         FSeek(offset + header.blocksz);
-        char encrypted_data[header.blocksz * (header.ndblock - 1)];
+        local uint64 data_length = (uint64)header.blocksz * (uint64)(header.ndblock - 1);
+        char encrypted_data[1];
     } else {
         struct dinode_block {
             local int maxPerSector = header.blocksz / sizeof(di_d32);

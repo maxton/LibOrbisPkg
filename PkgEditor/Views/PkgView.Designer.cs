@@ -32,7 +32,11 @@
             this.headerTab = new System.Windows.Forms.TabPage();
             this.treeView1 = new System.Windows.Forms.TreeView();
             this.entriesTab = new System.Windows.Forms.TabPage();
-            this.entriesListBox = new System.Windows.Forms.ListBox();
+            this.entriesListView = new System.Windows.Forms.ListView();
+            this.columnHeaderId = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderSize = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderOffset = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderEnc = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.filesTab = new System.Windows.Forms.TabPage();
             this.tabControl1.SuspendLayout();
             this.headerTab.SuspendLayout();
@@ -72,7 +76,7 @@
             // 
             // entriesTab
             // 
-            this.entriesTab.Controls.Add(this.entriesListBox);
+            this.entriesTab.Controls.Add(this.entriesListView);
             this.entriesTab.Location = new System.Drawing.Point(4, 22);
             this.entriesTab.Name = "entriesTab";
             this.entriesTab.Padding = new System.Windows.Forms.Padding(3);
@@ -81,17 +85,42 @@
             this.entriesTab.Text = "Entries";
             this.entriesTab.UseVisualStyleBackColor = true;
             // 
-            // entriesListBox
+            // entriesListView
             // 
-            this.entriesListBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.entriesListBox.FormattingEnabled = true;
-            this.entriesListBox.IntegralHeight = false;
-            this.entriesListBox.Location = new System.Drawing.Point(2, 2);
-            this.entriesListBox.Name = "entriesListBox";
-            this.entriesListBox.ScrollAlwaysVisible = true;
-            this.entriesListBox.Size = new System.Drawing.Size(205, 363);
-            this.entriesListBox.TabIndex = 0;
+            this.entriesListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.columnHeaderId,
+            this.columnHeaderSize,
+            this.columnHeaderOffset,
+            this.columnHeaderEnc});
+            this.entriesListView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.entriesListView.FullRowSelect = true;
+            this.entriesListView.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.entriesListView.Location = new System.Drawing.Point(3, 3);
+            this.entriesListView.Name = "entriesListView";
+            this.entriesListView.Size = new System.Drawing.Size(529, 364);
+            this.entriesListView.TabIndex = 7;
+            this.entriesListView.UseCompatibleStateImageBehavior = false;
+            this.entriesListView.View = System.Windows.Forms.View.Details;
+            // 
+            // columnHeaderId
+            // 
+            this.columnHeaderId.Text = "ID";
+            this.columnHeaderId.Width = 223;
+            // 
+            // columnHeaderSize
+            // 
+            this.columnHeaderSize.Text = "Size";
+            this.columnHeaderSize.Width = 85;
+            // 
+            // columnHeaderOffset
+            // 
+            this.columnHeaderOffset.Text = "Offset";
+            this.columnHeaderOffset.Width = 116;
+            // 
+            // columnHeaderEnc
+            // 
+            this.columnHeaderEnc.Text = "Enc.";
+            this.columnHeaderEnc.Width = 39;
             // 
             // filesTab
             // 
@@ -123,7 +152,11 @@
     private System.Windows.Forms.TabPage headerTab;
     private System.Windows.Forms.TreeView treeView1;
     private System.Windows.Forms.TabPage entriesTab;
-    private System.Windows.Forms.ListBox entriesListBox;
     private System.Windows.Forms.TabPage filesTab;
+    private System.Windows.Forms.ListView entriesListView;
+    private System.Windows.Forms.ColumnHeader columnHeaderId;
+    private System.Windows.Forms.ColumnHeader columnHeaderSize;
+    private System.Windows.Forms.ColumnHeader columnHeaderOffset;
+    private System.Windows.Forms.ColumnHeader columnHeaderEnc;
   }
 }
