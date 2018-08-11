@@ -10,10 +10,11 @@ namespace LibOrbisPkg.PKG
     public void WritePkg(Pkg pkg)
     {
       WriteHeader(pkg.Header);
+      pkg.HeaderDigest = Util.Crypto.Sha256(s, 0, 0xFE0);
       s.Position = 0xFE0;
-      Write(pkg.PackageDigest);
+      Write(pkg.HeaderDigest);
       s.Position = 0x1000;
-      Write(pkg.UnkKey);
+      Write(pkg.HeaderSignature);
     }
 
     public void WriteBody(Pkg pkg)

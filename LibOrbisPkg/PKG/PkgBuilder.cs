@@ -152,8 +152,8 @@ namespace LibOrbisPkg.PKG
         pfs_split_size_nth_0 = 0,
         pfs_split_size_nth_1 = 0
       };
-      pkg.PackageDigest = new byte[32];
-      pkg.UnkKey = new byte[0x100];
+      pkg.HeaderDigest = new byte[32];
+      pkg.HeaderSignature = new byte[0x100];
       pkg.EntryKeys = new KeysEntry();
       pkg.ImageKey = new GenericEntry(EntryId.IMAGE_KEY)
       {

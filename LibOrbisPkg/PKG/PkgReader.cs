@@ -16,8 +16,8 @@ namespace LibOrbisPkg.PKG
     {
       var header = ReadHeader();
       s.Position = 0xFE0;
-      var packageDigest = s.ReadBytes(32);
-      var packageSignature = s.ReadBytes(256);
+      var headerDigest = s.ReadBytes(32);
+      var headerSignature = s.ReadBytes(256);
       s.Position = header.entry_table_offset;
       var metasEntry = new MetasEntry();
       for (var i = 0; i < header.entry_count; i++)
@@ -27,7 +27,8 @@ namespace LibOrbisPkg.PKG
       return new Pkg
       {
         Header = header,
-        UnkKey = packageSignature,
+        HeaderDigest = headerDigest,
+        HeaderSignature = headerSignature,
         Metas = metasEntry,
       };
     }

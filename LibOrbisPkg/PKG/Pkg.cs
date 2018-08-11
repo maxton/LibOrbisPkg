@@ -12,9 +12,9 @@ namespace LibOrbisPkg.PKG
     // 0x0 - 0x5A0
     public Header Header;
     // 0xFE0 - 0xFFF
-    public byte[] PackageDigest;
+    public byte[] HeaderDigest;
     // 0x1000 - 0x10FF
-    public byte[] UnkKey;
+    public byte[] HeaderSignature;
     // 0x2000 - 0x27FF
     public KeysEntry EntryKeys;
     // 0x2800 - 0x28FF
