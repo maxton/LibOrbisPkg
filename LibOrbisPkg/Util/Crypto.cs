@@ -121,5 +121,15 @@ namespace LibOrbisPkg.Util
 
       return Sha256(data);
     }
+
+    public static string AsHexCompact(this byte[] k)
+    {
+      StringBuilder sb = new StringBuilder(k.Length * 2);
+      foreach(var b in k)
+      {
+        sb.AppendFormat("{0:X2}", b);
+      }
+      return sb.ToString();
+    }
   }
 }

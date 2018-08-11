@@ -38,6 +38,7 @@
             this.columnHeaderOffset = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderEnc = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.filesTab = new System.Windows.Forms.TabPage();
+            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.tabControl1.SuspendLayout();
             this.headerTab.SuspendLayout();
             this.entriesTab.SuspendLayout();
@@ -91,7 +92,8 @@
             this.columnHeaderId,
             this.columnHeaderSize,
             this.columnHeaderOffset,
-            this.columnHeaderEnc});
+            this.columnHeaderEnc,
+            this.columnHeader1});
             this.entriesListView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.entriesListView.FullRowSelect = true;
             this.entriesListView.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
@@ -132,6 +134,10 @@
             this.filesTab.Text = "Files";
             this.filesTab.UseVisualStyleBackColor = true;
             // 
+            // columnHeader1
+            // 
+            this.columnHeader1.Text = "KeyIdx";
+            // 
             // PkgView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -158,5 +164,6 @@
     private System.Windows.Forms.ColumnHeader columnHeaderSize;
     private System.Windows.Forms.ColumnHeader columnHeaderOffset;
     private System.Windows.Forms.ColumnHeader columnHeaderEnc;
+    private System.Windows.Forms.ColumnHeader columnHeader1;
   }
 }

@@ -44,7 +44,9 @@ namespace PkgEditor.Views
           e.id.ToString(),
           string.Format("0x{0:X}", e.DataSize),
           string.Format("0x{0:X}", e.DataOffset),
-          e.Encrypted ? "Yes" : "No" });
+          e.Encrypted ? "Yes" : "No",
+          e.KeyIndex.ToString(),
+        });
         lvi.Tag = e;
         entriesListView.Items.Add(lvi);
       }
@@ -85,9 +87,13 @@ namespace PkgEditor.Views
       foreach (var f in fields)
       {
         if (f.IsLiteral) continue;
-        if (f.FieldType.IsPrimitive || f.FieldType == typeof(string) || f.FieldType.IsEnum)
+        var val = f.GetValue(obj);
+        if (val is byte[] b)
         {
-          var val = f.GetValue(obj);
+          nodes.Add(f.Name + " = " + LibOrbisPkg.Util.Crypto.AsHexCompact(b));
+        }
+        else if (f.FieldType.IsPrimitive || f.FieldType == typeof(string) || f.FieldType.IsEnum)
+        {
           if (val != null)
           {
             nodes.Add(f.Name + " = " + toString(val));
