@@ -39,7 +39,7 @@ namespace LibOrbisPkg.PFS
       // TODO: Combine the superroot-specific stuff with the rest of the data block writing.
       // I think this is as simple as adding superroot and flat_path_table to allNodes
 
-      hdr = new PfsHeader { BlockSize = p.BlockSize };
+      hdr = new PfsHeader { BlockSize = p.BlockSize, ReadOnly = 1, Mode = 8 };
       inodes = new List<PfsDinode32>();
       dirents = new List<List<PfsDirent>>();
 
@@ -66,7 +66,6 @@ namespace LibOrbisPkg.PFS
       CalculateDataBlockLayout();
 
       Console.WriteLine("Writing image file...");
-      hdr.Ndblock = allFiles.Sum((f) => CeilDiv(f.Size, hdr.BlockSize));
       {
         var stream = p.output;
         Console.WriteLine("Writing header...");
@@ -87,6 +86,7 @@ namespace LibOrbisPkg.PFS
           stream.Position = f.ino.db[0] * hdr.BlockSize;
           WriteFSNode(stream, f);
         }
+        stream.SetLength(hdr.Ndblock * hdr.BlockSize);
       }
     }
 
@@ -145,22 +145,28 @@ namespace LibOrbisPkg.PFS
     /// </summary>
     void CalculateDataBlockLayout()
     {
+      // Include the header block in the total count
+      hdr.Ndblock = 1;
       var inodesPerBlock = hdr.BlockSize / PfsDinode32.SizeOf;
       hdr.DinodeCount = inodes.Count;
       hdr.DinodeBlockCount = CeilDiv(inodes.Count, inodesPerBlock);
+      hdr.Ndblock += hdr.DinodeBlockCount;
       super_root_ino.db[0] = (int)(hdr.DinodeBlockCount + 1);
+      hdr.Ndblock += super_root_ino.Blocks;
 
       // flat path table
       fpt_ino.db[0] = super_root_ino.db[0] + 1;
       fpt_ino.Size = fpt.Size;
       fpt_ino.SizeCompressed = fpt.Size;
       fpt_ino.Blocks = (uint)CeilDiv(fpt.Size, hdr.BlockSize);
+      // DATs I've found include an empty block after the FPT
+      hdr.Ndblock += fpt_ino.Blocks + 1;
+
       for (int i = 1; i < fpt_ino.Blocks && i < fpt_ino.db.Length; i++)
         fpt_ino.db[i] = -1;
 
       // All fs entries.
-      var currentBlock = fpt_ino.db[0] + fpt_ino.Blocks;
-      hdr.Ndblock = 0;
+      var currentBlock = fpt_ino.db[0] + fpt_ino.Blocks + 1;
       // Calculate length of all dirent blocks
       foreach (var n in allNodes)
       {
@@ -254,6 +260,10 @@ namespace LibOrbisPkg.PFS
       foreach (var f in proj.files)
       {
         var lastSlash = f.TargetPath.LastIndexOf('/') + 1;
+        if(f.TargetPath == "sce_sys/param.sfo")
+        {
+          continue;
+        }
         var name = f.TargetPath.Substring(lastSlash);
         var source = Path.Combine(projDir, f.OrigPath);
         var parent = lastSlash == 0 ? root : FindDir(f.TargetPath.Substring(0, lastSlash - 1));
