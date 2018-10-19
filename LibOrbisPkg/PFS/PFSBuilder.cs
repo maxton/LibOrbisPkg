@@ -30,64 +30,86 @@ namespace LibOrbisPkg.PFS
 
     private FlatPathTable fpt;
 
+    private PfsProperties properties;
+
+    Action<string> logger;
+    private void Log(string s) => logger?.Invoke(s);
+
+    public PfsBuilder(PfsProperties p, Action<string> logger = null)
+    {
+      this.logger = logger;
+      properties = p;
+      Setup();
+    }
+
     /// <summary>
     /// Builds and saves a PFS image.
     /// </summary>
-    /// <param name="p"></param>
-    public void BuildPfs(PfsProperties p)
+    public void BuildPfs()
+    {
+      Log("Writing image file...");
+      WriteImage();
+    }
+
+    public long CalculatePfsSize(PfsProperties p)
+    {
+      return hdr.Ndblock * hdr.BlockSize;
+    }
+
+    void Setup()
     {
       // TODO: Combine the superroot-specific stuff with the rest of the data block writing.
       // I think this is as simple as adding superroot and flat_path_table to allNodes
 
-      hdr = new PfsHeader { BlockSize = p.BlockSize, ReadOnly = 1, Mode = 8 };
+      hdr = new PfsHeader { BlockSize = properties.BlockSize, ReadOnly = 1, Mode = 8 };
       inodes = new List<PfsDinode32>();
       dirents = new List<List<PfsDirent>>();
 
-      Console.WriteLine("Setting up root structure...");
+      Log("Setting up root structure...");
       SetupRootStructure();
-      BuildFSTree(root, p.proj, p.projDir);
+      BuildFSTree(root, properties.proj, properties.projDir);
       allDirs = root.GetAllChildrenDirs();
       allFiles = root.GetAllChildrenFiles();
       allNodes = new List<FSNode>(allDirs);
       allNodes.AddRange(allFiles);
 
-      Console.WriteLine("Creating directory inodes ({0})...", allDirs.Count);
+      Log(string.Format("Creating directory inodes ({0})...", allDirs.Count));
       addDirInodes();
 
-      Console.WriteLine("Creating file inodes ({0})...", allFiles.Count);
+      Log(string.Format("Creating file inodes ({0})...", allFiles.Count));
       addFileInodes();
 
-      Console.WriteLine("Creating flat_path_table...");
+      Log("Creating flat_path_table...");
       fpt = new FlatPathTable(allNodes);
 
 
-      Console.WriteLine("Calculating data block layout...");
+      Log("Calculating data block layout...");
       allNodes.Insert(0, root);
       CalculateDataBlockLayout();
+    }
 
-      Console.WriteLine("Writing image file...");
+    void WriteImage()
+    {
+      var stream = properties.output;
+      Log("Writing header...");
+      hdr.WriteToStream(stream);
+      Log("Writing inodes...");
+      WriteInodes(stream);
+      Log("Writing superroot dirents");
+      WriteSuperrootDirents(stream);
+
+      Log("Writing flat_path_table");
+      stream.Position = fpt_ino.db[0] * hdr.BlockSize;
+      fpt.WriteToStream(stream);
+
+      Log("Writing data blocks...");
+      for (var x = 0; x < allNodes.Count; x++)
       {
-        var stream = p.output;
-        Console.WriteLine("Writing header...");
-        hdr.WriteToStream(stream);
-        Console.WriteLine("Writing inodes...");
-        WriteInodes(stream);
-        Console.WriteLine("Writing superroot dirents");
-        WriteSuperrootDirents(stream);
-
-        Console.WriteLine("Writing flat_path_table");
-        stream.Position = fpt_ino.db[0] * hdr.BlockSize;
-        fpt.WriteToStream(stream);
-
-        Console.WriteLine("Writing data blocks...");
-        for (var x = 0; x < allNodes.Count; x++)
-        {
-          var f = allNodes[x];
-          stream.Position = f.ino.db[0] * hdr.BlockSize;
-          WriteFSNode(stream, f);
-        }
-        stream.SetLength(hdr.Ndblock * hdr.BlockSize);
+        var f = allNodes[x];
+        stream.Position = f.ino.db[0] * hdr.BlockSize;
+        WriteFSNode(stream, f);
       }
+      stream.SetLength(hdr.Ndblock * hdr.BlockSize);
     }
 
     /// <summary>

@@ -27,7 +27,7 @@ namespace PkgTool
               proj = Gp4Project.ReadFrom(File.OpenRead(proj)),
               projDir = Path.GetDirectoryName(proj)
             };
-            new PfsBuilder().BuildPfs(props);
+            new PfsBuilder(props, Console.WriteLine).BuildPfs();
             break;
           }
         case "makepkg":

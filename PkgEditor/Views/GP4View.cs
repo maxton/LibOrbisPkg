@@ -51,7 +51,7 @@ namespace PkgEditor.Views
         passcodeTextBox.Text = proj.volume.Package.Passcode;
         currentDir = null;
         PopulateDirs();
-
+        loaded = true;
       }
     }
 
@@ -161,13 +161,13 @@ namespace PkgEditor.Views
         logBox.Show();
         using (var fs = File.OpenWrite(ofd.FileName))
         {
-          new PfsBuilder().BuildPfs(new LibOrbisPkg.PFS.PfsProperties
+          new PfsBuilder(new PfsProperties
           {
             BlockSize = 65536,
             output = fs,
             proj = proj,
             projDir = Path.GetDirectoryName(path)
-          });
+          }, Console.WriteLine).BuildPfs();
           Console.WriteLine("Done! Saved to {0}", ofd.FileName);
         }
       }
