@@ -15,7 +15,7 @@ Click `File -> Open GP4...`, then click `Build PKG` to create a PKG.
 
 ![Screenshot](https://i.imgur.com/BsNFQDo.png)
 
-The tool also supports opening PKGs directly. You can see the header, entries, and if you put the EKPFS into `<filename>.pkg.ekpfs` next to your PKG file, you can browse files as well.
+The tool also supports opening PKGs directly. You can see the header, entries, and if you enter a passcode or put the EKPFS into `<filename>.pkg.ekpfs` next to your PKG file, you can browse files as well.
 ![PKG Screenshot](https://i.imgur.com/EItFUff.png)
 
 ### PkgTool
@@ -31,7 +31,6 @@ Verbs:
 
 - Reverse encryption and signatures
 - Implement PFS and PKG signing
-- Implement EKPFS generation
 
 ## Thanks
 Everyone who helped, either directly or indirectly, but especially the following:
