@@ -33,8 +33,9 @@ namespace PkgEditor.Views
         pkg = new PkgReader(s).ReadPkg();
       try
       {
-        GameArchives.PFS.PFSPackage.ekpfs = Crypto.ComputeKeys(pkg.Header.content_id, "00000000000000000000000000000000", 1);
-        var package = PackageReader.ReadPackageFromFile(pkgFile);
+        var defaultEkpfs = new string(Crypto.ComputeKeys(pkg.Header.content_id, "00000000000000000000000000000000", 1)
+          .Select(b => (char)b).ToArray());
+        var package = PackageReader.ReadPackageFromFile(pkgFile, defaultEkpfs);
         var innerPfs = PackageReader.ReadPackageFromFile(package.GetFile("/pfs_image.dat"));
         var view = new PackageView(innerPfs, PackageManager.GetInstance());
         view.Dock = DockStyle.Fill;
@@ -162,8 +163,9 @@ namespace PkgEditor.Views
     {
       try
       {
-        GameArchives.PFS.PFSPackage.ekpfs = Crypto.ComputeKeys(pkg.Header.content_id, passcodeTextBox.Text, 1);
-        var package = PackageReader.ReadPackageFromFile(pkgFile);
+        var ekpfs = new string(Crypto.ComputeKeys(pkg.Header.content_id, passcodeTextBox.Text, 1)
+          .Select(b => (char)b).ToArray());
+        var package = PackageReader.ReadPackageFromFile(pkgFile, ekpfs);
         var innerPfs = PackageReader.ReadPackageFromFile(package.GetFile("/pfs_image.dat"));
         var view = new PackageView(innerPfs, PackageManager.GetInstance());
         view.Dock = DockStyle.Fill;

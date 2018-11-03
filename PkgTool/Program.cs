@@ -59,8 +59,8 @@ namespace PkgTool
             {
               pkg = new PkgReader(s).ReadPkg();
             }
-            GameArchives.PFS.PFSPackage.ekpfs = Crypto.ComputeKeys(pkg.Header.content_id, passcode, 1);
-            var package = PackageReader.ReadPackageFromFile(pkgFile);
+            var keyString = new string(Crypto.ComputeKeys(pkg.Header.content_id, passcode, 1).Select(b => (char)b).ToArray());
+            var package = PackageReader.ReadPackageFromFile(pkgFile, keyString);
             var innerPfs = PackageReader.ReadPackageFromFile(package.GetFile("/pfs_image.dat"));
             void ExtractDir(IDirectory dir, string path)
             {
