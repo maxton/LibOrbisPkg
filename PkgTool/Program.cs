@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using GameArchives;
 using LibOrbisPkg.GP4;
 using LibOrbisPkg.PFS;
 using LibOrbisPkg.PKG;
+using LibOrbisPkg.Util;
 
 namespace PkgTool
 {
@@ -46,7 +48,57 @@ namespace PkgTool
             }
             break;
           }
+        case "extractpkg":
+          {
+            var pkgPath = args[1];
+            var passcode = args[2];
+            var outPath = args[3];
+            var pkgFile = Util.LocalFile(pkgPath);
+            Pkg pkg;
+            using (var s = pkgFile.GetStream())
+            {
+              pkg = new PkgReader(s).ReadPkg();
+            }
+            GameArchives.PFS.PFSPackage.ekpfs = Crypto.ComputeKeys(pkg.Header.content_id, passcode, 1);
+            var package = PackageReader.ReadPackageFromFile(pkgFile);
+            var innerPfs = PackageReader.ReadPackageFromFile(package.GetFile("/pfs_image.dat"));
+            void ExtractDir(IDirectory dir, string path)
+            {
+              foreach (IFile f in dir.Files)
+              {
+                Console.WriteLine(f.Name);
+                f.ExtractTo(Path.Combine(path, SafeName(f.Name)));
+              }
+              foreach (IDirectory d in dir.Dirs)
+              {
+                string newPath = Path.Combine(path, SafeName(d.Name));
+                Directory.CreateDirectory(newPath);
+                ExtractDir(d, newPath);
+              }
+            }
+            ExtractDir(innerPfs.RootDirectory, outPath);
+            break;
+          }
+        default:
+          Console.WriteLine("PkgTool.exe <verb> <input> <output>");
+          Console.WriteLine("");
+          Console.WriteLine("Verbs:");
+          Console.WriteLine("  makepfs <input_project.gp4> <output_pfs.dat>");
+          Console.WriteLine("  makepkg <input_project.gp4> <output_directory>");
+          Console.WriteLine("  extractpkg <input.pkg> <passcode> <output_directory>");
+          break;
       }
+    }
+
+    private static string SafeName(string name)
+    {
+      name = name.Replace("\\", "").Replace("/", "").Replace(":", "").Replace("*", "")
+        .Replace("?", "").Replace("\"", "").Replace("<", "").Replace(">", "").Replace("|", "");
+      if (name == ".." || name == ".")
+      {
+        name = "(" + name + ")";
+      }
+      return name;
     }
   }
 }

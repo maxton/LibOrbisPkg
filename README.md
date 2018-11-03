@@ -25,6 +25,7 @@ PkgTool.exe <verb> <input> <output>
 Verbs:
   makepfs <input_project.gp4> <output_pfs.dat>
   makepkg <input_project.gp4> <output_directory>
+  extractpkg <input.pkg> <passcode> <output_directory>
  ```
 
 ## TODO
