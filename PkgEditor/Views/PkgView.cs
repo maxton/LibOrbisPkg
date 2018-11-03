@@ -11,6 +11,7 @@ using System.Collections;
 using GameArchives;
 using LibArchiveExplorer;
 using LibOrbisPkg.PKG;
+using LibOrbisPkg.Util;
 
 namespace PkgEditor.Views
 {
@@ -19,26 +20,30 @@ namespace PkgEditor.Views
     public override bool CanSave => false;
     public override bool CanSaveAs => false;
 
-    private LibOrbisPkg.PKG.Pkg pkg;
-    public PkgView(IFile pkg)
+    private Pkg pkg;
+    private IFile pkgFile;
+
+    public PkgView(IFile pkgFile)
     {
       InitializeComponent();
-      using (var s = pkg.GetStream())
+      this.pkgFile = pkgFile;
+      using (var s = pkgFile.GetStream())
         ObjectPreview(new LibOrbisPkg.PKG.PkgReader(s).ReadHeader());
-      using (var s = pkg.GetStream())
-        this.pkg = new PkgReader(s).ReadPkg();
+      using (var s = pkgFile.GetStream())
+        pkg = new PkgReader(s).ReadPkg();
       try
       {
-        var package = PackageReader.ReadPackageFromFile(pkg);
+        GameArchives.PFS.PFSPackage.ekpfs = Crypto.ComputeKeys(pkg.Header.content_id, "00000000000000000000000000000000", 1);
+        var package = PackageReader.ReadPackageFromFile(pkgFile);
         var innerPfs = PackageReader.ReadPackageFromFile(package.GetFile("/pfs_image.dat"));
         var view = new PackageView(innerPfs, PackageManager.GetInstance());
         view.Dock = DockStyle.Fill;
+        filesTab.Controls.Clear();
         filesTab.Controls.Add(view);
       } catch (Exception) {
-        tabControl1.TabPages.Remove(filesTab);
       }
 
-      foreach(var e in this.pkg.Metas.Metas)
+      foreach(var e in pkg.Metas.Metas)
       {
         var lvi = new ListViewItem(new[] {
           e.id.ToString(),
@@ -151,6 +156,24 @@ namespace PkgEditor.Views
           }
         }
       nodes.Add(node);
+    }
+
+    private void button1_Click(object sender, EventArgs e)
+    {
+      try
+      {
+        GameArchives.PFS.PFSPackage.ekpfs = Crypto.ComputeKeys(pkg.Header.content_id, passcodeTextBox.Text, 1);
+        var package = PackageReader.ReadPackageFromFile(pkgFile);
+        var innerPfs = PackageReader.ReadPackageFromFile(package.GetFile("/pfs_image.dat"));
+        var view = new PackageView(innerPfs, PackageManager.GetInstance());
+        view.Dock = DockStyle.Fill;
+        filesTab.Controls.Clear();
+        filesTab.Controls.Add(view);
+      }
+      catch (Exception)
+      {
+        MessageBox.Show("Invalid passcode!");
+      }
     }
   }
 }

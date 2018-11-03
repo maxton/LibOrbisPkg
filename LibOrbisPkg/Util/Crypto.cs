@@ -101,23 +101,24 @@ namespace LibOrbisPkg.Util
     }
 
     /// <summary>
-    /// Computes keys?
+    /// Computes keys for the package.
+    /// The key is the result of a SHA256 hash of the concatenation of:
+    ///  - The SHA256 hash of the index (4 bytes big-endian)
+    ///  - The SHA256 hash of the Contend ID (36 bytes padded to 48 with nulls)
+    ///  - The passcode
+    /// The EKPFS is Index 1. 
     /// </summary>
-    public static byte[] ComputeKeys(byte[] ContentId, byte[] Passcode, ulong Index)
+    public static byte[] ComputeKeys(string ContentId, string Passcode, uint Index)
     {
       if (ContentId.Length != 36)
-        return null;
-
+        throw new Exception("Content ID must be 36 characters long");
       if (Passcode.Length != 32)
-        return null;
-
-      byte[] IndexBytes = Sha256(BitConverter.GetBytes(Index));
-      byte[] ContentIdBytes = Sha256(Encoding.ASCII.GetBytes(BitConverter.ToString(ContentId).PadRight(48, '\0')));
-
-      byte[] data = new byte[IndexBytes.Length + ContentIdBytes.Length + Passcode.Length];
-      Buffer.BlockCopy(IndexBytes, 0, data, 0, IndexBytes.Length);
-      Buffer.BlockCopy(ContentIdBytes, 0, data, IndexBytes.Length, 32);
-      Buffer.BlockCopy(Passcode, 0, data, IndexBytes.Length + ContentIdBytes.Length, 32);
+        throw new Exception("Passcode must be 32 characters long");
+            
+      byte[] data = new byte[96];
+      Buffer.BlockCopy(Sha256(BitConverter.GetBytes(Index).Reverse().ToArray()), 0, data, 0, 32);
+      Buffer.BlockCopy(Sha256(Encoding.ASCII.GetBytes(ContentId.PadRight(48, '\0'))), 0, data, 32, 32);
+      Buffer.BlockCopy(Encoding.ASCII.GetBytes(Passcode), 0, data, 64, 32);
 
       return Sha256(data);
     }
