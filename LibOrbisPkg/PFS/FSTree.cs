@@ -5,11 +5,11 @@ using System.Linq;
 
 namespace LibOrbisPkg.PFS
 {
-  abstract class FSNode
+  public abstract class FSNode
   {
     public FSDir Parent = null;
     public string name;
-    public PfsDinode32 ino;
+    public inode ino;
     public virtual long Size { get; set; }
 
     public string FullPath(string suffix = "")
@@ -19,7 +19,7 @@ namespace LibOrbisPkg.PFS
     }
   }
 
-  class FSDir : FSNode
+  public class FSDir : FSNode
   {
     public List<FSDir> Dirs = new List<FSDir>();
     public List<FSFile> Files = new List<FSFile>();
@@ -58,8 +58,21 @@ namespace LibOrbisPkg.PFS
     }
   }
 
-  class FSFile : FSNode
+  public class FSFile : FSNode
   {
-    public string OrigFileName;
+    public FSFile(string origFileName)
+    {
+      Write = s => { using (var f = File.OpenRead(origFileName)) f.CopyTo(s); };
+      Size = new FileInfo(origFileName).Length;
+    }
+    public FSFile(PfsBuilder b)
+    {
+      Write = s => b.WriteImage(new Util.OffsetStream(s, s.Position));
+      Size = b.CalculatePfsSize();
+      name = "pfs_image.dat";
+      Compress = true;
+    }
+    public readonly Action<Stream> Write;
+    public bool Compress = false;
   }
 }

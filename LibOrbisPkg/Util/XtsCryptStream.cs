@@ -81,8 +81,7 @@ namespace LibOrbisPkg.Util
       stream.Position = 0;
       position = 0;
       offsetIntoSector = 0;
-      activeSector = 0;
-      ReadSectorBuffer();
+      ReadSectorBuffer(0);
     }
 
     public override bool CanRead => stream.CanRead;
@@ -98,8 +97,7 @@ namespace LibOrbisPkg.Util
       get => position;
       set
       {
-        activeSector = (ulong)(value / sectorSize);
-        ReadSectorBuffer();
+        ReadSectorBuffer((ulong)(value / sectorSize));
         offsetIntoSector = (int)(value - position);
         position = value;
       }
@@ -163,19 +161,22 @@ namespace LibOrbisPkg.Util
     }
 
     /// <summary>
-    /// Precondition: activeSector is set
     /// Postconditions:
-    /// - sectorOffset is reset to 0
+    /// - Stream is flushed
+    /// - activeSector is set to the sector number
+    /// - offsetIntoSector is reset to 0
     /// - sectorBuf[] is filled with decrypted sector
     /// - position is updated
     /// </summary>
-    private void ReadSectorBuffer()
+    private void ReadSectorBuffer(ulong newActiveSector)
     {
-      position = sectorSize * (long)activeSector;
+      Flush();
+      position = sectorSize * (long)newActiveSector;
       stream.Position = position;
       stream.Read(sectorBuf, 0, (int)sectorSize);
-      if (activeSector >= cryptStartSector)
-        CryptSector(sectorBuf, activeSector);
+      if (newActiveSector >= cryptStartSector)
+        CryptSector(sectorBuf, newActiveSector);
+      activeSector = newActiveSector;
       offsetIntoSector = 0;
     }
 
@@ -186,8 +187,7 @@ namespace LibOrbisPkg.Util
       {
         if (offsetIntoSector >= sectorSize)
         {
-          activeSector++;
-          ReadSectorBuffer();
+          ReadSectorBuffer(activeSector + 1);
         }
         int bufferedRead = Math.Min((int)sectorSize - offsetIntoSector, count);
         Buffer.BlockCopy(sectorBuf, offsetIntoSector, buffer, offset, bufferedRead);
@@ -235,9 +235,7 @@ namespace LibOrbisPkg.Util
       {
         if (offsetIntoSector >= sectorSize)
         {
-          Flush();
-          activeSector++;
-          ReadSectorBuffer();
+          ReadSectorBuffer(activeSector + 1);
         }
         int bufferedWrite = Math.Min((int)sectorSize - offsetIntoSector, count);
         Buffer.BlockCopy(buffer, 0, sectorBuf, offsetIntoSector, bufferedWrite);

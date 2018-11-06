@@ -31,14 +31,16 @@ namespace LibOrbisPkg.PKG
 
       // Write PFS first, to get stream length
       s.Position = (long) pkg.Header.pfs_image_offset;
+      var EKPFS = Crypto.ComputeKeys(project.volume.Package.ContentId, project.volume.Package.Passcode, 1);
+      var encKey = Crypto.PfsGenEncKey(EKPFS, new byte[16]);
+      var dataKey = new byte[16];
+      var tweakKey = new byte[16];
+      Buffer.BlockCopy(encKey, 0, tweakKey, 0, 16);
+      Buffer.BlockCopy(encKey, 16, dataKey, 0, 16);
       var pfsStream = new OffsetStream(s, s.Position);
-      new PFS.PfsBuilder(new PFS.PfsProperties
-      {
-        BlockSize = 65536,
-        output = pfsStream,
-        proj = project,
-        projDir = projectDir,
-      }, Console.WriteLine).BuildPfs();
+      var innerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeInnerPFSProps(project, projectDir));
+      var outerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeOuterPFSProps(innerPfs));
+      outerPfs.WriteImage(pfsStream);
 
       // TODO: Encrypt PFS (could also be done while writing image)
       // TODO: Generate hashes in Entries (body)

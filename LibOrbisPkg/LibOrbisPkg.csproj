@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GP4\Gp4Project.cs" />
+    <Compile Include="PFS\PFSCWriter.cs" />
     <Compile Include="PKG\Entry.cs" />
     <Compile Include="PKG\Enums.cs" />
     <Compile Include="PKG\PkgBuilder.cs" />

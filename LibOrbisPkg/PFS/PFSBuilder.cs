@@ -16,11 +16,11 @@ namespace LibOrbisPkg.PFS
     static long CeilDiv(long a, long b) => a / b + (a % b == 0 ? 0 : 1);
 
     private PfsHeader hdr;
-    private List<PfsDinode32> inodes;
+    private List<inode> inodes;
     private List<List<PfsDirent>> dirents;
     private List<PfsDirent> super_root_dirents;
 
-    private PfsDinode32 super_root_ino, fpt_ino;
+    private inode super_root_ino, fpt_ino;
 
     private FSDir root;
 
@@ -42,16 +42,7 @@ namespace LibOrbisPkg.PFS
       Setup();
     }
 
-    /// <summary>
-    /// Builds and saves a PFS image.
-    /// </summary>
-    public void BuildPfs()
-    {
-      Log("Writing image file...");
-      WriteImage();
-    }
-
-    public long CalculatePfsSize(PfsProperties p)
+    public long CalculatePfsSize()
     {
       return hdr.Ndblock * hdr.BlockSize;
     }
@@ -61,13 +52,18 @@ namespace LibOrbisPkg.PFS
       // TODO: Combine the superroot-specific stuff with the rest of the data block writing.
       // I think this is as simple as adding superroot and flat_path_table to allNodes
 
-      hdr = new PfsHeader { BlockSize = properties.BlockSize, ReadOnly = 1, Mode = 8 };
-      inodes = new List<PfsDinode32>();
+      hdr = new PfsHeader {
+        BlockSize = properties.BlockSize,
+        ReadOnly = 1,
+        Mode = (properties.Sign ? PfsMode.Signed : 0) 
+             | (properties.Encrypt ? PfsMode.Encrypted : 0)
+             | PfsMode.UnknownFlagAlwaysSet
+      };
+      inodes = new List<inode>();
       dirents = new List<List<PfsDirent>>();
 
       Log("Setting up root structure...");
       SetupRootStructure();
-      BuildFSTree(root, properties.proj, properties.projDir);
       allDirs = root.GetAllChildrenDirs();
       allFiles = root.GetAllChildrenFiles();
       allNodes = new List<FSNode>(allDirs);
@@ -88,9 +84,8 @@ namespace LibOrbisPkg.PFS
       CalculateDataBlockLayout();
     }
 
-    void WriteImage()
+    public void WriteImage(Stream stream)
     {
-      var stream = properties.output;
       Log("Writing header...");
       hdr.WriteToStream(stream);
       Log("Writing inodes...");
@@ -99,14 +94,14 @@ namespace LibOrbisPkg.PFS
       WriteSuperrootDirents(stream);
 
       Log("Writing flat_path_table");
-      stream.Position = fpt_ino.db[0] * hdr.BlockSize;
+      stream.Position = fpt_ino.DirectBlocks[0] * hdr.BlockSize;
       fpt.WriteToStream(stream);
 
       Log("Writing data blocks...");
       for (var x = 0; x < allNodes.Count; x++)
       {
         var f = allNodes[x];
-        stream.Position = f.ino.db[0] * hdr.BlockSize;
+        stream.Position = f.ino.DirectBlocks[0] * hdr.BlockSize;
         WriteFSNode(stream, f);
       }
       stream.SetLength(hdr.Ndblock * hdr.BlockSize);
@@ -120,13 +115,12 @@ namespace LibOrbisPkg.PFS
       inodes.Add(root.ino);
       foreach (var dir in allDirs)
       {
-        var ino = new PfsDinode32
-        {
-          Mode = InodeMode.dir | InodeMode.rwx,
-          Number = (uint)inodes.Count,
-          Blocks = 1,
-          Size = 65536
-        };
+        var ino = MakeInode(
+          Mode: InodeMode.dir | InodeMode.rwx,
+          Number: (uint)inodes.Count,
+          Blocks: 1,
+          Size: 65536
+        );
         dir.ino = ino;
         dir.Dirents.Add(new PfsDirent { Name = ".", InodeNumber = ino.Number, Type = 4 });
         dir.Dirents.Add(new PfsDirent { Name = "..", InodeNumber = dir.Parent.ino.Number, Type = 5 });
@@ -145,14 +139,13 @@ namespace LibOrbisPkg.PFS
     {
       foreach (var file in allFiles)
       {
-        var ino = new PfsDinode32
-        {
-          Mode = InodeMode.file | InodeMode.rwx,
-          Size = file.Size,
-          SizeCompressed = file.Size,
-          Number = (uint)inodes.Count,
-          Blocks = (uint)CeilDiv(file.Size, hdr.BlockSize)
-        };
+        var ino = MakeInode(
+          Mode: InodeMode.file | InodeMode.rwx,
+          Size: file.Size,
+          SizeCompressed: file.Size,
+          Number: (uint)inodes.Count,
+          Blocks: (uint)CeilDiv(file.Size, hdr.BlockSize)
+        );
         file.ino = ino;
         var dirent = new PfsDirent { Name = file.name, Type = 2, InodeNumber = (uint)inodes.Count };
         file.Parent.Dirents.Add(dirent);
@@ -169,40 +162,70 @@ namespace LibOrbisPkg.PFS
     {
       // Include the header block in the total count
       hdr.Ndblock = 1;
-      var inodesPerBlock = hdr.BlockSize / PfsDinode32.SizeOf;
+      var inodesPerBlock = hdr.BlockSize / (properties.Sign ? DinodeS32.SizeOf : DinodeD32.SizeOf);
       hdr.DinodeCount = inodes.Count;
       hdr.DinodeBlockCount = CeilDiv(inodes.Count, inodesPerBlock);
       hdr.Ndblock += hdr.DinodeBlockCount;
-      super_root_ino.db[0] = (int)(hdr.DinodeBlockCount + 1);
+      super_root_ino.SetDirectBlock(0, (int)(hdr.DinodeBlockCount + 1));
       hdr.Ndblock += super_root_ino.Blocks;
 
       // flat path table
-      fpt_ino.db[0] = super_root_ino.db[0] + 1;
+      fpt_ino.SetDirectBlock(0, super_root_ino.DirectBlocks[0] + 1);
       fpt_ino.Size = fpt.Size;
       fpt_ino.SizeCompressed = fpt.Size;
       fpt_ino.Blocks = (uint)CeilDiv(fpt.Size, hdr.BlockSize);
       // DATs I've found include an empty block after the FPT
       hdr.Ndblock += fpt_ino.Blocks + 1;
 
-      for (int i = 1; i < fpt_ino.Blocks && i < fpt_ino.db.Length; i++)
-        fpt_ino.db[i] = -1;
+      for (int i = 1; i < fpt_ino.Blocks && i < 12; i++)
+        fpt_ino.SetDirectBlock(i, -1);
 
       // All fs entries.
-      var currentBlock = fpt_ino.db[0] + fpt_ino.Blocks + 1;
+      var currentBlock = fpt_ino.DirectBlocks[0] + fpt_ino.Blocks + 1;
       // Calculate length of all dirent blocks
       foreach (var n in allNodes)
       {
         var blocks = CeilDiv(n.Size, hdr.BlockSize);
-        n.ino.db[0] = (int)currentBlock;
+        n.ino.SetDirectBlock(0, (int)currentBlock);
         n.ino.Blocks = (uint)blocks;
         n.ino.Size = n is FSDir ? dirSizeToSize(n.Size) : n.Size;
         n.ino.SizeCompressed = n.ino.Size;
-        for (int i = 1; i < blocks && i < n.ino.db.Length; i++)
+        for (int i = 1; i < blocks && i < 12; i++)
         {
-          n.ino.db[i] = -1;
+          n.ino.SetDirectBlock(i, -1);
         }
         currentBlock += blocks;
         hdr.Ndblock += blocks;
+      }
+    }
+
+    inode MakeInode(InodeMode Mode, uint Blocks, long Size=0, long SizeCompressed=0, ushort Nlink=2, uint Number=0, InodeFlags Flags=0)
+    {
+      if (properties.Sign)
+      {
+        return new DinodeS32()
+        {
+          Mode = Mode,
+          Blocks = Blocks,
+          Size = Size,
+          SizeCompressed = SizeCompressed,
+          Nlink = Nlink,
+          Number = Number,
+          Flags = Flags
+        };
+      }
+      else
+      {
+        return new DinodeD32()
+        {
+          Mode = Mode,
+          Blocks = Blocks,
+          Size = Size,
+          SizeCompressed = SizeCompressed,
+          Nlink = Nlink,
+          Number = Number,
+          Flags = Flags
+        };
       }
     }
 
@@ -212,24 +235,22 @@ namespace LibOrbisPkg.PFS
     /// </summary>
     void SetupRootStructure()
     {
-      inodes.Add(super_root_ino = new PfsDinode32
-      {
-        Mode = InodeMode.dir | InodeMode.rx_only,
-        Blocks = 1,
-        Size = 65536,
-        SizeCompressed = 65536,
-        Nlink = 1,
-        Number = 0,
-        Flags = InodeFlags.@internal
-      });
-      inodes.Add(fpt_ino = new PfsDinode32
-      {
-        Mode = InodeMode.file | InodeMode.rwx,
-        Blocks = 1,
-        Number = 1,
-        Flags = InodeFlags.@internal
-      });
-      var uroot_ino = new PfsDinode32 { Mode = InodeMode.dir | InodeMode.rwx, Number = 2, Size = 65536, SizeCompressed = 65536, Blocks = 1 };
+      inodes.Add(super_root_ino = MakeInode(
+        Mode: InodeMode.dir | InodeMode.rx_only,
+        Blocks: 1,
+        Size: 65536,
+        SizeCompressed: 65536,
+        Nlink: 1,
+        Number: 0,
+        Flags: InodeFlags.@internal
+      ));
+      inodes.Add(fpt_ino = MakeInode(
+        Mode: InodeMode.file | InodeMode.rwx,
+        Blocks: 1,
+        Number: 1,
+        Flags: InodeFlags.@internal
+      ));
+      var uroot_ino = MakeInode(Mode: InodeMode.dir | InodeMode.rwx, Number: 2, Size: 65536, SizeCompressed: 65536, Blocks: 1);
 
       super_root_dirents = new List<PfsDirent>
       {
@@ -237,66 +258,14 @@ namespace LibOrbisPkg.PFS
         new PfsDirent { InodeNumber = 2, Name = "uroot", Type = 3 }
       };
 
-      root = new FSDir
+      root = properties.root;
+      root.name = "uroot";
+      root.ino = uroot_ino;
+      root.Dirents = new List<PfsDirent>
       {
-        name = "uroot",
-        ino = uroot_ino,
-        Dirents = new List<PfsDirent>
-        {
-          new PfsDirent { Name = ".", Type = 4, InodeNumber = 2 },
-          new PfsDirent { Name = "..", Type = 5, InodeNumber = 2 }
-        }
+        new PfsDirent { Name = ".", Type = 4, InodeNumber = 2 },
+        new PfsDirent { Name = "..", Type = 5, InodeNumber = 2 }
       };
-    }
-
-    /// <summary>
-    /// Takes a directory and a root node, and recursively makes a filesystem tree.
-    /// </summary>
-    /// <param name="root">Root directory of the image</param>
-    /// <param name="proj">GP4 Project</param>
-    /// <param name="projDir">Directory of GP4 file</param>
-    void BuildFSTree(FSDir root, GP4.Gp4Project proj, string projDir)
-    {
-      void AddDirs(FSDir parent, List<GP4.Dir> imgDir)
-      {
-        foreach (var d in imgDir)
-        {
-          FSDir dir;
-          parent.Dirs.Add(dir = new FSDir { name = d.TargetName, Parent = parent });
-          AddDirs(dir, d.Children);
-        }
-      }
-      FSDir FindDir(string name)
-      {
-        FSDir dir = root;
-        var breadcrumbs = name.Split('/');
-        foreach(var crumb in breadcrumbs)
-        {
-          dir = dir.Dirs.Where(d => d.name == crumb).First();
-        }
-        return dir;
-      }
-
-      AddDirs(root, proj.RootDir);
-
-      foreach (var f in proj.files)
-      {
-        var lastSlash = f.TargetPath.LastIndexOf('/') + 1;
-        if(f.TargetPath == "sce_sys/param.sfo")
-        {
-          continue;
-        }
-        var name = f.TargetPath.Substring(lastSlash);
-        var source = Path.Combine(projDir, f.OrigPath);
-        var parent = lastSlash == 0 ? root : FindDir(f.TargetPath.Substring(0, lastSlash - 1));
-        parent.Files.Add(new FSFile
-        {
-          Parent = parent,
-          name = name,
-          OrigFileName = source,
-          Size = new FileInfo(source).Length
-        });
-      }
     }
 
     /// <summary>
@@ -309,7 +278,7 @@ namespace LibOrbisPkg.PFS
       foreach (var di in inodes)
       {
         di.WriteToStream(s);
-        if (s.Position % hdr.BlockSize > hdr.BlockSize - PfsDinode32.SizeOf)
+        if (s.Position % hdr.BlockSize > hdr.BlockSize - (properties.Sign ? DinodeS32.SizeOf : DinodeD32.SizeOf))
         {
           s.Position += hdr.BlockSize - (s.Position % hdr.BlockSize);
         }
@@ -338,7 +307,7 @@ namespace LibOrbisPkg.PFS
       if (f is FSDir)
       {
         var dir = (FSDir)f;
-        var startBlock = f.ino.db[0];
+        var startBlock = f.ino.DirectBlocks[0];
         foreach (var d in dir.Dirents)
         {
           d.WriteToStream(s);
@@ -351,8 +320,7 @@ namespace LibOrbisPkg.PFS
       else if (f is FSFile)
       {
         var file = (FSFile)f;
-        using (var fileStream = File.OpenRead(file.OrigFileName))
-          fileStream.CopyTo(s);
+        file.Write(s);
       }
     }
   }

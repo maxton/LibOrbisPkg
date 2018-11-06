@@ -8,11 +8,14 @@ using LibOrbisPkg.Util;
 
 namespace LibOrbisPkg.PFS
 {
+  [Flags]
   public enum PfsMode : ushort
   {
-    Decrypted = 0x8,
-    CompressedAndEncrypted = 0xD,
-    None = 0
+    None = 0,
+    Signed = 0x1,
+    Is64Bit = 0x2,
+    Encrypted = 0x4,
+    UnknownFlagAlwaysSet = 0x8,
   }
   public class PfsHeader
   {
@@ -23,7 +26,7 @@ namespace LibOrbisPkg.PFS
     public byte Clean = 0;
     public byte ReadOnly = 0;
     public byte Rsv = 0;
-    public ushort Mode = 0;
+    public PfsMode Mode = PfsMode.UnknownFlagAlwaysSet;
     public ushort Unk1 = 0;
     public uint BlockSize = 0x10000;
     public uint NBackup = 0;
@@ -45,7 +48,7 @@ namespace LibOrbisPkg.PFS
       s.WriteByte(Clean);
       s.WriteByte(ReadOnly);
       s.WriteByte(Rsv);
-      s.WriteUInt16LE(Mode);
+      s.WriteUInt16LE((ushort)Mode);
       s.WriteUInt16LE(Unk1);
       s.WriteUInt32LE(BlockSize);
       s.WriteUInt32LE(NBackup);
@@ -67,7 +70,7 @@ namespace LibOrbisPkg.PFS
         Clean = s.ReadUInt8(),
         ReadOnly = s.ReadUInt8(),
         Rsv = s.ReadUInt8(),
-        Mode = s.ReadUInt16LE(),
+        Mode = (PfsMode)s.ReadUInt16LE(),
         Unk1 = s.ReadUInt16LE(),
         BlockSize = s.ReadUInt32LE(),
         NBackup = s.ReadUInt32LE(),
@@ -121,21 +124,17 @@ namespace LibOrbisPkg.PFS
     @internal = 0x20000
   }
 
-  public class PfsDinode32
+  public abstract class inode
   {
-    public PfsDinode32()
+    public inode()
     {
       SetTime((long)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds);
     }
-
-    public const long SizeOf = 0xA8;
     public uint Number;
-
     /// <summary>
     /// Default is 555 octal.
     /// </summary>
     public InodeMode Mode = (InodeMode)0x16D;
-
     /// <summary>
     /// Number of links to this file in the filesystem.
     /// 1 for regular files, 1 + 1 for every subdirectory for dirs.
@@ -157,10 +156,12 @@ namespace LibOrbisPkg.PFS
     public ulong Unk1;
     public ulong Unk2;
     public uint Blocks;
-    public int[] db = new int[12];
-    public int[] ib = new int[5];
+    public abstract IList<int> DirectBlocks { get; }
+    public abstract IList<int> IndirectBlocks { get; }
 
-    public PfsDinode32 SetTime(long time)
+    public abstract void SetDirectBlock(int idx, int block);
+    public abstract void WriteToStream(Stream s);
+    public inode SetTime(long time)
     {
       Time1_sec = time;
       Time2_sec = time;
@@ -168,8 +169,21 @@ namespace LibOrbisPkg.PFS
       Time4_sec = time;
       return this;
     }
+  };
+  public class DinodeD32 : inode
+  {
+    public const long SizeOf = 0xA8;
+    public int[] db = new int[12];
+    public int[] ib = new int[5];
 
-    public void WriteToStream(Stream s)
+    public override IList<int> DirectBlocks => db;
+    public override IList<int> IndirectBlocks => ib;
+
+    public override void SetDirectBlock(int idx, int block)
+    {
+      db[idx] = block;
+    }
+    public override void WriteToStream(Stream s)
     {
       s.WriteLE((ushort)Mode);
       s.WriteLE(Nlink);
@@ -193,9 +207,9 @@ namespace LibOrbisPkg.PFS
       foreach (var x in ib) s.WriteLE(x);
     }
 
-    public static PfsDinode32 ReadFromStream(Stream s)
+    public static DinodeD32 ReadFromStream(Stream s)
     {
-      var di = new PfsDinode32
+      var di = new DinodeD32
       {
         Mode = (InodeMode)s.ReadUInt16LE(),
         Nlink = s.ReadUInt16LE(),
@@ -220,7 +234,65 @@ namespace LibOrbisPkg.PFS
       for (var i = 0; i < 5; i++) di.ib[i] = s.ReadInt32LE();
       return di;
     }
+  };
+  public struct block_sig
+  {
+    public byte[] sig;
+    public int block;
   }
+  public class DinodeS32 : inode
+  {
+    public const long SizeOf = 0x2C8;
+    public DinodeS32()
+    {
+      db = new block_sig[12];
+      ib = new block_sig[5];
+      for(var i = 0; i < 12; i++)
+      {
+        db[i].sig = new byte[32];
+        if (i < 5) ib[i].sig = new byte[32];
+      }
+    }
+    public block_sig[] db;
+    public block_sig[] ib;
+    public override IList<int> DirectBlocks => db.Select(d => d.block).ToList();
+    public override IList<int> IndirectBlocks => ib.Select(d => d.block).ToList();
+
+    public override void SetDirectBlock(int idx, int block)
+    {
+      db[idx].block = block;
+    }
+    public override void WriteToStream(Stream s)
+    {
+      s.WriteLE((ushort)Mode);
+      s.WriteLE(Nlink);
+      s.WriteLE((uint)Flags);
+      s.WriteLE(Size);
+      s.WriteLE(SizeCompressed);
+      s.WriteLE(Time1_sec);
+      s.WriteLE(Time2_sec);
+      s.WriteLE(Time3_sec);
+      s.WriteLE(Time4_sec);
+      s.WriteLE(Time1_nsec);
+      s.WriteLE(Time2_nsec);
+      s.WriteLE(Time3_nsec);
+      s.WriteLE(Time4_nsec);
+      s.WriteLE(Uid);
+      s.WriteLE(Gid);
+      s.WriteLE(Unk1);
+      s.WriteLE(Unk2);
+      s.WriteLE(Blocks);
+      foreach (var x in db) {
+        s.Write(x.sig, 0, 32);
+        s.WriteLE(x.block);
+      }
+      foreach (var x in ib)
+      {
+        s.Write(x.sig, 0, 32);
+        s.WriteLE(x.block);
+      }
+    }
+  };
 
   public class PfsDirent
   {

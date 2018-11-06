@@ -159,22 +159,51 @@ namespace PkgEditor.Views
       nodes.Add(node);
     }
 
+    private string passcode;
+    AbstractPackage package, innerPfs;
+    private bool pkg_loaded;
+    private void CloseFileView()
+    {
+
+    }
+
+    private void ReopenFileView()
+    {
+
+    }
+
     private void button1_Click(object sender, EventArgs e)
     {
       try
       {
         var ekpfs = new string(Crypto.ComputeKeys(pkg.Header.content_id, passcodeTextBox.Text, 1)
           .Select(b => (char)b).ToArray());
-        var package = PackageReader.ReadPackageFromFile(pkgFile, ekpfs);
-        var innerPfs = PackageReader.ReadPackageFromFile(package.GetFile("/pfs_image.dat"));
+        package = PackageReader.ReadPackageFromFile(pkgFile, ekpfs);
+        innerPfs = PackageReader.ReadPackageFromFile(package.GetFile("/pfs_image.dat"));
         var view = new PackageView(innerPfs, PackageManager.GetInstance());
         view.Dock = DockStyle.Fill;
         filesTab.Controls.Clear();
         filesTab.Controls.Add(view);
+        passcode = passcodeTextBox.Text;
       }
       catch (Exception)
       {
         MessageBox.Show("Invalid passcode!");
+      }
+    }
+
+    private void button2_Click(object sender, EventArgs e)
+    {
+      using (var sfd = new SaveFileDialog())
+      {
+        sfd.Filter = "PFS Image (*.dat)|*.dat";
+        if(sfd.ShowDialog() == DialogResult.OK)
+        {
+          using (var fs = System.IO.File.OpenWrite(sfd.FileName))
+          {
+            pkgFile.GetStream();
+          }
+        }
       }
     }
   }

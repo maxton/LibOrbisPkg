@@ -22,14 +22,10 @@ namespace PkgTool
             var proj = args[1];
             var output = args[2];
             var outFile = File.OpenWrite(output);
-            var props = new LibOrbisPkg.PFS.PfsProperties
-            {
-              BlockSize = 65536,
-              output = outFile,
-              proj = Gp4Project.ReadFrom(File.OpenRead(proj)),
-              projDir = Path.GetDirectoryName(proj)
-            };
-            new PfsBuilder(props, Console.WriteLine).BuildPfs();
+            var props = PfsProperties.MakeInnerPFSProps(
+                Gp4Project.ReadFrom(File.OpenRead(proj)),
+                Path.GetDirectoryName(proj));
+            new PfsBuilder(props, Console.WriteLine).WriteImage(outFile);
             break;
           }
         case "makepkg":
@@ -103,8 +99,7 @@ namespace PkgTool
         case "extractouterpfs_e":
           {
             var pkgPath = args[1];
-            var passcode = args[2];
-            var outPath = args[3];
+            var outPath = args[2];
             var pkgFile = Util.LocalFile(pkgPath);
             Pkg pkg;
             using (var s = pkgFile.GetStream())
@@ -113,6 +108,7 @@ namespace PkgTool
               var outer_pfs = new OffsetStream(s, (long)pkg.Header.pfs_image_offset);
               using (var o = File.OpenWrite(outPath))
               {
+                outer_pfs.Position = 0;
                 outer_pfs.CopyTo(o);
               }
             }

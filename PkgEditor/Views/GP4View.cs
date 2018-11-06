@@ -161,13 +161,7 @@ namespace PkgEditor.Views
         logBox.Show();
         using (var fs = File.OpenWrite(ofd.FileName))
         {
-          new PfsBuilder(new PfsProperties
-          {
-            BlockSize = 65536,
-            output = fs,
-            proj = proj,
-            projDir = Path.GetDirectoryName(path)
-          }, Console.WriteLine).BuildPfs();
+          new PfsBuilder(PfsProperties.MakeInnerPFSProps(proj, Path.GetDirectoryName(path)), Console.WriteLine).WriteImage(fs);
           Console.WriteLine("Done! Saved to {0}", ofd.FileName);
         }
       }
