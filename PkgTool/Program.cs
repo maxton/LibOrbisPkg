@@ -142,6 +142,11 @@ namespace PkgTool
               using (var o = File.OpenWrite(outPath))
               {
                 decrypt_stream.CopyTo(o);
+                // Unset "encrypted" flag
+                o.Position = decrypt_stream.Position = 0x1C;
+                var b = (byte)decrypt_stream.ReadByte();
+                b = (byte)(b & ~4);
+                o.WriteByte(b);
               }
             }
             break;
