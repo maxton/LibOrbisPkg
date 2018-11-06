@@ -26,6 +26,9 @@ Verbs:
   makepfs <input_project.gp4> <output_pfs.dat>
   makepkg <input_project.gp4> <output_directory>
   extractpkg <input.pkg> <passcode> <output_directory>
+  extractouterpfs <input.pkg> <passcode> <output_pfs.dat>
+  extractouterpfs_e <input.pkg> <output_pfs_encrypted.dat>
+  extractinnerpfs <input.pkg> <passcode> <pfs_image.dat>
  ```
 
 ## TODO
