@@ -67,6 +67,7 @@
     <Compile Include="Util\StreamExtensions.cs" />
     <Compile Include="Util\SubStream.cs" />
     <Compile Include="Util\WriterBase.cs" />
+    <Compile Include="Util\XtsCryptStream.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
