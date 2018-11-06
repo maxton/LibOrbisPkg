@@ -79,6 +79,73 @@ namespace PkgTool
             ExtractDir(innerPfs.RootDirectory, outPath);
             break;
           }
+        case "extractinnerpfs":
+          {
+            var pkgPath = args[1];
+            var passcode = args[2];
+            var outPath = args[3];
+            var pkgFile = Util.LocalFile(pkgPath);
+            Pkg pkg;
+            using (var s = pkgFile.GetStream())
+            {
+              pkg = new PkgReader(s).ReadPkg();
+            }
+            var keyString = new string(Crypto.ComputeKeys(pkg.Header.content_id, passcode, 1).Select(b => (char)b).ToArray());
+            var package = PackageReader.ReadPackageFromFile(pkgFile, keyString);
+            var innerPfs = package.GetFile("/pfs_image.dat");
+            using (var ipfs = innerPfs.GetStream())
+            using (var o = File.OpenWrite(outPath))
+            {
+              ipfs.CopyTo(o);
+            }
+            break;
+          }
+        case "extractouterpfs_e":
+          {
+            var pkgPath = args[1];
+            var passcode = args[2];
+            var outPath = args[3];
+            var pkgFile = Util.LocalFile(pkgPath);
+            Pkg pkg;
+            using (var s = pkgFile.GetStream())
+            {
+              pkg = new PkgReader(s).ReadPkg();
+              var outer_pfs = new OffsetStream(s, (long)pkg.Header.pfs_image_offset);
+              using (var o = File.OpenWrite(outPath))
+              {
+                outer_pfs.CopyTo(o);
+              }
+            }
+            break;
+          }
+        case "extractouterpfs":
+          {
+            var pkgPath = args[1];
+            var passcode = args[2];
+            var outPath = args[3];
+            var pkgFile = Util.LocalFile(pkgPath);
+            Pkg pkg;
+            using (var s = pkgFile.GetStream())
+            {
+              pkg = new PkgReader(s).ReadPkg();
+              var outer_pfs = new OffsetStream(s, (long)pkg.Header.pfs_image_offset);
+              var ekpfs = Crypto.ComputeKeys(pkg.Header.content_id, passcode, 1);
+              var pfs_seed = new byte[16];
+              outer_pfs.Position = 0x370;
+              outer_pfs.Read(pfs_seed, 0, 16);
+              var enc_key = Crypto.PfsGenEncKey(ekpfs, pfs_seed);
+              var data_key = new byte[16];
+              var tweak_key = new byte[16];
+              Buffer.BlockCopy(enc_key, 0, tweak_key, 0, 16);
+              Buffer.BlockCopy(enc_key, 16, data_key, 0, 16);
+              var decrypt_stream = new XtsCryptStream(outer_pfs, data_key, tweak_key, 16, 0x1000);
+              using (var o = File.OpenWrite(outPath))
+              {
+                decrypt_stream.CopyTo(o);
+              }
+            }
+            break;
+          }
         default:
           Console.WriteLine("PkgTool.exe <verb> <input> <output>");
           Console.WriteLine("");
@@ -86,6 +153,9 @@ namespace PkgTool
           Console.WriteLine("  makepfs <input_project.gp4> <output_pfs.dat>");
           Console.WriteLine("  makepkg <input_project.gp4> <output_directory>");
           Console.WriteLine("  extractpkg <input.pkg> <passcode> <output_directory>");
+          Console.WriteLine("  extractouterpfs <input.pkg> <passcode> <output_pfs.dat>");
+          Console.WriteLine("  extractouterpfs_e <input.pkg> <output_pfs_encrypted.dat>");
+          Console.WriteLine("  extractinnerpfs <input.pkg> <passcode> <pfs_image.dat>");
           break;
       }
     }
