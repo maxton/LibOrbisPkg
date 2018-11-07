@@ -20,6 +20,9 @@ assembly_info:
 install:
 - cmd: git submodule update --init --recursive
 
+before_build:
+- cmd: nuget restore LibOrbisPkg.sln
+
 build:
   project: LibOrbisPkg.sln
   parallel: true
