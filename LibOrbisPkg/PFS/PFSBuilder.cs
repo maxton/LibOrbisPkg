@@ -148,10 +148,10 @@ namespace LibOrbisPkg.PFS
           Size: 65536
         );
         dir.ino = ino;
-        dir.Dirents.Add(new PfsDirent { Name = ".", InodeNumber = ino.Number, Type = 4 });
-        dir.Dirents.Add(new PfsDirent { Name = "..", InodeNumber = dir.Parent.ino.Number, Type = 5 });
+        dir.Dirents.Add(new PfsDirent { Name = ".", InodeNumber = ino.Number, Type = DirentType.Dot });
+        dir.Dirents.Add(new PfsDirent { Name = "..", InodeNumber = dir.Parent.ino.Number, Type = DirentType.DotDot });
         dirents.Add(dir.Dirents);
-        var dirent = new PfsDirent { Name = dir.name, InodeNumber = (uint)inodes.Count, Type = 3 };
+        var dirent = new PfsDirent { Name = dir.name, InodeNumber = (uint)inodes.Count, Type = DirentType.Directory };
         dir.Parent.Dirents.Add(dirent);
         dir.Parent.ino.Nlink++;
         inodes.Add(ino);
@@ -173,7 +173,7 @@ namespace LibOrbisPkg.PFS
           Blocks: (uint)CeilDiv(file.Size, hdr.BlockSize)
         );
         file.ino = ino;
-        var dirent = new PfsDirent { Name = file.name, Type = 2, InodeNumber = (uint)inodes.Count };
+        var dirent = new PfsDirent { Name = file.name, Type = DirentType.File, InodeNumber = (uint)inodes.Count };
         file.Parent.Dirents.Add(dirent);
         inodes.Add(ino);
       }
@@ -280,8 +280,8 @@ namespace LibOrbisPkg.PFS
 
       super_root_dirents = new List<PfsDirent>
       {
-        new PfsDirent { InodeNumber = 1, Name = "flat_path_table", Type = 2 },
-        new PfsDirent { InodeNumber = 2, Name = "uroot", Type = 3 }
+        new PfsDirent { InodeNumber = 1, Name = "flat_path_table", Type = DirentType.File },
+        new PfsDirent { InodeNumber = 2, Name = "uroot", Type = DirentType.Directory }
       };
 
       root = properties.root;
@@ -289,8 +289,8 @@ namespace LibOrbisPkg.PFS
       root.ino = uroot_ino;
       root.Dirents = new List<PfsDirent>
       {
-        new PfsDirent { Name = ".", Type = 4, InodeNumber = 2 },
-        new PfsDirent { Name = "..", Type = 5, InodeNumber = 2 }
+        new PfsDirent { Name = ".", Type = DirentType.Dot, InodeNumber = 2 },
+        new PfsDirent { Name = "..", Type = DirentType.DotDot, InodeNumber = 2 }
       };
     }
 

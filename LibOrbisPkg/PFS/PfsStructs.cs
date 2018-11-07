@@ -299,7 +299,7 @@ namespace LibOrbisPkg.PFS
     public static int MaxSize = 280;
 
     public uint InodeNumber;
-    public int Type;
+    public DirentType Type;
     public int NameLength;
     public int EntSize;
 
@@ -322,7 +322,7 @@ namespace LibOrbisPkg.PFS
     {
       var pos = s.Position;
       s.WriteLE(InodeNumber);
-      s.WriteLE(Type);
+      s.WriteLE((int)Type);
       s.WriteLE(NameLength);
       s.WriteLE(EntSize);
       s.Write(Encoding.ASCII.GetBytes(Name), 0, NameLength);
@@ -336,7 +336,7 @@ namespace LibOrbisPkg.PFS
       var d = new PfsDirent
       {
         InodeNumber = s.ReadUInt32LE(),
-        Type = s.ReadInt32LE(),
+        Type = (DirentType)s.ReadInt32LE(),
         NameLength = s.ReadInt32LE(),
         EntSize = s.ReadInt32LE(),
         name = s.ReadASCIINullTerminated(NameLength)
@@ -344,5 +344,12 @@ namespace LibOrbisPkg.PFS
       s.Position = pos + d.EntSize;
       return d;
     }
+  }
+  public enum DirentType : int
+  {
+    File = 2,
+    Directory = 3,
+    Dot = 4,
+    DotDot = 5
   }
 }
