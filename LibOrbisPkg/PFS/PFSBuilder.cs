@@ -33,6 +33,18 @@ namespace LibOrbisPkg.PFS
 
     private PfsProperties properties;
 
+    private struct BlockSigInfo
+    {
+      public int Block;
+      public long SigOffset;
+      public BlockSigInfo(int block, long offset)
+      {
+        Block = block;
+        SigOffset = offset;
+      }
+    }
+    private Stack<BlockSigInfo> sig_order = new Stack<BlockSigInfo>();
+
     Action<string> logger;
     private void Log(string s) => logger?.Invoke(s);
 
@@ -106,6 +118,20 @@ namespace LibOrbisPkg.PFS
         WriteFSNode(stream, f);
       }
       stream.SetLength(hdr.Ndblock * hdr.BlockSize);
+
+      if (properties.Sign)
+      {
+        Log("Signing...");
+        var signKey = Crypto.PfsGenSignKey(properties.EKPFS, properties.Seed);
+        foreach (var sig in sig_order)
+        {
+          var sig_buffer = new byte[properties.BlockSize];
+          stream.Position = sig.Block * properties.BlockSize;
+          stream.Read(sig_buffer, 0, (int)properties.BlockSize);
+          stream.Position = sig.SigOffset;
+          stream.Write(Crypto.HmacSha256(signKey, sig_buffer), 0, 32);
+        }
+      }
 
       if (properties.Encrypt)
       {
