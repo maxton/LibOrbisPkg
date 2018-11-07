@@ -67,8 +67,13 @@ namespace LibOrbisPkg.PFS
     }
     public FSFile(PfsBuilder b)
     {
-      Write = s => b.WriteImage(new Util.OffsetStream(s, s.Position));
-      Size = b.CalculatePfsSize();
+      var pfsc = new PFSCWriter(b.CalculatePfsSize());
+      Write = s =>
+      {
+        pfsc.WritePFSCHeader(s);
+        b.WriteImage(new Util.OffsetStream(s, s.Position));
+      };
+      Size = b.CalculatePfsSize() + pfsc.HeaderSize;
       name = "pfs_image.dat";
       Compress = true;
     }
