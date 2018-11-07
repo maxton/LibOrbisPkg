@@ -28,29 +28,30 @@
     /// </summary>
     private void InitializeComponent()
     {
-            this.logBox = new System.Windows.Forms.TextBox();
-            this.SuspendLayout();
-            // 
-            // logBox
-            // 
-            this.logBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.logBox.Location = new System.Drawing.Point(0, 0);
-            this.logBox.Multiline = true;
-            this.logBox.Name = "logBox";
-            this.logBox.Size = new System.Drawing.Size(692, 215);
-            this.logBox.TabIndex = 0;
-            // 
-            // LogWindow
-            // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(692, 215);
-            this.Controls.Add(this.logBox);
-            this.Name = "LogWindow";
-            this.ShowIcon = false;
-            this.Text = "LogWindow";
-            this.ResumeLayout(false);
-            this.PerformLayout();
+      this.logBox = new System.Windows.Forms.TextBox();
+      this.SuspendLayout();
+      // 
+      // logBox
+      // 
+      this.logBox.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.logBox.Location = new System.Drawing.Point(0, 0);
+      this.logBox.Multiline = true;
+      this.logBox.Name = "logBox";
+      this.logBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+      this.logBox.Size = new System.Drawing.Size(692, 215);
+      this.logBox.TabIndex = 0;
+      // 
+      // LogWindow
+      // 
+      this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+      this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+      this.ClientSize = new System.Drawing.Size(692, 215);
+      this.Controls.Add(this.logBox);
+      this.Name = "LogWindow";
+      this.ShowIcon = false;
+      this.Text = "LogWindow";
+      this.ResumeLayout(false);
+      this.PerformLayout();
 
     }
 
