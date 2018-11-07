@@ -92,11 +92,24 @@ namespace LibOrbisPkg.Util
     /// </summary>
     public static byte[] Sha256(Stream data, long start, long length)
     {
-      var sha = SHA256.Create();
       using (var s = new SubStream(data, start, length))
       {
-        s.Position = 0;
-        return sha.ComputeHash(s);
+        return Sha256(s);
+      }
+    }
+
+    public static byte[] HmacSha256(byte[] key, byte[] data)
+      => new HMACSHA256(key).ComputeHash(data);
+    public static byte[] HmacSha256(byte[] key, Stream data)
+    {
+      data.Position = 0;
+      return new HMACSHA256(key).ComputeHash(data);
+    }
+    public static byte[] HmacSha256(byte[] key, Stream data, long start, long length)
+    {
+      using (var s = new SubStream(data, start, length))
+      {
+        return HmacSha256(key, s);
       }
     }
 
