@@ -37,10 +37,20 @@ namespace LibOrbisPkg.PFS
     public long DinodeCount = 0;
     public long Ndblock = 0;
     public long DinodeBlockCount = 0;
-    public long SuperrootInode = 0;
-
-    public void WriteToStream(System.IO.Stream s)
+    public DinodeS64 InodeBlockSig = new DinodeS64()
     {
+      Mode = 0,
+      Nlink = 1,
+      Flags = InodeFlags.@readonly,
+      Size = 0x10000,
+      SizeCompressed = 0x10000,
+      Blocks = 1,
+    };
+    public byte[] Seed;
+
+    public void WriteToStream(Stream s)
+    {
+      var start = s.Position;
       s.WriteInt64LE(Version);
       s.WriteInt64LE(Magic);
       s.WriteInt64LE(Id);
@@ -56,12 +66,17 @@ namespace LibOrbisPkg.PFS
       s.WriteInt64LE(DinodeCount);
       s.WriteInt64LE(Ndblock);
       s.WriteInt64LE(DinodeBlockCount);
-      s.WriteInt64LE(SuperrootInode);
+      s.WriteInt64LE(0);
+      InodeBlockSig.WriteToStream(s);
+      s.Position = start + 0x370;
+      if(Seed != null)
+        s.Write(Seed, 0, Seed.Length);
     }
 
     public static PfsHeader ReadFromStream(System.IO.Stream s)
     {
-      return new PfsHeader
+      var start = s.Position;
+      var hdr = new PfsHeader
       {
         Version = s.ReadInt64LE(),
         Magic = s.ReadInt64LE(),
@@ -78,8 +93,10 @@ namespace LibOrbisPkg.PFS
         DinodeCount = s.ReadInt64LE(),
         Ndblock = s.ReadInt64LE(),
         DinodeBlockCount = s.ReadInt64LE(),
-        SuperrootInode = s.ReadInt64LE()
+        InodeBlockSig = DinodeS64.ReadFromStream(s)
       };
+      s.Position = start + 0x370;
+      hdr.Seed = s.ReadBytes(16);
     }
   }
 
@@ -240,6 +257,11 @@ namespace LibOrbisPkg.PFS
     public byte[] sig;
     public int block;
   }
+  public struct block_sig64
+  {
+    public byte[] sig;
+    public long block;
+  }
   public class DinodeS32 : inode
   {
     public const long SizeOf = 0x2C8;
@@ -291,6 +313,136 @@ namespace LibOrbisPkg.PFS
         s.Write(x.sig, 0, 32);
         s.WriteLE(x.block);
       }
+    }
+    public static DinodeS32 ReadFromStream(Stream s)
+    {
+      var di = new DinodeS32
+      {
+        Mode = (InodeMode)s.ReadUInt16LE(),
+        Nlink = s.ReadUInt16LE(),
+        Flags = (InodeFlags)s.ReadUInt32LE(),
+        Size = s.ReadInt64LE(),
+        SizeCompressed = s.ReadInt64LE(),
+        Time1_sec = s.ReadInt64LE(),
+        Time2_sec = s.ReadInt64LE(),
+        Time3_sec = s.ReadInt64LE(),
+        Time4_sec = s.ReadInt64LE(),
+        Time1_nsec = s.ReadUInt32LE(),
+        Time2_nsec = s.ReadUInt32LE(),
+        Time3_nsec = s.ReadUInt32LE(),
+        Time4_nsec = s.ReadUInt32LE(),
+        Uid = s.ReadUInt32LE(),
+        Gid = s.ReadUInt32LE(),
+        Unk1 = s.ReadUInt64LE(),
+        Unk2 = s.ReadUInt64LE(),
+        Blocks = s.ReadUInt32LE(),
+        db = new block_sig[12],
+        ib = new block_sig[5],
+      };
+      for (var i = 0; i < 12; i++) di.db[i] = new block_sig
+      {
+        sig = s.ReadBytes(32),
+        block = s.ReadInt32LE()
+      };
+      for (var i = 0; i < 5; i++) di.ib[i] = new block_sig
+      {
+        sig = s.ReadBytes(32),
+        block = s.ReadInt32LE()
+      };
+      return di;
+    }
+  };
+
+  public class DinodeS64 : inode
+  {
+    public const long SizeOf = 0x310;
+    public DinodeS64()
+    {
+      db = new block_sig64[12];
+      ib = new block_sig64[5];
+      for (var i = 0; i < 12; i++)
+      {
+        db[i].sig = new byte[32];
+        if (i < 5) ib[i].sig = new byte[32];
+      }
+    }
+    public block_sig64[] db;
+    public block_sig64[] ib;
+    public override IList<int> DirectBlocks => db.Select(d => (int)d.block).ToList();
+    public override IList<int> IndirectBlocks => ib.Select(d => (int)d.block).ToList();
+
+    public override void SetDirectBlock(int idx, int block)
+    {
+      db[idx].block = block;
+    }
+    public override void WriteToStream(Stream s)
+    {
+      s.WriteLE((ushort)Mode);
+      s.WriteLE(Nlink);
+      s.WriteLE((uint)Flags);
+      s.WriteLE(Size);
+      s.WriteLE(SizeCompressed);
+      s.WriteLE(Time1_sec);
+      s.WriteLE(Time2_sec);
+      s.WriteLE(Time3_sec);
+      s.WriteLE(Time4_sec);
+      s.WriteLE(Time1_nsec);
+      s.WriteLE(Time2_nsec);
+      s.WriteLE(Time3_nsec);
+      s.WriteLE(Time4_nsec);
+      s.WriteLE(Uid);
+      s.WriteLE(Gid);
+      s.WriteLE(Unk1);
+      s.WriteLE(Unk2);
+      s.WriteLE(Blocks);
+      s.WriteLE((int)0); // 4 bytes padding to fake 64-bit block size
+      foreach (var x in db)
+      {
+        s.Write(x.sig, 0, 32);
+        s.WriteLE(x.block);
+      }
+      foreach (var x in ib)
+      {
+        s.Write(x.sig, 0, 32);
+        s.WriteLE(x.block);
+      }
+    }
+    public static DinodeS64 ReadFromStream(Stream s)
+    {
+      var di = new DinodeS64
+      {
+        Mode = (InodeMode)s.ReadUInt16LE(),
+        Nlink = s.ReadUInt16LE(),
+        Flags = (InodeFlags)s.ReadUInt32LE(),
+        Size = s.ReadInt64LE(),
+        SizeCompressed = s.ReadInt64LE(),
+        Time1_sec = s.ReadInt64LE(),
+        Time2_sec = s.ReadInt64LE(),
+        Time3_sec = s.ReadInt64LE(),
+        Time4_sec = s.ReadInt64LE(),
+        Time1_nsec = s.ReadUInt32LE(),
+        Time2_nsec = s.ReadUInt32LE(),
+        Time3_nsec = s.ReadUInt32LE(),
+        Time4_nsec = s.ReadUInt32LE(),
+        Uid = s.ReadUInt32LE(),
+        Gid = s.ReadUInt32LE(),
+        Unk1 = s.ReadUInt64LE(),
+        Unk2 = s.ReadUInt64LE(),
+        Blocks = (uint)s.ReadInt64LE(),
+        db = new block_sig64[12],
+        ib = new block_sig64[5],
+      };
+      for (var i = 0; i < 12; i++) di.db[i] = new block_sig64
+      {
+        sig = s.ReadBytes(32),
+        block = s.ReadInt64LE()
+      };
+      for (var i = 0; i < 5; i++) di.ib[i] = new block_sig64
+      {
+        sig = s.ReadBytes(32),
+        block = s.ReadInt64LE()
+      };
+      return di;
     }
   };
 

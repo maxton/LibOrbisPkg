@@ -70,7 +70,8 @@ namespace LibOrbisPkg.PFS
         ReadOnly = 1,
         Mode = (properties.Sign ? PfsMode.Signed : 0) 
              | (properties.Encrypt ? PfsMode.Encrypted : 0)
-             | PfsMode.UnknownFlagAlwaysSet
+             | PfsMode.UnknownFlagAlwaysSet,
+        Seed = properties.Seed
       };
       inodes = new List<inode>();
       dirents = new List<List<PfsDirent>>();
