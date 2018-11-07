@@ -91,8 +91,9 @@ namespace PkgTool
             var innerPfs = package.GetFile("/pfs_image.dat");
             using (var ipfs = innerPfs.GetStream())
             using (var o = File.OpenWrite(outPath))
+            using (var ipfs_d = new GameArchives.PFS.PFSCDecompressStream(ipfs))
             {
-              ipfs.CopyTo(o);
+              ipfs_d.CopyTo(o);
             }
             break;
           }
