@@ -134,7 +134,7 @@ namespace PkgTool
               var tweak_key = new byte[16];
               Buffer.BlockCopy(enc_key, 0, tweak_key, 0, 16);
               Buffer.BlockCopy(enc_key, 16, data_key, 0, 16);
-              var decrypt_stream = new XtsCryptStream(outer_pfs, data_key, tweak_key, 16, 0x1000);
+              var decrypt_stream = new GameArchives.PFS.XtsCryptStream(outer_pfs, data_key, tweak_key, 16, 0x1000);
               using (var o = File.OpenWrite(outPath))
               {
                 decrypt_stream.CopyTo(o);

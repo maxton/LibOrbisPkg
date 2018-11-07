@@ -42,7 +42,22 @@ namespace LibOrbisPkg.PKG
       var outerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeOuterPFSProps(innerPfs));
       outerPfs.WriteImage(pfsStream);
 
-      // TODO: Encrypt PFS (could also be done while writing image)
+      // Encrypt PFS
+      pfsStream.Position = 0x10000;
+      var transformer = new XtsBlockTransform(dataKey, tweakKey);
+      const int sectorSize = 0x1000;
+      long xtsSector = 16;
+      long totalSectors = (pfsStream.Length + 0xFFF) / sectorSize;
+      byte[] sectorBuffer = new byte[sectorSize];
+      while(xtsSector < totalSectors)
+      {
+        pfsStream.Position = xtsSector * sectorSize;
+        pfsStream.Read(sectorBuffer, 0, sectorSize);
+        transformer.EncryptSector(sectorBuffer, (ulong)xtsSector);
+        pfsStream.Position = xtsSector * sectorSize;
+        pfsStream.Write(sectorBuffer, 0, sectorSize);
+        xtsSector += 1;
+      }
       // TODO: Generate hashes in Entries (body)
       // TODO: Calculate keys in entries (image key, etc)
 

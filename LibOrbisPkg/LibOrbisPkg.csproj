@@ -39,6 +39,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -68,7 +69,7 @@
     <Compile Include="Util\StreamExtensions.cs" />
     <Compile Include="Util\SubStream.cs" />
     <Compile Include="Util\WriterBase.cs" />
-    <Compile Include="Util\XtsCryptStream.cs" />
+    <Compile Include="Util\XtsBlockTransform.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
