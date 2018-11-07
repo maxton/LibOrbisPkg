@@ -32,32 +32,13 @@ namespace LibOrbisPkg.PKG
       // Write PFS first, to get stream length
       s.Position = (long) pkg.Header.pfs_image_offset;
       var EKPFS = Crypto.ComputeKeys(project.volume.Package.ContentId, project.volume.Package.Passcode, 1);
-      var encKey = Crypto.PfsGenEncKey(EKPFS, new byte[16]);
-      var dataKey = new byte[16];
-      var tweakKey = new byte[16];
-      Buffer.BlockCopy(encKey, 0, tweakKey, 0, 16);
-      Buffer.BlockCopy(encKey, 16, dataKey, 0, 16);
       var pfsStream = new OffsetStream(s, s.Position);
-      var innerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeInnerPFSProps(project, projectDir));
-      var outerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeOuterPFSProps(innerPfs));
+      Console.WriteLine("Preparing inner PFS...");
+      var innerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeInnerPFSProps(project, projectDir), Console.WriteLine);
+      Console.WriteLine("Preparing outer PFS...");
+      var outerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeOuterPFSProps(innerPfs, EKPFS), Console.WriteLine);
       outerPfs.WriteImage(pfsStream);
 
-      // Encrypt PFS
-      pfsStream.Position = 0x10000;
-      var transformer = new XtsBlockTransform(dataKey, tweakKey);
-      const int sectorSize = 0x1000;
-      long xtsSector = 16;
-      long totalSectors = (pfsStream.Length + 0xFFF) / sectorSize;
-      byte[] sectorBuffer = new byte[sectorSize];
-      while(xtsSector < totalSectors)
-      {
-        pfsStream.Position = xtsSector * sectorSize;
-        pfsStream.Read(sectorBuffer, 0, sectorSize);
-        transformer.EncryptSector(sectorBuffer, (ulong)xtsSector);
-        pfsStream.Position = xtsSector * sectorSize;
-        pfsStream.Write(sectorBuffer, 0, sectorSize);
-        xtsSector += 1;
-      }
       // TODO: Generate hashes in Entries (body)
       // TODO: Calculate keys in entries (image key, etc)
 

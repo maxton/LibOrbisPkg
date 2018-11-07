@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LibOrbisPkg.Util;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Design.Serialization;
@@ -105,6 +106,31 @@ namespace LibOrbisPkg.PFS
         WriteFSNode(stream, f);
       }
       stream.SetLength(hdr.Ndblock * hdr.BlockSize);
+
+      if (properties.Encrypt)
+      {
+        Log("Encrypting...");
+        var encKey = Crypto.PfsGenEncKey(properties.EKPFS, properties.Seed);
+        var dataKey = new byte[16];
+        var tweakKey = new byte[16];
+        Buffer.BlockCopy(encKey, 0, tweakKey, 0, 16);
+        Buffer.BlockCopy(encKey, 16, dataKey, 0, 16);
+        stream.Position = hdr.BlockSize;
+        var transformer = new XtsBlockTransform(dataKey, tweakKey);
+        const int sectorSize = 0x1000;
+        long xtsSector = 16;
+        long totalSectors = (stream.Length + 0xFFF) / sectorSize;
+        byte[] sectorBuffer = new byte[sectorSize];
+        while (xtsSector < totalSectors)
+        {
+          stream.Position = xtsSector * sectorSize;
+          stream.Read(sectorBuffer, 0, sectorSize);
+          transformer.EncryptSector(sectorBuffer, (ulong)xtsSector);
+          stream.Position = xtsSector * sectorSize;
+          stream.Write(sectorBuffer, 0, sectorSize);
+          xtsSector += 1;
+        }
+      }
     }
 
     /// <summary>

@@ -10,6 +10,8 @@ namespace LibOrbisPkg.PFS
     public uint BlockSize;
     public bool Encrypt;
     public bool Sign;
+    public byte[] EKPFS;
+    public byte[] Seed;
 
     public static PfsProperties MakeInnerPFSProps(GP4.Gp4Project proj, string projDir)
     {
@@ -20,11 +22,11 @@ namespace LibOrbisPkg.PFS
         root = root,
         BlockSize = 0x10000,
         Encrypt = false,
-        Sign = false
+        Sign = false,
       };
     }
 
-    public static PfsProperties MakeOuterPFSProps(PfsBuilder innerPFS)
+    public static PfsProperties MakeOuterPFSProps(PfsBuilder innerPFS, byte[] EKPFS)
     {
       var root = new FSDir();
       root.Files.Add(new FSFile(innerPFS)
@@ -36,7 +38,9 @@ namespace LibOrbisPkg.PFS
         root = root,
         BlockSize = 0x10000,
         Encrypt = true,
-        Sign = true
+        Sign = true,
+        EKPFS = EKPFS,
+        Seed = new byte[16]
       };
     }
 
