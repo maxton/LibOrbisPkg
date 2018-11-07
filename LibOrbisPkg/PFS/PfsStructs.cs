@@ -97,6 +97,7 @@ namespace LibOrbisPkg.PFS
       };
       s.Position = start + 0x370;
       hdr.Seed = s.ReadBytes(16);
+      return hdr;
     }
   }
 
