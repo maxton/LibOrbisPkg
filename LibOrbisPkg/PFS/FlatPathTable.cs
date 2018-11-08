@@ -24,7 +24,7 @@ namespace LibOrbisPkg.PFS
         var hash = HashFunction(n.FullPath());
         if (hashMap.ContainsKey(hash))
           Console.WriteLine("Warning: hash collisions not yet handled.");
-        hashMap[hash] = n.ino.Number;
+        hashMap[hash] = n.ino.Number | (n is FSDir ? 0x20000000u : 0u);
       }
     }
 

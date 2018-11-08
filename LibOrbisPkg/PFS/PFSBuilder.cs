@@ -167,10 +167,11 @@ namespace LibOrbisPkg.PFS
       foreach (var dir in allDirs)
       {
         var ino = MakeInode(
-          Mode: InodeMode.dir | InodeMode.rwx,
+          Mode: InodeMode.dir | InodeMode.rx_only,
           Number: (uint)inodes.Count,
           Blocks: 1,
-          Size: 65536
+          Size: 65536,
+          Flags: InodeFlags.@readonly
         );
         dir.ino = ino;
         dir.Dirents.Add(new PfsDirent { Name = ".", InodeNumber = ino.Number, Type = DirentType.Dot });
@@ -191,11 +192,12 @@ namespace LibOrbisPkg.PFS
       foreach (var file in allFiles)
       {
         var ino = MakeInode(
-          Mode: InodeMode.file | InodeMode.rwx,
+          Mode: InodeMode.file | InodeMode.rx_only,
           Size: file.Size,
           SizeCompressed: file.Size,
           Number: (uint)inodes.Count,
-          Blocks: (uint)CeilDiv(file.Size, hdr.BlockSize)
+          Blocks: (uint)CeilDiv(file.Size, hdr.BlockSize),
+          Flags: InodeFlags.@readonly
         );
         file.ino = ino;
         var dirent = new PfsDirent { Name = file.name, Type = DirentType.File, InodeNumber = (uint)inodes.Count };
@@ -363,7 +365,7 @@ namespace LibOrbisPkg.PFS
           SizeCompressed = SizeCompressed,
           Nlink = Nlink,
           Number = Number,
-          Flags = Flags,
+          Flags = Flags | InodeFlags.unk2 | InodeFlags.unk3,
         };
       }
       else
@@ -394,20 +396,22 @@ namespace LibOrbisPkg.PFS
         SizeCompressed: 65536,
         Nlink: 1,
         Number: 0,
-        Flags: InodeFlags.@internal
+        Flags: InodeFlags.@internal | InodeFlags.@readonly
       ));
       inodes.Add(fpt_ino = MakeInode(
-        Mode: InodeMode.file | InodeMode.rwx,
+        Mode: InodeMode.file | InodeMode.rx_only,
         Blocks: 1,
         Number: 1,
-        Flags: InodeFlags.@internal
+        Flags: InodeFlags.@internal | InodeFlags.@readonly
       ));
       var uroot_ino = MakeInode(
-        Mode: InodeMode.dir | InodeMode.rwx,
+        Mode: InodeMode.dir | InodeMode.rx_only,
         Number: 2,
         Size: 65536,
         SizeCompressed: 65536,
-        Blocks: 1
+        Blocks: 1,
+        Flags: InodeFlags.@readonly,
+        Nlink: 3
       );
 
       super_root_dirents = new List<PfsDirent>
