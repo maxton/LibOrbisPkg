@@ -18,7 +18,6 @@ namespace LibOrbisPkg.PFS
 
     private PfsHeader hdr;
     private List<inode> inodes;
-    private List<List<PfsDirent>> dirents;
     private List<PfsDirent> super_root_dirents;
 
     private inode super_root_ino, fpt_ino;
@@ -74,7 +73,6 @@ namespace LibOrbisPkg.PFS
         Seed = properties.Seed
       };
       inodes = new List<inode>();
-      dirents = new List<List<PfsDirent>>();
 
       Log("Setting up root structure...");
       SetupRootStructure();
@@ -177,7 +175,7 @@ namespace LibOrbisPkg.PFS
         dir.ino = ino;
         dir.Dirents.Add(new PfsDirent { Name = ".", InodeNumber = ino.Number, Type = DirentType.Dot });
         dir.Dirents.Add(new PfsDirent { Name = "..", InodeNumber = dir.Parent.ino.Number, Type = DirentType.DotDot });
-        dirents.Add(dir.Dirents);
+
         var dirent = new PfsDirent { Name = dir.name, InodeNumber = (uint)inodes.Count, Type = DirentType.Directory };
         dir.Parent.Dirents.Add(dirent);
         dir.Parent.ino.Nlink++;
