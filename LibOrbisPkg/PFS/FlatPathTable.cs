@@ -50,7 +50,7 @@ namespace LibOrbisPkg.PFS
     {
       uint hash = 0;
       foreach (var c in name)
-        hash += char.ToUpper(c) + 31 * hash;
+        hash = char.ToUpper(c) + (31 * hash);
       return hash;
     }
   }
