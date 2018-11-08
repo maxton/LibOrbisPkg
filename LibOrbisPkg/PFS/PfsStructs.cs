@@ -174,6 +174,7 @@ namespace LibOrbisPkg.PFS
     public ulong Unk1;
     public ulong Unk2;
     public uint Blocks;
+    public abstract int StartBlock { get; }
     public abstract IList<int> DirectBlocks { get; }
     public abstract IList<int> IndirectBlocks { get; }
 
@@ -194,6 +195,7 @@ namespace LibOrbisPkg.PFS
     public int[] db = new int[12];
     public int[] ib = new int[5];
 
+    public override int StartBlock => db[0];
     public override IList<int> DirectBlocks => db;
     public override IList<int> IndirectBlocks => ib;
 
@@ -278,6 +280,7 @@ namespace LibOrbisPkg.PFS
     }
     public block_sig[] db;
     public block_sig[] ib;
+    public override int StartBlock => db[0].block;
     public override IList<int> DirectBlocks => db.Select(d => d.block).ToList();
     public override IList<int> IndirectBlocks => ib.Select(d => d.block).ToList();
 
@@ -369,6 +372,7 @@ namespace LibOrbisPkg.PFS
     }
     public block_sig64[] db;
     public block_sig64[] ib;
+    public override int StartBlock => (int)db[0].block;
     public override IList<int> DirectBlocks => db.Select(d => (int)d.block).ToList();
     public override IList<int> IndirectBlocks => ib.Select(d => (int)d.block).ToList();
 

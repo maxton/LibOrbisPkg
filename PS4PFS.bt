@@ -13,33 +13,6 @@ typedef union {
     uint64 time_64;
 } time_t64;
 
-
-typedef struct {
-    uint32 unk;
-    uint32 unk2;
-    uint64 inode_blocks_sz;
-    
-    uint64 unk3;
-    struct { 
-        time_t64 unk1_tv_sec;
-        time_t64 unk2_tv_sec;
-        time_t64 unk3_tv_sec;
-        time_t64 unk4_tv_sec; 
-        uint32 unk1_tv_nsec;
-        uint32 unk2_tv_nsec;
-        uint32 unk3_tv_nsec;
-        uint32 unk4_tv_nsec;
-    } times;
-    int32 uid;
-    int32 gid;
-    int64 pad[2];
-    int64 blocks;
-    struct {
-        uchar hmac[32];
-        uint64 blkno;
-    } sigs[blocks];
-} inode_blocks_sig;
-
 typedef struct {
     int16 mode;
     int16 nlink;
@@ -63,6 +36,29 @@ typedef struct {
     int64 db[12];
     int64 ib[5];
 } di_d64;
+typedef struct {
+    int16 mode;
+    int16 nlink;
+    int32 unk;
+    int64 size;
+    int64 size2;
+    struct { 
+        time_t64 unk1_tv_sec;
+        time_t64 unk2_tv_sec;
+        time_t64 unk3_tv_sec;
+        time_t64 unk4_tv_sec; 
+        uint32 unk1_tv_nsec;
+        uint32 unk2_tv_nsec;
+        uint32 unk3_tv_nsec;
+        uint32 unk4_tv_nsec;
+    } times;
+    int32 uid;
+    int32 gid;
+    int64 unk2[2];
+    int64 blocks;
+    struct { byte sig[32]; int64 block; } db[12];
+    struct { byte sig[32]; int64 block; } ib[5];
+} di_s64;
 
 typedef struct {
     int64 unk[5];
@@ -87,9 +83,11 @@ typedef struct {
     uint16 nlink;
     struct {
         uint compressed : 1;
-        uint unk : 3;
+        uint unk0 : 1;
+        uint unk1 : 1;
+        uint unk2 : 1;
         uint readonly : 1;
-        uint unk2 : 12;
+        uint unk3 : 12;
         uint internal : 1;
     } flags;
     uint64 size;
@@ -121,9 +119,11 @@ typedef struct {
     uint16 nlink;
     struct {
         uint compressed : 1;
-        uint unk : 3;
+        uint unk0 : 1;
+        uint unk1 : 1;
+        uint unk2 : 1;
         uint readonly : 1;
-        uint unk2 : 12;
+        uint unk3 : 12;
         uint internal : 1;
     } flags;
     uint64 size;
@@ -200,8 +200,8 @@ typedef struct {
     int64 dinodeCount; // changes
     int64 ndblock; // changes
     int64 dinodeBlockCount; // changes
-    int64 superroot_ino; // zeroes
-    inode_blocks_sig inode_64;
+    int64 zero;
+    di_s64 superroot_ino;
     FSeek(start + 0x36C);
     int unk_index;
     byte crypt_seed[16];
@@ -259,7 +259,28 @@ typedef struct {
                 }
             }
         } dinodes;
-        
+        if(header.mode.is_signed) {
+            local int i;
+            local int j;
+            local int k;
+            for(i = 0; i < total; i++){
+                struct {
+                    for(j = 0; j < 5; j++){
+                        if(dinodes.dinode[i].ib[j].blockno == 0) break;
+                        FSeek(header.blocksz * dinodes.dinode[i].ib[j].blockno);
+                        for(k = 0; k < header.blocksz; k += 36) {
+                            if(ReadInt64() == 0){
+                                break;
+                            }
+                            struct {
+                                char sig[32];
+                                int block;
+                            } indirect_block;
+                        }
+                    }
+                } inode_ibs;
+            }
+        }
         
         FSeek(offset + header.blocksz * dinodes.dinode[0].db[0].blockno);
         local int min_size = 280;

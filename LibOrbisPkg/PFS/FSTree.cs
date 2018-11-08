@@ -77,6 +77,12 @@ namespace LibOrbisPkg.PFS
       name = "pfs_image.dat";
       Compress = true;
     }
+    public FSFile(Action<Stream> writer, string name, long size)
+    {
+      Write = writer;
+      this.name = name;
+      Size = size;
+    }
     public readonly Action<Stream> Write;
     public bool Compress = false;
   }
