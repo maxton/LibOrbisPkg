@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Numerics;
 
 namespace LibOrbisPkg.Util
 {
@@ -64,6 +65,73 @@ namespace LibOrbisPkg.Util
         rsa.ImportParameters(@params);
         return rsa.DecryptValue(eekpfs);
       }
+    }
+
+    /// <summary>
+    /// Encrypts the given hash with the given public key (modulus)
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="hash"></param>
+    /// <param name="extra"></param>
+    /// <returns></returns>
+    public static byte[] SignRSA2048(byte[] key, byte[] hash)
+    {
+      // 1. Seed MT PRNG with hash of key and input hash
+      var buffer = new byte[256 + 32];
+      Buffer.BlockCopy(key, 0, buffer, 0, 256);
+      Buffer.BlockCopy(hash, 0, buffer, 256, 32);
+      var final_hash = Sha256(Sha256(buffer));
+      var final_hash_ints = new uint[8];
+      for (int i = 0; i < 32; i += 4)
+      {
+        final_hash_ints[i / 4] = ((uint)final_hash[0 + i] << 24) |
+                                  ((uint)final_hash[1 + i] << 16) |
+                                  ((uint)final_hash[2 + i] << 8) |
+                                  ((uint)final_hash[3 + i] << 0);
+      }
+      var mt = new MersenneTwister(final_hash_ints);
+
+      // 2. Pad the RSA input (header hash) using the Mersenne Twister PRNG
+      var sha_source = new MemoryStream(48);
+      var padded_input = new byte[256];
+      padded_input[0] = 0;
+      padded_input[1] = 2;
+      padded_input[223] = 0;
+      Buffer.BlockCopy(hash, 0, padded_input, 224, 32);
+      for (int k = 2; k < 223;)
+      {
+        sha_source.Position = 0;
+        for (int i = 0; i < 12; i++)
+        {
+          sha_source.WriteUInt32BE(mt.Int32());
+        }
+        var random = Sha256(sha_source);
+        foreach (var r in random)
+        {
+          if (k >= 223)
+            break;
+          if (r != 0)
+            padded_input[k++] = r;
+        }
+      }
+
+      // 3. Encrypt the padded input with RSA 2048 (modular exponentiation)
+      return RSA2048Encrypt(padded_input, key);
+    }
+
+    /// <summary>
+    /// Encrypts the value with 2048 bit RSA.
+    /// Accepts and returns Big-Endian values
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="mod"></param>
+    /// <returns></returns>
+    public static byte[] RSA2048Encrypt(byte[] value, byte[] mod, int exp = 65537)
+    { 
+      var message = new BigInteger(value.Reverse().ToArray());
+      var modulus = new BigInteger(mod.Reverse().Concat(new byte[] { 0 }).ToArray());
+      var exponent = new BigInteger(exp);
+      return BigInteger.ModPow(message, exponent, modulus).ToByteArray().Take(256).Reverse().ToArray();
     }
 
     // TODO

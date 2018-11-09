@@ -53,6 +53,12 @@ namespace LibOrbisPkg.PKG
       // Now write header
       s.Position = 0;
       writer.WritePkg(pkg);
+
+      // Pkg Signature
+      byte[] header_sha256 = Crypto.Sha256(s, 0, 0x1000);
+      s.Position = 0x1000;
+      s.Write(Crypto.SignRSA2048(Keys.PkgSignKey, header_sha256), 0, 256);
+
       return pkg;
     }
 

@@ -39,6 +39,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Security" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -64,6 +65,7 @@
     <Compile Include="SFO\ParamSfo.cs" />
     <Compile Include="Util\Crypto.cs" />
     <Compile Include="Util\Keys.cs" />
+    <Compile Include="Util\MersenneTwister.cs" />
     <Compile Include="Util\OffsetStream.cs" />
     <Compile Include="Util\ReaderBase.cs" />
     <Compile Include="Util\StreamExtensions.cs" />
