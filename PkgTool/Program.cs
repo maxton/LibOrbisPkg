@@ -15,7 +15,7 @@ namespace PkgTool
   {
     static void Main(string[] args)
     {
-      switch (args[0])
+      switch (args.Length > 0 ? args[0] : null)
       {
         case "makepfs":
           {
@@ -148,6 +148,45 @@ namespace PkgTool
             }
             break;
           }
+        case "listentries":
+          {
+            var pkgPath = args[1];
+            using(var file = File.OpenRead(pkgPath))
+            {
+              var pkg = new PkgReader(file).ReadPkg();
+              Console.WriteLine("#\tOffset\tSize\tName");
+              var i = 0;
+              foreach(var meta in pkg.Metas.Metas)
+              {
+                Console.WriteLine($"{i++}\t0x{meta.DataOffset:X2}\t0x{meta.DataSize:X}\t{meta.id}");
+              }
+            }
+            break;
+          }
+        case "extractentry":
+          {
+            var pkgPath = args[1];
+            var idx = int.Parse(args[2]);
+            var outPath = args[3];
+            using (var pkgFile = File.OpenRead(pkgPath))
+            {
+              var pkg = new PkgReader(pkgFile).ReadPkg();
+              if (idx < 0 || idx >= pkg.Metas.Metas.Count)
+              {
+                Console.WriteLine("Error: entry number out of range");
+                break;
+              }
+              using (var outFile = File.OpenWrite(outPath))
+              {
+                var meta = pkg.Metas.Metas[idx];
+                var entry = new SubStream(pkgFile, meta.DataOffset, meta.DataSize);
+                outFile.SetLength(entry.Length);
+                entry.CopyTo(outFile);
+              }
+            }
+            break;
+          }
+
         default:
           Console.WriteLine("PkgTool.exe <verb> <input> <output>");
           Console.WriteLine("");
@@ -158,6 +197,8 @@ namespace PkgTool
           Console.WriteLine("  extractouterpfs <input.pkg> <passcode> <output_pfs.dat>");
           Console.WriteLine("  extractouterpfs_e <input.pkg> <output_pfs_encrypted.dat>");
           Console.WriteLine("  extractinnerpfs <input.pkg> <passcode> <pfs_image.dat>");
+          Console.WriteLine("  listentries <input.pkg>");
+          Console.WriteLine("  extractentry <input.pkg> <entry_id> <output.bin>");
           break;
       }
     }

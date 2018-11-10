@@ -33,6 +33,8 @@ Verbs:
   extractouterpfs <input.pkg> <passcode> <output_pfs.dat>
   extractouterpfs_e <input.pkg> <output_pfs_encrypted.dat>
   extractinnerpfs <input.pkg> <passcode> <pfs_image.dat>
+  listentries <input.pkg>
+  extractentry <input.pkg> <entry_id> <output.bin>
  ```
 
 ## TODO
