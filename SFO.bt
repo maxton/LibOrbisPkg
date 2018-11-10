@@ -1,0 +1,19 @@
+enum <uint16> param_fmt {
+    utf8_special = 0x4,
+    utf8 = 0x204,
+    integer = 0x404
+};
+
+char magic[4];
+int version;
+int key_table_start;
+int data_table_start;
+int num_entries;
+struct {
+    uint16 keyOffset; //offset of keytable + keyOffset
+    param_fmt format; //enum (see below)
+    uint32 paramLen;
+    uint32 paramMaxLen;
+    uint32 dataOffset; //offset of datatable + dataOffset
+} indices[num_entries];
+FSeek(key_table_start);

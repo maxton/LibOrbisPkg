@@ -388,10 +388,10 @@ namespace LibOrbisPkg.Util
     public static string ReadASCIINullTerminated(this Stream s, int limit = -1)
     {
       StringBuilder sb = new StringBuilder(255);
-      char cur;
-      while ((limit == -1 || sb.Length < limit) && (cur = (char)s.ReadByte()) != 0)
+      int cur;
+      while ((limit == -1 || sb.Length < limit) && (cur = s.ReadByte()) > 0)
       {
-        sb.Append(cur);
+        sb.Append((char)cur);
       }
       return sb.ToString();
     }
