@@ -154,11 +154,11 @@ namespace PkgTool
             using(var file = File.OpenRead(pkgPath))
             {
               var pkg = new PkgReader(file).ReadPkg();
-              Console.WriteLine("#\tOffset\tSize\tName");
+              Console.WriteLine("Offset\tSize\tFlags\t\t#\tName");
               var i = 0;
               foreach(var meta in pkg.Metas.Metas)
               {
-                Console.WriteLine($"{i++}\t0x{meta.DataOffset:X2}\t0x{meta.DataSize:X}\t{meta.id}");
+                Console.WriteLine($"0x{meta.DataOffset:X2}\t0x{meta.DataSize:X}\t{meta.Flags1:X8}\t{i++}\t{meta.id}");
               }
             }
             break;
