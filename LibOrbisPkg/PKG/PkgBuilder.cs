@@ -39,6 +39,14 @@ namespace LibOrbisPkg.PKG
       var outerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeOuterPFSProps(innerPfs, EKPFS), Console.WriteLine);
       outerPfs.WriteImage(pfsStream);
 
+      if(pkg.ParamSfo.ParamSfo.GetValueByName("PUBTOOLINFO") is SFO.Utf8Value v)
+      {
+        v.Value += 
+          $"img0_l0_size={pfsStream.Length / (1000 * 1000)}," +
+          $"img0_l1_size=0," +
+          $"img0_sc_ksize=512," +
+          $"img0_pc_ksize=576";
+      }
       // TODO: Generate hashes in Entries (body)
       // TODO: Calculate keys in entries (image key, etc)
 
@@ -195,17 +203,10 @@ namespace LibOrbisPkg.PKG
       var paramSfoPath = project.files.Where(f => f.TargetPath == "sce_sys/param.sfo").First().OrigPath;
       using (var paramSfo = File.OpenRead(Path.Combine(projectDir, paramSfoPath)))
       {
-        // TODO: What are these "size" values?
         var sfo = SFO.ParamSfo.FromStream(paramSfo);
-        sfo.Values.Add(new SFO.Utf8Value(
-          "PUBTOOLINFO",
-          "c_date=20181107,img0_l0_size=20,img0_l1_size=0,img0_sc_ksize=512,img0_pc_ksize=576",
-          0x200));
+        pkg.ParamSfo = new SfoEntry(sfo);
+        sfo.Values.Add(new SFO.Utf8Value("PUBTOOLINFO", "c_date=20181107", 0x200));
         sfo.Values.Add(new SFO.IntegerValue("PUBTOOLVER", 0x02890000));
-        pkg.ParamSfo = new GenericEntry(EntryId.PARAM_SFO, "param.sfo")
-        {
-          FileData = sfo.Serialize()
-        };
       }
       pkg.PsReservedDat = new GenericEntry(EntryId.PSRESERVED_DAT) { FileData = new byte[0x2000] };
       pkg.Entries = new List<Entry>

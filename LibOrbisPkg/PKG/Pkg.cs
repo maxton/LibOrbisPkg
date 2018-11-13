@@ -28,7 +28,7 @@ namespace LibOrbisPkg.PKG
     public NameTableEntry EntryNames;
     public GenericEntry LicenseDat;
     public GenericEntry LicenseInfo;
-    public GenericEntry ParamSfo;
+    public SfoEntry ParamSfo;
     public GenericEntry PsReservedDat;
 
     public List<Entry> Entries;

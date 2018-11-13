@@ -58,23 +58,36 @@ namespace LibOrbisPkg.SFO
       }
       return ret;
     }
+    const int keyTableOffset = 0x14;
 
-    public void Write(Stream s)
+    public int FileSize => CalcSize().Item2;
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns>A tuple containing the offset of the data table and the total file size.</returns>
+    private Tuple<int, int> CalcSize()
     {
-      int keyTableOffset = 0x14;
       int keyTableSize = 0x0;
       int dataSize = 0x0;
       Values.Sort((v1, v2) => v1.Name.CompareTo(v2.Name));
       foreach (var v in Values)
       {
-        keyTableOffset += 0x10;
         keyTableSize += v.Name.Length + 1;
         dataSize += v.MaxLength;
       }
-      int dataTableOffset = keyTableOffset + keyTableSize;
+      int dataTableOffset = (Values.Count * 0x10) + keyTableSize;
       if (dataTableOffset % 4 != 0) dataTableOffset += 4 - (dataTableOffset % 4);
+      return Tuple.Create(dataTableOffset, dataSize + dataTableOffset);
+    }
+
+    public void Write(Stream s)
+    {
+      var size = CalcSize();
+      var dataTableOffset = size.Item1;
+      var fileSize = size.Item2;
       s.SetLength(0);
-      s.SetLength(dataTableOffset + dataSize);
+      s.SetLength(fileSize);
       s.WriteInt32BE(0x00505346); // " PSF" magic
       s.WriteInt32LE(0x101); // Version?
       s.WriteInt32LE(keyTableOffset);

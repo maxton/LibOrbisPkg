@@ -55,6 +55,23 @@ namespace LibOrbisPkg.PKG
     public bool Encrypted => (Flags1 & 0x80000000) != 0;
   }
 
+  public class SfoEntry : Entry
+  {
+    public readonly SFO.ParamSfo ParamSfo;
+    public SfoEntry(SFO.ParamSfo paramSfo)
+    {
+      ParamSfo = paramSfo;
+    }
+    public override EntryId Id => EntryId.PARAM_SFO;
+    public override string Name => "param.sfo";
+    public override uint Length => (uint)ParamSfo.FileSize;
+    public override void Write(Stream s)
+    {
+      var sfoBytes = ParamSfo.Serialize();
+      s.Write(sfoBytes, 0, sfoBytes.Length);
+    }
+  }
+
   public class GenericEntry : Entry
   {
     public GenericEntry(EntryId id, string name = null)
