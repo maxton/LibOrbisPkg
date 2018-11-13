@@ -178,7 +178,7 @@ namespace LibOrbisPkg.PKG
     public byte[] ContentDigest;
     public byte[] GameDigest;
     public byte[] HeaderDigest;
-    public byte[] UnknownDigest2;
+    public byte[] SystemDigest;
     public byte[] MajorParamDigest;
     public byte[] ParamDigest;
     //public byte[] Unk; // 0xA0 of zeroes?
@@ -193,7 +193,7 @@ namespace LibOrbisPkg.PKG
       s.Write(ContentDigest, 0, 32); 
       s.Write(GameDigest, 0, 32); 
       s.Write(HeaderDigest, 0, 32); 
-      s.Write(UnknownDigest2, 0, 32); 
+      s.Write(SystemDigest, 0, 32); 
       s.Write(MajorParamDigest, 0, 32); 
       s.Write(ParamDigest, 0, 32);
       s.Position += 0xA0;

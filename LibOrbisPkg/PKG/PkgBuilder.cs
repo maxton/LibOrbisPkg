@@ -191,7 +191,7 @@ namespace LibOrbisPkg.PKG
         ContentDigest = new byte[32],
         GameDigest = new byte[32],
         HeaderDigest = new byte[32],
-        UnknownDigest2 = new byte[32],
+        SystemDigest = new byte[32],
         MajorParamDigest = new byte[32],
         ParamDigest = new byte[32],
       };

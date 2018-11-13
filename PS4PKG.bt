@@ -801,7 +801,7 @@ for(i = 0; i < header.entry_count; i++) {
                 uchar content_digest[32];
                 uchar game_digest[32];
                 uchar header_digest[32];
-                uchar unk_2[32];
+                uchar system_digest[32];
                 uchar major_param_digest[32];
                 uchar param_digest[32];
             } GeneralDigests;
