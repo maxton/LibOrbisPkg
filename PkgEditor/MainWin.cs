@@ -48,6 +48,7 @@ namespace PkgEditor
     {
       var x = new TabPage(name);
       c.Name = name;
+      c.mainWin = this;
       x.Controls.Add(c);
       //c.SetBrowser(this);
       c.SaveStatusChanged += UpdateSaveButtons;
