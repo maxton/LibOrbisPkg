@@ -192,6 +192,14 @@ namespace PkgEditor.Views
       }
     }
 
+    private void entriesListView_DoubleClick(object sender, EventArgs e)
+    {
+      if(entriesListView.SelectedItems[0].SubItems[0].Text == "PARAM_SFO")
+      {
+        mainWin.OpenTab(new SFOView(pkg.ParamSfo.ParamSfo), "param.sfo");
+      }
+    }
+
     private void button2_Click(object sender, EventArgs e)
     {
       using (var sfd = new SaveFileDialog())

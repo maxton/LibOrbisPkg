@@ -43,9 +43,9 @@
       this.passcodeTextBox = new System.Windows.Forms.TextBox();
       this.button1 = new System.Windows.Forms.Button();
       this.tabPage1 = new System.Windows.Forms.TabPage();
-      this.button2 = new System.Windows.Forms.Button();
-      this.button3 = new System.Windows.Forms.Button();
       this.button4 = new System.Windows.Forms.Button();
+      this.button3 = new System.Windows.Forms.Button();
+      this.button2 = new System.Windows.Forms.Button();
       this.tabControl1.SuspendLayout();
       this.headerTab.SuspendLayout();
       this.entriesTab.SuspendLayout();
@@ -113,6 +113,7 @@
       this.entriesListView.TabIndex = 7;
       this.entriesListView.UseCompatibleStateImageBehavior = false;
       this.entriesListView.View = System.Windows.Forms.View.Details;
+      this.entriesListView.DoubleClick += new System.EventHandler(this.entriesListView_DoubleClick);
       // 
       // columnHeaderId
       // 
@@ -191,15 +192,14 @@
       this.tabPage1.Text = "Dump";
       this.tabPage1.UseVisualStyleBackColor = true;
       // 
-      // button2
+      // button4
       // 
-      this.button2.Location = new System.Drawing.Point(6, 6);
-      this.button2.Name = "button2";
-      this.button2.Size = new System.Drawing.Size(190, 23);
-      this.button2.TabIndex = 0;
-      this.button2.Text = "Dump Outer PFS (Encrypted)";
-      this.button2.UseVisualStyleBackColor = true;
-      this.button2.Click += new System.EventHandler(this.button2_Click);
+      this.button4.Location = new System.Drawing.Point(6, 64);
+      this.button4.Name = "button4";
+      this.button4.Size = new System.Drawing.Size(190, 23);
+      this.button4.TabIndex = 2;
+      this.button4.Text = "Dump Inner PFS";
+      this.button4.UseVisualStyleBackColor = true;
       // 
       // button3
       // 
@@ -210,14 +210,15 @@
       this.button3.Text = "Dump Outer PFS (Decrypted)";
       this.button3.UseVisualStyleBackColor = true;
       // 
-      // button4
+      // button2
       // 
-      this.button4.Location = new System.Drawing.Point(6, 64);
-      this.button4.Name = "button4";
-      this.button4.Size = new System.Drawing.Size(190, 23);
-      this.button4.TabIndex = 2;
-      this.button4.Text = "Dump Inner PFS";
-      this.button4.UseVisualStyleBackColor = true;
+      this.button2.Location = new System.Drawing.Point(6, 6);
+      this.button2.Name = "button2";
+      this.button2.Size = new System.Drawing.Size(190, 23);
+      this.button2.TabIndex = 0;
+      this.button2.Text = "Dump Outer PFS (Encrypted)";
+      this.button2.UseVisualStyleBackColor = true;
+      this.button2.Click += new System.EventHandler(this.button2_Click);
       // 
       // PkgView
       // 
