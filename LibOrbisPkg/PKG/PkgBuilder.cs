@@ -42,10 +42,10 @@ namespace LibOrbisPkg.PKG
       if(pkg.ParamSfo.ParamSfo.GetValueByName("PUBTOOLINFO") is SFO.Utf8Value v)
       {
         v.Value += 
-          $"img0_l0_size={pfsStream.Length / (1000 * 1000)}," +
-          $"img0_l1_size=0," +
-          $"img0_sc_ksize=512," +
-          $"img0_pc_ksize=576";
+          $",img0_l0_size={pfsStream.Length / (1000 * 1000)}" +
+          $",img0_l1_size=0" +
+          $",img0_sc_ksize=512" +
+          $",img0_pc_ksize=576";
       }
       // TODO: Generate hashes in Entries (body)
       // TODO: Calculate keys in entries (image key, etc)

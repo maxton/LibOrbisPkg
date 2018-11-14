@@ -26,21 +26,22 @@ namespace LibOrbisPkg.SFO
     public static ParamSfo FromStream(Stream s)
     {
       var ret = new ParamSfo();
-      s.Position = 8;
+      var start = s.Position;
+      s.Position = start + 8;
       var keyTableStart = s.ReadInt32LE();
       var dataTableStart = s.ReadInt32LE();
       var numValues = s.ReadInt32LE();
       for(int value = 0; value < numValues; value++)
       {
-        s.Position = value * 0x10 + 0x14;
+        s.Position = value * 0x10 + 0x14 + start;
         var keyOffset = s.ReadUInt16LE();
         var format = (SfoEntryType)s.ReadUInt16LE();
         var len = s.ReadInt32LE();
         var maxLen = s.ReadInt32LE();
         var dataOffset = s.ReadUInt32LE();
-        s.Position = keyTableStart + keyOffset;
+        s.Position = start + keyTableStart + keyOffset;
         var name = s.ReadASCIINullTerminated();
-        s.Position = dataTableStart + dataOffset;
+        s.Position = start + dataTableStart + dataOffset;
         switch(format)
         {
           case SfoEntryType.Integer:
@@ -58,7 +59,7 @@ namespace LibOrbisPkg.SFO
       }
       return ret;
     }
-    const int keyTableOffset = 0x14;
+    int keyTableOffset => 0x14 + (Values.Count * 0x10);
 
     public int FileSize => CalcSize().Item2;
     
@@ -76,7 +77,7 @@ namespace LibOrbisPkg.SFO
         keyTableSize += v.Name.Length + 1;
         dataSize += v.MaxLength;
       }
-      int dataTableOffset = (Values.Count * 0x10) + keyTableSize;
+      int dataTableOffset = keyTableOffset + keyTableSize;
       if (dataTableOffset % 4 != 0) dataTableOffset += 4 - (dataTableOffset % 4);
       return Tuple.Create(dataTableOffset, dataSize + dataTableOffset);
     }
@@ -119,6 +120,11 @@ namespace LibOrbisPkg.SFO
         Write(s);
         return s.ToArray();
       }
+    }
+    public static ParamSfo Deserialize(byte[] file)
+    {
+      using (var ms = new MemoryStream(file))
+        return FromStream(ms);
     }
   }
 
