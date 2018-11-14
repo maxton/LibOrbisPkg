@@ -24,13 +24,24 @@ namespace LibOrbisPkg.PKG
       {
         metasEntry.Metas.Add(MetaEntry.Read(s));
       }
-      return new Pkg
+      var pkg = new Pkg
       {
         Header = header,
         HeaderDigest = headerDigest,
         HeaderSignature = headerSignature,
         Metas = metasEntry,
       };
+      foreach (var entry in pkg.Metas.Metas)
+      {
+        switch (entry.id)
+        {
+          case EntryId.PARAM_SFO:
+            s.Position = entry.DataOffset;
+            pkg.ParamSfo = new SfoEntry(SFO.ParamSfo.FromStream(s));
+            break;
+        }
+      }
+      return pkg;
     }
 
     public Header ReadHeader()
