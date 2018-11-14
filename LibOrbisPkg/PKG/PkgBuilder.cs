@@ -231,6 +231,16 @@ namespace LibOrbisPkg.PKG
       }
       // 2nd pass: set sizes, offsets in meta table
       var dataOffset = 0x2000u;
+      var flagMap = new Dictionary<EntryId,uint>() {
+        { EntryId.DIGESTS, 0x40000000 },
+        { EntryId.ENTRY_KEYS, 0x60000000 },
+        { EntryId.IMAGE_KEY, 0xE0000000 },
+        { EntryId.GENERAL_DIGESTS, 0x60000000 },
+        { EntryId.METAS, 0x60000000 },
+        { EntryId.ENTRY_NAMES, 0x40000000 },
+        { EntryId.LICENSE_DAT, 0x80000000 },
+        { EntryId.LICENSE_INFO, 0x80000000 },
+      };
       foreach(var entry in pkg.Entries)
       {
         var e = new MetaEntry
@@ -240,7 +250,7 @@ namespace LibOrbisPkg.PKG
           DataOffset = dataOffset,
           DataSize = entry.Length,
           // TODO
-          Flags1 = 0,
+          Flags1 = flagMap.ContainsKey(entry.Id) ? flagMap[entry.Id] : 0,
           Flags2 = 0,
         };
         pkg.Metas.Metas.Add(e);
