@@ -15,7 +15,7 @@ namespace LibOrbisPkg.Rif
     /// <summary>
     /// Constructs a signed debug license.dat
     /// </summary>
-    public LicenseDat(string ContentId, ContentType contentType)
+    public LicenseDat(string ContentId, ContentType contentType, byte[] EntitlementKey)
     {
       this.ContentId = ContentId;
       this.ContentType = contentType;
@@ -27,6 +27,7 @@ namespace LibOrbisPkg.Rif
       var tmp = Crypto.Sha256(contentId);
       Buffer.BlockCopy(tmp, 0, SecretIv, 0, 16);
       Buffer.BlockCopy(tmp, 16, Secret, 0, 16);
+      Buffer.BlockCopy(EntitlementKey, 0, Secret, 0x70, 16);
       EncryptSecretWithDebugKey();
       Sign();
     }

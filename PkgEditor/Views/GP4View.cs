@@ -49,6 +49,7 @@ namespace PkgEditor.Views
         this.path = path;
         contentIdTextBox.Text = proj.volume.Package.ContentId;
         passcodeTextBox.Text = proj.volume.Package.Passcode;
+        entitlementKeyTextbox.Text = proj.volume.Package.EntitlementKey;
         currentDir = null;
         PopulateDirs();
         loaded = true;
@@ -146,6 +147,7 @@ namespace PkgEditor.Views
         Modified = true;
         proj.volume.Package.ContentId = contentIdTextBox.Text;
         proj.volume.Package.Passcode = passcodeTextBox.Text;
+        proj.volume.Package.EntitlementKey = entitlementKeyTextbox.Text;
       }
     }
 

@@ -276,7 +276,10 @@ namespace LibOrbisPkg.PKG
 
     private byte[] GenLicense(Pkg pkg)
     {
-      var license = new LicenseDat(pkg.Header.content_id, pkg.Header.content_type);
+      var license = new LicenseDat(
+        pkg.Header.content_id,
+        pkg.Header.content_type,
+        project.volume.Package.EntitlementKey.FromHexCompact());
       using (var ms = new MemoryStream())
       {
         new LicenseDatWriter(ms).Write(license);

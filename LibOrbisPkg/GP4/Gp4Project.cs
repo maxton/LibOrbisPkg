@@ -44,6 +44,13 @@ namespace LibOrbisPkg.GP4
         }
       }
       setParent(proj.RootDir, null);
+      foreach(var file in proj.files)
+      {
+        if(file.OrigPath == null)
+        {
+          file.OrigPath = file.TargetPath.Replace('/','\\');
+        }
+      }
       return proj;
     }
 
@@ -187,6 +194,8 @@ namespace LibOrbisPkg.GP4
     public string ContentId;
     [XmlAttribute("passcode")]
     public string Passcode;
+    [XmlAttribute("entitlement_key")]
+    public string EntitlementKey;
   }
 
   public class Files : ICollection<Gp4File>

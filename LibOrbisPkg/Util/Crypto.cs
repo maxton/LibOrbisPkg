@@ -270,5 +270,16 @@ namespace LibOrbisPkg.Util
       }
       return sb.ToString();
     }
+
+    public static byte[] FromHexCompact(this string k)
+    {
+      var b = new List<byte>();
+      var key = k.Replace(" ", "");
+      for (var x = 0; x < key.Length; x += 2)
+      {
+        b.Add(Convert.ToByte(key.Substring(x, 2), 16));
+      }
+      return b.ToArray();
+    }
   }
 }
