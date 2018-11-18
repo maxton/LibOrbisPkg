@@ -13,22 +13,29 @@ namespace LibOrbisPkg.Rif
   {
     public LicenseDat() { }
     /// <summary>
-    /// Constructs a license.dat and computes the IV from the given content id
+    /// Constructs a signed debug license.dat
     /// </summary>
-    public LicenseDat(string ContentId)
+    public LicenseDat(string ContentId, ContentType contentType)
     {
       this.ContentId = ContentId;
+      this.ContentType = contentType;
+      this.SecretIv = new byte[16];
+      this.Secret = new byte[144];
+
       var contentId = new byte[48];
       Buffer.BlockCopy(Encoding.ASCII.GetBytes(ContentId), 0, contentId, 0, 36);
-      SecretIv = new byte[16];
       var tmp = Crypto.Sha256(contentId);
       Buffer.BlockCopy(tmp, 0, SecretIv, 0, 16);
+      Buffer.BlockCopy(tmp, 16, Secret, 0, 16);
+      EncryptSecretWithDebugKey();
+      Sign();
     }
+
     public short Version = 1;
     public short Unknown = -1;
     public ulong PsnAccountId = 0;
-    public long StartTime;
-    public long EndTime;
+    public long StartTime = 1364222275L;
+    public long EndTime = long.MaxValue;
     public string ContentId;
     public LicenseType LicenseType = LicenseType.Debug_0;
     public DrmType DrmType = DrmType.PS4;
@@ -49,7 +56,7 @@ namespace LibOrbisPkg.Rif
       Crypto.AesCbcCfb128Decrypt(Secret, Secret, Secret.Length, Keys.rif_debug_key, 16, SecretIv);
     }
 
-    private void EncryptSecretWithDebugKey()
+    public void EncryptSecretWithDebugKey()
     {
       Crypto.AesCbcCfb128Encrypt(Secret, Secret, Secret.Length, Keys.rif_debug_key, 16, SecretIv);
     }

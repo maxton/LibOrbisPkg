@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using LibOrbisPkg.Rif;
 using LibOrbisPkg.Util;
 
 namespace LibOrbisPkg.PKG
@@ -198,8 +199,8 @@ namespace LibOrbisPkg.PKG
       pkg.Metas = new MetasEntry();
       pkg.Digests = new GenericEntry(EntryId.DIGESTS);
       pkg.EntryNames = new NameTableEntry();
-      pkg.LicenseDat = new GenericEntry(EntryId.LICENSE_DAT) { FileData = new byte[1024] };
-      pkg.LicenseInfo = new GenericEntry(EntryId.LICENSE_INFO) { FileData = new byte[512] };
+      pkg.LicenseDat = new GenericEntry(EntryId.LICENSE_DAT) { FileData = GenLicense(pkg) };
+      pkg.LicenseInfo = new GenericEntry(EntryId.LICENSE_INFO) { FileData = GenLicenseInfo(pkg) };
       var paramSfoPath = project.files.Where(f => f.TargetPath == "sce_sys/param.sfo").First().OrigPath;
       using (var paramSfo = File.OpenRead(Path.Combine(projectDir, paramSfoPath)))
       {
@@ -238,8 +239,8 @@ namespace LibOrbisPkg.PKG
         { EntryId.GENERAL_DIGESTS, 0x60000000 },
         { EntryId.METAS, 0x60000000 },
         { EntryId.ENTRY_NAMES, 0x40000000 },
-        { EntryId.LICENSE_DAT, 0x80000000 },
-        { EntryId.LICENSE_INFO, 0x80000000 },
+        { EntryId.LICENSE_DAT, 0x00000000 },
+        { EntryId.LICENSE_INFO, 0x00000000 },
       };
       foreach(var entry in pkg.Entries)
       {
@@ -270,6 +271,28 @@ namespace LibOrbisPkg.PKG
       pkg.Header.entry_count_2 = (ushort)pkg.Entries.Count;
       pkg.Header.body_size = dataOffset;
       return pkg;
+    }
+
+    private byte[] GenLicense(Pkg pkg)
+    {
+      var license = new LicenseDat(pkg.Header.content_id, pkg.Header.content_type);
+      using (var ms = new MemoryStream())
+      {
+        new LicenseDatWriter(ms).Write(license);
+        ms.SetLength(0x400);
+        return ms.ToArray();
+      }
+    }
+
+    private byte[] GenLicenseInfo(Pkg pkg)
+    {
+      var info = new LicenseInfo(pkg.Header.content_id, pkg.Header.content_type);
+      using (var ms = new MemoryStream())
+      {
+        new LicenseInfoWriter(ms).Write(info);
+        ms.SetLength(0x200);
+        return ms.ToArray();
+      }
     }
 
     private ContentType VolTypeToContentType(GP4.VolumeType t)

@@ -160,12 +160,46 @@ namespace LibOrbisPkg.Util
     // TODO
     public static int AesCbcCfb128Encrypt(byte[] @out, byte[] @in, int size, byte[] key, int key_size, byte[] iv)
     {
-
+      var cipher = new AesManaged
+      {
+        Mode = CipherMode.CBC,
+        KeySize = 128,
+        Key = key,
+        IV = iv,
+        Padding = PaddingMode.None,
+        BlockSize = 128,
+      };
+      var tmp = new byte[size];
+      using (var pt_stream = new MemoryStream(@in))
+      using (var ct_stream = new MemoryStream(tmp))
+      using (var dec = cipher.CreateEncryptor())
+      using (var s = new CryptoStream(ct_stream, dec, CryptoStreamMode.Write))
+      {
+        pt_stream.CopyTo(s);
+      }
+      Buffer.BlockCopy(tmp, 0, @out, 0, tmp.Length);
       return 0;
     }
     public static int AesCbcCfb128Decrypt(byte[] @out, byte[] @in, int size, byte[] key, int key_size, byte[] iv)
     {
-
+      var cipher = new AesManaged
+      {
+        Mode = CipherMode.CBC,
+        KeySize = 128,
+        Key = key,
+        IV = iv,
+        Padding = PaddingMode.None,
+        BlockSize = 128,
+      };
+      var tmp = new byte[size];
+      using (var ct_stream = new MemoryStream(@in))
+      using (var pt_stream = new MemoryStream(tmp))
+      using (var dec = cipher.CreateDecryptor())
+      using (var s = new CryptoStream(ct_stream, dec, CryptoStreamMode.Read))
+      {
+        s.CopyTo(pt_stream);
+      }
+      Buffer.BlockCopy(tmp, 0, @out, 0, tmp.Length);
       return 0;
     }
 
