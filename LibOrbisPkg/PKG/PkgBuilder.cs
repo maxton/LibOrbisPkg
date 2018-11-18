@@ -49,6 +49,7 @@ namespace LibOrbisPkg.PKG
           $",img0_pc_ksize=576";
       }
       // TODO: Generate hashes in Entries (body)
+      pkg.GeneralDigests.ParamDigest = Crypto.Sha256(pkg.ParamSfo.ParamSfo.Serialize());
       // TODO: Calculate keys in entries (image key, etc)
 
       // Write body now because it will make calculating hashes easier.
