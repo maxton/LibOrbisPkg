@@ -120,6 +120,29 @@ namespace LibOrbisPkg.Util
     }
 
     /// <summary>
+    /// Sign the given SHA-256 hash with PKCS1 padding
+    /// </summary>
+    /// <param name="sha256Hash">Hash</param>
+    /// <param name="keyset">Keys to use</param>
+    /// <returns>RSA 2048 signature of the hash</returns>
+    public static byte[] RSA2048SignSha256(byte[] sha256Hash, RSAKeyset keyset)
+    {
+      RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
+      rsa.ImportParameters(new RSAParameters
+      {
+        P = keyset.Prime1,
+        Q = keyset.Prime2,
+        Exponent = keyset.PublicExponent,
+        Modulus = keyset.Modulus,
+        DP = keyset.Exponent1,
+        DQ = keyset.Exponent2,
+        InverseQ = keyset.Coefficient,
+        D = keyset.PrivateExponent
+      });
+      return rsa.SignHash(sha256Hash, CryptoConfig.MapNameToOID("SHA256"));
+    }
+
+    /// <summary>
     /// Encrypts the value with 2048 bit RSA.
     /// Accepts and returns Big-Endian values
     /// </summary>
