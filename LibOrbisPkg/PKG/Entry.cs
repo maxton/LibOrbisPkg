@@ -92,36 +92,42 @@ namespace LibOrbisPkg.PKG
 
   public class PkgEntryKey
   {
-    public const int Size = 32;
-    public byte[] key = new byte[16];
-    public byte[] iv = new byte[16];
-    public void Set(byte[] key)
-    {
-      Buffer.BlockCopy(key, 0, this.key, 0, 16);
-      Buffer.BlockCopy(key, 16, this.iv, 0, 16);
-    }
+    public byte[] digest = new byte[32];
+    public byte[] key = new byte[256];
   }
 
   public class KeysEntry : Entry
   {
-    public KeysEntry()
+    public KeysEntry(string contentId, string passcode)
     {
-      Keys = new PkgEntryKey[2048 / PkgEntryKey.Size];
-      for(var i = 0; i < Keys.Length; i++)
+      Keys = new PkgEntryKey[7];
+      seedDigest = Crypto.Sha256(Encoding.ASCII.GetBytes(contentId.PadRight(48, '\0')));
+      for (uint i = 0; i < 7; i++)
       {
-        Keys[i] = new PkgEntryKey();
+        var passcodeKey = Crypto.ComputeKeys(contentId, passcode, i);
+        Keys[i] = new PkgEntryKey
+        {
+          digest = Crypto.Sha256(passcodeKey).Xor(passcodeKey),
+          key = Crypto.RSA2048EncryptKey(Util.Keys.PkgPublicKeys[i], passcodeKey)
+        };
       }
+      Keys[0].key = Crypto.RSA2048EncryptKey(Util.Keys.PkgPublicKeys[0], Encoding.ASCII.GetBytes(passcode));
     }
+    public byte[] seedDigest;
     public PkgEntryKey[] Keys;
     public override EntryId Id => EntryId.ENTRY_KEYS;
     public override string Name => null;
     public override uint Length => 2048;
     public override void Write(Stream s)
     {
-      foreach(var keyset in Keys)
+      s.Write(seedDigest, 0, 32);
+      foreach(var key in Keys)
       {
-        s.Write(keyset.key, 0, keyset.key.Length);
-        s.Write(keyset.iv, 0, keyset.iv.Length);
+        s.Write(key.digest, 0, 32);
+      }
+      foreach(var key in Keys)
+      {
+        s.Write(key.key, 0, 256);
       }
     }
   }

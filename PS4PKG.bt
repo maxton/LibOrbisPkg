@@ -807,7 +807,15 @@ for(i = 0; i < header.entry_count; i++) {
             } GeneralDigests;
             break;
         case PKG_ENTRY_ID__ENTRY_KEYS:
-            uchar entry_keys[entries[i].size];
+            struct {
+                uchar seedDigest[32];
+                struct {
+                    uchar digest[32];
+                } digests[7];
+                struct {
+                    uchar key[256];
+                } keys[7];
+            } EntryKeys;
             break;
         case PKG_ENTRY_ID__IMAGE_KEY:
             uchar image_key[entries[i].size];

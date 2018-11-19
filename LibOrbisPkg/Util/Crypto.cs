@@ -70,15 +70,15 @@ namespace LibOrbisPkg.Util
     /// <summary>
     /// Encrypts the given hash with the given public key (modulus)
     /// </summary>
-    /// <param name="key"></param>
+    /// <param name="modulus"></param>
     /// <param name="hash"></param>
     /// <param name="extra"></param>
     /// <returns></returns>
-    public static byte[] SignRSA2048(byte[] key, byte[] hash)
+    public static byte[] RSA2048EncryptKey(byte[] modulus, byte[] hash)
     {
       // 1. Seed MT PRNG with hash of key and input hash
       var buffer = new byte[256 + 32];
-      Buffer.BlockCopy(key, 0, buffer, 0, 256);
+      Buffer.BlockCopy(modulus, 0, buffer, 0, 256);
       Buffer.BlockCopy(hash, 0, buffer, 256, 32);
       var final_hash = Sha256(Sha256(buffer));
       var final_hash_ints = new uint[8];
@@ -116,7 +116,7 @@ namespace LibOrbisPkg.Util
       }
 
       // 3. Encrypt the padded input with RSA 2048 (modular exponentiation)
-      return RSA2048Encrypt(padded_input, key);
+      return RSA2048Encrypt(padded_input, modulus);
     }
 
     /// <summary>
