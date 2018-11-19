@@ -261,6 +261,17 @@ namespace LibOrbisPkg.Util
       return Sha256(data);
     }
 
+    /// <summary>
+    /// XORs a with b and stores the result in a
+    /// </summary>
+    public static byte[] Xor(this byte[] a, byte[] b)
+    {
+      for(var i = 0; i < a.Length; i++)
+      {
+        a[i] ^= b[i];
+      }
+      return a;
+    }
     public static string AsHexCompact(this byte[] k)
     {
       StringBuilder sb = new StringBuilder(k.Length * 2);

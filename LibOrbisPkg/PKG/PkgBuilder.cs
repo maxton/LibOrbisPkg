@@ -51,6 +51,13 @@ namespace LibOrbisPkg.PKG
       // TODO: Generate hashes in Entries (body)
       pkg.GeneralDigests.ParamDigest = Crypto.Sha256(pkg.ParamSfo.ParamSfo.Serialize());
       // TODO: Calculate keys in entries (image key, etc)
+      pkg.EntryKeys.Keys[0].Set(
+        Crypto.Sha256(Encoding.ASCII.GetBytes(project.volume.Package.ContentId.PadRight(48, '\0'))));
+      for (uint i = 0; i < 7; i++)
+      {
+        var passcodeHash = Crypto.ComputeKeys(project.volume.Package.ContentId, project.volume.Package.Passcode, i);
+        pkg.EntryKeys.Keys[i+1].Set(passcodeHash.Xor(Crypto.Sha256(passcodeHash)));
+      }
 
       // Write body now because it will make calculating hashes easier.
       writer.WriteBody(pkg);

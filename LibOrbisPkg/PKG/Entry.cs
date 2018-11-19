@@ -95,6 +95,11 @@ namespace LibOrbisPkg.PKG
     public const int Size = 32;
     public byte[] key = new byte[16];
     public byte[] iv = new byte[16];
+    public void Set(byte[] key)
+    {
+      Buffer.BlockCopy(key, 0, this.key, 0, 16);
+      Buffer.BlockCopy(key, 16, this.iv, 0, 16);
+    }
   }
 
   public class KeysEntry : Entry
