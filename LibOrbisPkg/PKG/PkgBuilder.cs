@@ -190,7 +190,7 @@ namespace LibOrbisPkg.PKG
           0xD2, 0x56, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFE
+          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6E
         },
         ContentDigest = new byte[32],
         GameDigest = new byte[32],
@@ -299,7 +299,10 @@ namespace LibOrbisPkg.PKG
 
     private byte[] GenLicenseInfo(Pkg pkg)
     {
-      var info = new LicenseInfo(pkg.Header.content_id, pkg.Header.content_type);
+      var info = new LicenseInfo(
+        pkg.Header.content_id,
+        pkg.Header.content_type,
+        project.volume.Package.EntitlementKey.FromHexCompact());
       using (var ms = new MemoryStream())
       {
         new LicenseInfoWriter(ms).Write(info);
