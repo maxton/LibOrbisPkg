@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -7,6 +8,7 @@ namespace LibOrbisPkg.PFS
   public class PfsProperties
   {
     public FSDir root;
+    public long FileTime;
     public uint BlockSize;
     public bool Encrypt;
     public bool Sign;
@@ -17,16 +19,18 @@ namespace LibOrbisPkg.PFS
     {
       var root = new FSDir();
       BuildFSTree(root, proj, projDir);
+      var timestamp = DateTime.Parse(proj.volume.TimeStamp).ToUniversalTime().Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
       return new PfsProperties()
       {
         root = root,
         BlockSize = 0x10000,
         Encrypt = false,
         Sign = false,
+        FileTime = GetTimeStamp(proj),
       };
     }
 
-    public static PfsProperties MakeOuterPFSProps(PfsBuilder innerPFS, byte[] EKPFS)
+    public static PfsProperties MakeOuterPFSProps(GP4.Gp4Project proj, PfsBuilder innerPFS, byte[] EKPFS)
     {
       var root = new FSDir();
       root.Files.Add(new FSFile(innerPFS)
@@ -40,8 +44,16 @@ namespace LibOrbisPkg.PFS
         Encrypt = true,
         Sign = true,
         EKPFS = EKPFS,
-        Seed = new byte[16]
+        Seed = new byte[16],
+        FileTime = GetTimeStamp(proj),
       };
+    }
+
+    private static long GetTimeStamp(GP4.Gp4Project proj)
+    {
+      // FIXME: This is incorrect when DST of current time and project time are different
+      var timestamp = DateTime.Parse(proj.volume.TimeStamp).ToUniversalTime().Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+      return (long)timestamp;
     }
 
 

@@ -242,6 +242,8 @@ namespace LibOrbisPkg.PFS
         hdr.InodeBlockSig.Blocks = (uint)hdr.DinodeBlockCount;
         hdr.InodeBlockSig.Size = hdr.DinodeBlockCount * hdr.BlockSize;
         hdr.InodeBlockSig.SizeCompressed = hdr.DinodeBlockCount * hdr.BlockSize;
+        hdr.InodeBlockSig.SetTime(properties.FileTime);
+        hdr.InodeBlockSig.Flags = 0;
         for (var i = 0; i < hdr.DinodeBlockCount; i++)
         {
           hdr.InodeBlockSig.SetDirectBlock(i, 1 + i);
@@ -317,6 +319,7 @@ namespace LibOrbisPkg.PFS
         hdr.InodeBlockSig.Size = hdr.DinodeBlockCount * hdr.BlockSize;
         hdr.InodeBlockSig.SizeCompressed = hdr.DinodeBlockCount * hdr.BlockSize;
         hdr.InodeBlockSig.SetDirectBlock(0, (int)hdr.Ndblock++);
+        hdr.InodeBlockSig.SetTime(properties.FileTime);
         for (var i = 1; i < hdr.DinodeBlockCount; i++)
         {
           hdr.InodeBlockSig.SetDirectBlock(i, -1);
@@ -355,9 +358,10 @@ namespace LibOrbisPkg.PFS
 
     inode MakeInode(InodeMode Mode, uint Blocks, long Size = 0, long SizeCompressed = 0, ushort Nlink = 1, uint Number = 0, InodeFlags Flags = 0)
     {
+      inode ret;
       if (properties.Sign)
       {
-        return new DinodeS32()
+        ret = new DinodeS32()
         {
           Mode = Mode,
           Blocks = Blocks,
@@ -370,7 +374,7 @@ namespace LibOrbisPkg.PFS
       }
       else
       {
-        return new DinodeD32()
+        ret = new DinodeD32()
         {
           Mode = Mode,
           Blocks = Blocks,
@@ -381,6 +385,8 @@ namespace LibOrbisPkg.PFS
           Flags = Flags
         };
       }
+      ret.SetTime(properties.FileTime);
+      return ret;
     }
 
     /// <summary>

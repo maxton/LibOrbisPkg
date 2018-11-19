@@ -37,7 +37,7 @@ namespace LibOrbisPkg.PKG
       Console.WriteLine("Preparing inner PFS...");
       var innerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeInnerPFSProps(project, projectDir), Console.WriteLine);
       Console.WriteLine("Preparing outer PFS...");
-      var outerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeOuterPFSProps(innerPfs, EKPFS), Console.WriteLine);
+      var outerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeOuterPFSProps(project, innerPfs, EKPFS), Console.WriteLine);
       outerPfs.WriteImage(pfsStream);
 
       if(pkg.ParamSfo.ParamSfo.GetValueByName("PUBTOOLINFO") is SFO.Utf8Value v)
@@ -209,7 +209,26 @@ namespace LibOrbisPkg.PKG
       {
         var sfo = SFO.ParamSfo.FromStream(paramSfo);
         pkg.ParamSfo = new SfoEntry(sfo);
-        sfo.Values.Add(new SFO.Utf8Value("PUBTOOLINFO", "c_date=20181107", 0x200));
+        string date = "", time = "";
+        if((project.volume.Package.CreationDate ?? "") == "")
+        {
+          date = "c_date=" + DateTime.UtcNow.ToString("yyyyMMdd");
+        }
+        else
+        {
+          var split = project.volume.Package.CreationDate.Split(' ');
+          var dateTime = DateTime.Parse(project.volume.Package.CreationDate).ToUniversalTime();
+          if(split.Length == 2) // Date and time specified
+          {
+            date = "c_date=" + dateTime.ToString("yyyyMMdd");
+            time = ",c_time=" + dateTime.ToString("HHmmss");
+          }
+          else //  just date is specified
+          {
+            date = "c_date=" + dateTime.ToString("yyyyMMdd");
+          }
+        }
+        sfo.Values.Add(new SFO.Utf8Value("PUBTOOLINFO", date+time, 0x200));
         sfo.Values.Add(new SFO.IntegerValue("PUBTOOLVER", 0x02890000));
       }
       pkg.PsReservedDat = new GenericEntry(EntryId.PSRESERVED_DAT) { FileData = new byte[0x2000] };

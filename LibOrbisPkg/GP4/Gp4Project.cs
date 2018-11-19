@@ -196,6 +196,8 @@ namespace LibOrbisPkg.GP4
     public string Passcode;
     [XmlAttribute("entitlement_key")]
     public string EntitlementKey;
+    [XmlAttribute("c_date")]
+    public string CreationDate;
   }
 
   public class Files : ICollection<Gp4File>
