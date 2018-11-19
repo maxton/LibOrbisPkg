@@ -14,6 +14,7 @@ namespace LibOrbisPkg.PKG
     public abstract uint Length { get; }
     public abstract string Name { get; }
     public abstract void Write(Stream s);
+    public MetaEntry meta;
   }
 
   /// <summary>
@@ -53,6 +54,16 @@ namespace LibOrbisPkg.PKG
     }
     public uint KeyIndex => (Flags2 & 0xF000) >> 12;
     public bool Encrypted => (Flags1 & 0x80000000) != 0;
+
+    public byte[] GetBytes()
+    {
+      var buf = new byte[32];
+      using (var ms = new MemoryStream(buf))
+      {
+        Write(ms);
+      }
+      return buf;
+    }
   }
 
   public class SfoEntry : Entry

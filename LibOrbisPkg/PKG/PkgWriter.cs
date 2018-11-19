@@ -1,12 +1,15 @@
-﻿using System;
+﻿using LibOrbisPkg.Util;
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
 
 namespace LibOrbisPkg.PKG
 {
   public class PkgWriter : Util.WriterBase
   {
-    public PkgWriter(System.IO.Stream s) : base(true, s) { }
+    public PkgWriter(Stream s) : base(true, s) { }
     public void WritePkg(Pkg pkg)
     {
       WriteHeader(pkg.Header);
@@ -17,14 +20,29 @@ namespace LibOrbisPkg.PKG
       Write(pkg.HeaderSignature);
     }
 
-    public void WriteBody(Pkg pkg)
+    public void WriteBody(Pkg pkg, string contentId, string passcode)
     {
-      s.Position = (long)pkg.Header.body_offset;
       foreach (var entry in pkg.Entries)
       {
-        // Align to 16 bytes
-        s.Position += (16 - (s.Position % 16)) % 16;
-        entry.Write(s);
+        s.Position = entry.meta.DataOffset;
+        if (entry.meta.Encrypted)
+        {
+          var iv_key = Crypto.Sha256(
+            entry.meta.GetBytes()
+            .Concat(Crypto.ComputeKeys(contentId, passcode, entry.meta.KeyIndex))
+            .ToArray());
+          var tmp = new byte[entry.Length];
+          using(var ms = new MemoryStream(tmp))
+          {
+            entry.Write(ms);
+          }
+          Crypto.AesCbcCfb128Encrypt(tmp, tmp, tmp.Length, iv_key.Skip(16).Take(16).ToArray(), 16, iv_key.Take(16).ToArray());
+          Write(tmp);
+        }
+        else
+        {
+          entry.Write(s);
+        }
       }
     }
 

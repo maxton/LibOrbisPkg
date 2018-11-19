@@ -53,7 +53,7 @@ namespace LibOrbisPkg.PKG
       pkg.ImageKey.FileData = Crypto.RSA2048EncryptKey(RSAKeyset.FakeKeyset.Modulus.Reverse().ToArray(), EKPFS);
 
       // Write body now because it will make calculating hashes easier.
-      writer.WriteBody(pkg);
+      writer.WriteBody(pkg, project.volume.Package.ContentId, project.volume.Package.Passcode);
 
       CalcHeaderHashes(pkg, s);
 
@@ -104,7 +104,7 @@ namespace LibOrbisPkg.PKG
         // SC Entries Hash 1: Hash of 5 SC entries
         foreach (var entry in new Entry[] { pkg.EntryKeys, pkg.ImageKey, pkg.GeneralDigests, pkg.Metas, pkg.Digests })
         {
-          entry.Write(ms);
+          new SubStream(s, entry.meta.DataOffset, entry.meta.DataSize).CopyTo(ms);
         }
         pkg.Header.sc_entries1_hash = Crypto.Sha256(ms);
 
@@ -112,7 +112,7 @@ namespace LibOrbisPkg.PKG
         ms.SetLength(0);
         foreach (var entry in new Entry[] { pkg.EntryKeys, pkg.ImageKey, pkg.GeneralDigests, pkg.Metas })
         {
-          entry.Write(ms);
+          new SubStream(s, entry.meta.DataOffset, entry.meta.DataSize).CopyTo(ms);
         }
         pkg.Header.sc_entries2_hash = Crypto.Sha256(ms);
       }
@@ -242,8 +242,14 @@ namespace LibOrbisPkg.PKG
         { EntryId.GENERAL_DIGESTS, 0x60000000 },
         { EntryId.METAS, 0x60000000 },
         { EntryId.ENTRY_NAMES, 0x40000000 },
-        { EntryId.LICENSE_DAT, 0x00000000 },
-        { EntryId.LICENSE_INFO, 0x00000000 },
+        { EntryId.LICENSE_DAT, 0x80000000 },
+        { EntryId.LICENSE_INFO, 0x80000000 },
+      };
+      var keyMap = new Dictionary<EntryId, uint>
+      {
+        { EntryId.IMAGE_KEY, 3u << 12 },
+        { EntryId.LICENSE_DAT, 3u << 12 },
+        { EntryId.LICENSE_INFO, 2u << 12 },
       };
       foreach(var entry in pkg.Entries)
       {
@@ -255,7 +261,7 @@ namespace LibOrbisPkg.PKG
           DataSize = entry.Length,
           // TODO
           Flags1 = flagMap.ContainsKey(entry.Id) ? flagMap[entry.Id] : 0,
-          Flags2 = 0,
+          Flags2 = keyMap.ContainsKey(entry.Id) ? keyMap[entry.Id] : 0,
         };
         pkg.Metas.Metas.Add(e);
         if(entry == pkg.Metas)
@@ -268,6 +274,7 @@ namespace LibOrbisPkg.PKG
         var align = dataOffset % 16;
         if (align != 0)
           dataOffset += 16 - align;
+        entry.meta = e;
       }
       pkg.Metas.Metas.Sort((e1, e2) => e1.id.CompareTo(e2.id));
       pkg.Header.entry_count = (uint)pkg.Entries.Count;
