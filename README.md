@@ -41,11 +41,6 @@ Verbs:
 Use passcode "fake" to decrypt a FAKE PKG without knowing the actual passcode.
  ```
 
-## TODO
-
-- Reverse encryption and signatures
-- Implement PFS and PKG signing
-
 ## Thanks
 Everyone who helped, either directly or indirectly, but especially the following:
 
