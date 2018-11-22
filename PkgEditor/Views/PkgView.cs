@@ -33,9 +33,20 @@ namespace PkgEditor.Views
         pkg = new PkgReader(s).ReadPkg();
       try
       {
-        var defaultEkpfs = new string(Crypto.ComputeKeys(pkg.Header.content_id, "00000000000000000000000000000000", 1)
-          .Select(b => (char)b).ToArray());
-        var package = PackageReader.ReadPackageFromFile(pkgFile, defaultEkpfs);
+        var dk3 = Crypto.RSA2048Decrypt(pkg.EntryKeys.Keys[3].key, RSAKeyset.PkgDerivedKey3Keyset);
+        var iv_key = Crypto.Sha256(
+          pkg.ImageKey.meta.GetBytes()
+          .Concat(dk3)
+          .ToArray());
+        var imageKeyDecrypted = pkg.ImageKey.FileData.Clone() as byte[];
+        Crypto.AesCbcCfb128Decrypt(
+          imageKeyDecrypted,
+          imageKeyDecrypted,
+          imageKeyDecrypted.Length,
+          iv_key.Skip(16).Take(16).ToArray(),
+          iv_key.Take(16).ToArray());
+        var ekpfs = Crypto.RSA2048Decrypt(imageKeyDecrypted, RSAKeyset.FakeKeyset);
+        var package = PackageReader.ReadPackageFromFile(pkgFile, new string(ekpfs.Select(b => (char)b).ToArray()));
         var innerPfs = PackageReader.ReadPackageFromFile(package.GetFile("/pfs_image.dat"));
         var view = new PackageView(innerPfs, PackageManager.GetInstance());
         view.Dock = DockStyle.Fill;
