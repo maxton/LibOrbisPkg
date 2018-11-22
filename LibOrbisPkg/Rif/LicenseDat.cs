@@ -54,12 +54,12 @@ namespace LibOrbisPkg.Rif
 
     public void DecryptSecretWithDebugKey()
     {
-      Crypto.AesCbcCfb128Decrypt(Secret, Secret, Secret.Length, Keys.rif_debug_key, 16, SecretIv);
+      Crypto.AesCbcCfb128Decrypt(Secret, Secret, Secret.Length, Keys.rif_debug_key, SecretIv);
     }
 
     public void EncryptSecretWithDebugKey()
     {
-      Crypto.AesCbcCfb128Encrypt(Secret, Secret, Secret.Length, Keys.rif_debug_key, 16, SecretIv);
+      Crypto.AesCbcCfb128Encrypt(Secret, Secret, Secret.Length, Keys.rif_debug_key, SecretIv);
     }
 
     public void Sign()

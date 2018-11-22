@@ -36,7 +36,7 @@ namespace LibOrbisPkg.PKG
           {
             entry.Write(ms);
           }
-          Crypto.AesCbcCfb128Encrypt(tmp, tmp, tmp.Length, iv_key.Skip(16).Take(16).ToArray(), 16, iv_key.Take(16).ToArray());
+          Crypto.AesCbcCfb128Encrypt(tmp, tmp, tmp.Length, iv_key.Skip(16).Take(16).ToArray(), iv_key.Take(16).ToArray());
           Write(tmp);
         }
         else

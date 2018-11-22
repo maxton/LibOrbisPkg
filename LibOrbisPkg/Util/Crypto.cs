@@ -158,7 +158,7 @@ namespace LibOrbisPkg.Util
     }
 
     // TODO
-    public static int AesCbcCfb128Encrypt(byte[] @out, byte[] @in, int size, byte[] key, int key_size, byte[] iv)
+    public static int AesCbcCfb128Encrypt(byte[] @out, byte[] @in, int size, byte[] key, byte[] iv)
     {
       var cipher = new AesManaged
       {
@@ -180,7 +180,7 @@ namespace LibOrbisPkg.Util
       Buffer.BlockCopy(tmp, 0, @out, 0, tmp.Length);
       return 0;
     }
-    public static int AesCbcCfb128Decrypt(byte[] @out, byte[] @in, int size, byte[] key, int key_size, byte[] iv)
+    public static int AesCbcCfb128Decrypt(byte[] @out, byte[] @in, int size, byte[] key, byte[] iv)
     {
       var cipher = new AesManaged
       {
