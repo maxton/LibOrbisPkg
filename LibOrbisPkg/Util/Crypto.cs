@@ -157,6 +157,23 @@ namespace LibOrbisPkg.Util
       return BigInteger.ModPow(message, exponent, modulus).ToByteArray().Take(256).Reverse().ToArray();
     }
 
+    public static byte[] RSA2048Decrypt(byte[] ciphertext, RSAKeyset keyset)
+    {
+      RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
+      rsa.ImportParameters(new RSAParameters
+      {
+        P = keyset.Prime1,
+        Q = keyset.Prime2,
+        Exponent = keyset.PublicExponent,
+        Modulus = keyset.Modulus,
+        DP = keyset.Exponent1,
+        DQ = keyset.Exponent2,
+        InverseQ = keyset.Coefficient,
+        D = keyset.PrivateExponent
+      });
+      return rsa.Decrypt(ciphertext, false);
+    }
+
     // TODO
     public static int AesCbcCfb128Encrypt(byte[] @out, byte[] @in, int size, byte[] key, byte[] iv)
     {
