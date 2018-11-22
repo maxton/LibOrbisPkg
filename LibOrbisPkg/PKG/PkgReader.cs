@@ -39,6 +39,17 @@ namespace LibOrbisPkg.PKG
             s.Position = entry.DataOffset;
             pkg.ParamSfo = new SfoEntry(SFO.ParamSfo.FromStream(s));
             break;
+          case EntryId.ENTRY_KEYS:
+            pkg.EntryKeys = KeysEntry.Read(entry, s);
+            break;
+          case EntryId.IMAGE_KEY:
+            s.Position = entry.DataOffset;
+            pkg.ImageKey = new GenericEntry(EntryId.IMAGE_KEY)
+            {
+              FileData = s.ReadBytes((int)entry.DataSize),
+              meta = entry
+            };
+            break;
         }
       }
       return pkg;

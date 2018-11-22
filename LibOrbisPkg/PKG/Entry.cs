@@ -109,6 +109,11 @@ namespace LibOrbisPkg.PKG
 
   public class KeysEntry : Entry
   {
+    public KeysEntry(byte[] digest, PkgEntryKey[] keys)
+    {
+      seedDigest = digest;
+      Keys = keys;
+    }
     public KeysEntry(string contentId, string passcode)
     {
       Keys = new PkgEntryKey[7];
@@ -140,6 +145,26 @@ namespace LibOrbisPkg.PKG
       {
         s.Write(key.key, 0, 256);
       }
+    }
+    public static KeysEntry Read(MetaEntry e, Stream pkg)
+    {
+      pkg.Position = e.DataOffset;
+      var seedDigest = pkg.ReadBytes(32);
+      var digests = new byte[7][];
+      var keys = new PkgEntryKey[7];
+      for(var x = 0; x < 7; x++)
+      {
+        digests[x] = pkg.ReadBytes(32);
+      }
+      for(var x = 0; x < 7; x++)
+      {
+        keys[x] = new PkgEntryKey
+        {
+          digest = digests[x],
+          key = pkg.ReadBytes(256)
+        };
+      }
+      return new KeysEntry(seedDigest, keys) { meta = e };
     }
   }
 
