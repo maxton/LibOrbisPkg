@@ -55,7 +55,7 @@ namespace PkgTool
             {
               pkg = new PkgReader(s).ReadPkg();
             }
-            var keyString = new string(Crypto.ComputeKeys(pkg.Header.content_id, passcode, 1).Select(b => (char)b).ToArray());
+            var keyString = new string(EkPfsFromPasscode(pkg, passcode).Select(b => (char)b).ToArray());
             var package = PackageReader.ReadPackageFromFile(pkgFile, keyString);
             var innerPfs = PackageReader.ReadPackageFromFile(package.GetFile("/pfs_image.dat"));
             void ExtractDir(IDirectory dir, string path)
@@ -86,7 +86,7 @@ namespace PkgTool
             {
               pkg = new PkgReader(s).ReadPkg();
             }
-            var keyString = new string(Crypto.ComputeKeys(pkg.Header.content_id, passcode, 1).Select(b => (char)b).ToArray());
+            var keyString = new string(EkPfsFromPasscode(pkg, passcode).Select(b => (char)b).ToArray());
             var package = PackageReader.ReadPackageFromFile(pkgFile, keyString);
             var innerPfs = package.GetFile("/pfs_image.dat");
             using (var ipfs = innerPfs.GetStream())
@@ -126,7 +126,7 @@ namespace PkgTool
             {
               pkg = new PkgReader(s).ReadPkg();
               var outer_pfs = new OffsetStream(s, (long)pkg.Header.pfs_image_offset);
-              var ekpfs = Crypto.ComputeKeys(pkg.Header.content_id, passcode, 1);
+              var ekpfs = EkPfsFromPasscode(pkg, passcode);
               var pfs_seed = new byte[16];
               outer_pfs.Position = 0x370;
               outer_pfs.Read(pfs_seed, 0, 16);
@@ -186,7 +186,6 @@ namespace PkgTool
             }
             break;
           }
-
         default:
           Console.WriteLine("PkgTool.exe <verb> <input> <output>");
           Console.WriteLine("");
@@ -199,6 +198,8 @@ namespace PkgTool
           Console.WriteLine("  extractinnerpfs <input.pkg> <passcode> <pfs_image.dat>");
           Console.WriteLine("  listentries <input.pkg>");
           Console.WriteLine("  extractentry <input.pkg> <entry_id> <output.bin>");
+          Console.WriteLine();
+          Console.WriteLine("Use passcode \"fake\" to decrypt a FAKE PKG without knowing the actual passcode.");
           break;
       }
     }
@@ -212,6 +213,30 @@ namespace PkgTool
         name = "(" + name + ")";
       }
       return name;
+    }
+
+    private static byte[] EkPfsFromPasscode(Pkg pkg, string passcode)
+    {
+      if(passcode == "fake")
+      {
+        var dk3 = Crypto.RSA2048Decrypt(pkg.EntryKeys.Keys[3].key, RSAKeyset.PkgDerivedKey3Keyset);
+        var iv_key = Crypto.Sha256(
+          pkg.ImageKey.meta.GetBytes()
+          .Concat(dk3)
+          .ToArray());
+        var imageKeyDecrypted = pkg.ImageKey.FileData.Clone() as byte[];
+        Crypto.AesCbcCfb128Decrypt(
+          imageKeyDecrypted,
+          imageKeyDecrypted,
+          imageKeyDecrypted.Length,
+          iv_key.Skip(16).Take(16).ToArray(),
+          iv_key.Take(16).ToArray());
+        return Crypto.RSA2048Decrypt(imageKeyDecrypted, RSAKeyset.FakeKeyset);
+      }
+      else
+      {
+        return Crypto.ComputeKeys(pkg.Header.content_id, passcode, 1);
+      }
     }
   }
 }

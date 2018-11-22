@@ -35,6 +35,8 @@ Verbs:
   extractinnerpfs <input.pkg> <passcode> <pfs_image.dat>
   listentries <input.pkg>
   extractentry <input.pkg> <entry_id> <output.bin>
+
+Use passcode "fake" to decrypt a FAKE PKG without knowing the actual passcode.
  ```
 
 ## TODO
