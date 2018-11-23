@@ -52,6 +52,8 @@ namespace LibOrbisPkg.PKG
       pkg.GeneralDigests.ParamDigest = Crypto.Sha256(pkg.ParamSfo.ParamSfo.Serialize());
       pkg.ImageKey.FileData = Crypto.RSA2048EncryptKey(RSAKeyset.FakeKeyset.Modulus, EKPFS);
 
+      pkg.Header.body_size = pkg.Header.pfs_image_offset - pkg.Header.body_offset;
+
       // Write body now because it will make calculating hashes easier.
       writer.WriteBody(pkg, project.volume.Package.ContentId, project.volume.Package.Passcode);
 
@@ -74,7 +76,6 @@ namespace LibOrbisPkg.PKG
 
     private void UpdateHeaderInfo(Pkg pkg, long stream_length, long pfs_length)
     {
-      pkg.Header.body_size = pkg.Header.pfs_image_offset - pkg.Header.body_offset;
       pkg.Header.package_size = (ulong)stream_length;
       pkg.Header.mount_image_size = (ulong)stream_length;
       pkg.Header.pfs_image_size = (ulong)pfs_length;
@@ -112,7 +113,12 @@ namespace LibOrbisPkg.PKG
         ms.SetLength(0);
         foreach (var entry in new Entry[] { pkg.EntryKeys, pkg.ImageKey, pkg.GeneralDigests, pkg.Metas })
         {
-          new SubStream(s, entry.meta.DataOffset, entry.meta.DataSize).CopyTo(ms);
+          long size = entry.meta.DataSize;
+          if(entry.Id == EntryId.METAS)
+          {
+            size = pkg.Header.sc_entry_count * 0x20;
+          }
+          new SubStream(s, entry.meta.DataOffset, size).CopyTo(ms);
         }
         pkg.Header.sc_entries2_hash = Crypto.Sha256(ms);
       }
