@@ -15,18 +15,7 @@ namespace PkgTool
   {
     static void Main(string[] args)
     {
-      if (args.Length > 0 && Verbs.Where(x => x.Name == args[0]).FirstOrDefault() is Verb v)
-      {
-        if (args.Length == (v.Args.Length + 1))
-        {
-          v.Action(args);
-        }
-        else
-        {
-          Console.WriteLine($"Usage: PkgTool.exe {v}");
-        }
-      }
-      else
+      if(!Verb.Run(Verbs, args, "PkgTool.exe"))
       {
         Console.WriteLine("PkgTool.exe <verb> [options ...]");
         Console.WriteLine("");
@@ -44,7 +33,7 @@ namespace PkgTool
     {
       Verb.Create(
         "makepfs", 
-        ArgDef.List("input_project.pfs", "output_pfs.dat"),
+        ArgDef.List("input_project.gp4", "output_pfs.dat"),
         args =>
         {
           var proj = args[1];
@@ -54,6 +43,23 @@ namespace PkgTool
               Gp4Project.ReadFrom(File.OpenRead(proj)),
               Path.GetDirectoryName(proj));
           new PfsBuilder(props, Console.WriteLine).WriteImage(outFile);
+        }),
+      Verb.Create(
+        "makeouterpfs",
+        ArgDef.List(ArgDef.Switches("encrypt"), "input_project.gp4", "output_pfs.dat"),
+        (switches, args) =>
+        {
+          var proj = args[1];
+          var output = args[2];
+          var outFile = File.Open(output, FileMode.Create);
+          var project = Gp4Project.ReadFrom(File.OpenRead(proj));
+          var projectDir = Path.GetDirectoryName(proj);
+          var EKPFS = Crypto.ComputeKeys(project.volume.Package.ContentId, project.volume.Package.Passcode, 1);
+          Console.WriteLine("Preparing inner PFS...");
+          var innerPfs = new PfsBuilder(PfsProperties.MakeInnerPFSProps(project, projectDir), x => Console.WriteLine($"[innerpfs] {x}"));
+          Console.WriteLine("Preparing outer PFS...");
+          var outerPfs = new PfsBuilder(PfsProperties.MakeOuterPFSProps(project, innerPfs, EKPFS, switches["encrypt"]), x => Console.WriteLine($"[outerpfs] {x}"));
+          outerPfs.WriteImage(outFile);
         }),
       Verb.Create(
         "makepkg",
@@ -271,27 +277,71 @@ namespace PkgTool
   {
     public string Name;
     public ArgDef[] Args;
-    public Action<string[]> Action;
+    public Action<Dictionary<string, bool>, string[]> Action;
     public static Verb Create(string name, ArgDef[] args, Action<string[]> action)
+    {
+      return new Verb { Name = name, Args = args, Action = (ignore, a) => action(a) };
+    }
+    public static Verb Create(string name, ArgDef[] args, Action<Dictionary<string, bool>, string[]> action)
     {
       return new Verb { Name = name, Args = args, Action = action };
     }
     public override string ToString()
     {
-      var options = Args.Select(x => $"<{x.Name}>").Aggregate((x, y) => $"{x} {y}");
+      var options = Args.Select(x => x.Switch ? $"[--{x.Name}]" : $"<{x.Name}>").Aggregate((x, y) => $"{x} {y}");
       return Name + " " + options;
+    }
+
+    public static bool Run(Verb[] verbs, string[] args, string name)
+    {
+      if (args.Length > 0 && verbs.Where(x => x.Name == args[0]).FirstOrDefault() is Verb v)
+      {
+        var switches = new Dictionary<string, bool>();
+        int numSwitches = 0;
+        foreach(var x in v.Args.Where(x => x.Switch))
+        {
+          var s = args.Contains("--"+x.Name);
+          if (s) numSwitches++;
+          switches[x.Name] = s;
+        }
+        args = args.Skip(numSwitches).ToArray();
+        if (args.Length == (v.Args.Where(a => !a.Switch).Count() + 1))
+        {
+          v.Action(switches, args);
+        }
+        else
+        {
+          Console.WriteLine($"Usage: {name} {v}");
+        }
+        return true;
+      }
+      return false;
     }
   }
 
   public class ArgDef
   {
     public string Name;
+    public bool Switch = false;
+    public static ArgDef[] List(ArgDef[] optionalArgs, params string[] names)
+    {
+      return optionalArgs.Concat(List(names)).ToArray();
+    }
     public static ArgDef[] List(params string[] names)
     {
       var ret = new ArgDef[names.Length];
       for(var i = 0; i < ret.Length; i++)
       {
         ret[i] = new ArgDef { Name = names[i] };
+      }
+      return ret;
+    }
+    public static ArgDef[] Switches(params string[] names)
+    {
+      var ret = new ArgDef[names.Length];
+      for (var i = 0; i < ret.Length; i++)
+      {
+        ret[i] = new ArgDef { Name = names[i], Switch = true };
       }
       return ret;
     }

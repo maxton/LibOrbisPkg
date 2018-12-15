@@ -30,7 +30,7 @@ namespace LibOrbisPkg.PFS
       };
     }
 
-    public static PfsProperties MakeOuterPFSProps(GP4.Gp4Project proj, PfsBuilder innerPFS, byte[] EKPFS)
+    public static PfsProperties MakeOuterPFSProps(GP4.Gp4Project proj, PfsBuilder innerPFS, byte[] EKPFS, bool encrypt = true)
     {
       var root = new FSDir();
       root.Files.Add(new FSFile(innerPFS)
@@ -41,7 +41,7 @@ namespace LibOrbisPkg.PFS
       {
         root = root,
         BlockSize = 0x10000,
-        Encrypt = true,
+        Encrypt = encrypt,
         Sign = true,
         EKPFS = EKPFS,
         Seed = new byte[16],
@@ -55,7 +55,7 @@ namespace LibOrbisPkg.PFS
       var timestamp = DateTime.Parse(proj.volume.TimeStamp).ToUniversalTime().Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
       return (long)timestamp;
     }
-
+    
 
 
     /// <summary>
@@ -102,7 +102,6 @@ namespace LibOrbisPkg.PFS
         {
           Parent = parent,
           name = name,
-          Size = new FileInfo(source).Length
         });
       }
     }
