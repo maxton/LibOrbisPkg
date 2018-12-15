@@ -10,7 +10,8 @@ namespace LibOrbisPkg.PFS
     public FSDir Parent = null;
     public string name;
     public inode ino;
-    public virtual long Size { get; set; }
+    public virtual long Size { get; protected set; }
+    public virtual long CompressedSize => Size;
 
     public string FullPath(string suffix = "")
     {
@@ -64,6 +65,7 @@ namespace LibOrbisPkg.PFS
     {
       Write = s => { using (var f = File.OpenRead(origFileName)) f.CopyTo(s); };
       Size = new FileInfo(origFileName).Length;
+      _compressedSize = Size;
     }
     public FSFile(PfsBuilder b)
     {
@@ -73,7 +75,8 @@ namespace LibOrbisPkg.PFS
         pfsc.WritePFSCHeader(s);
         b.WriteImage(new Util.OffsetStream(s, s.Position));
       };
-      Size = b.CalculatePfsSize() + pfsc.HeaderSize;
+      _compressedSize = b.CalculatePfsSize();
+      Size = _compressedSize + pfsc.HeaderSize;
       name = "pfs_image.dat";
       Compress = true;
     }
@@ -82,7 +85,10 @@ namespace LibOrbisPkg.PFS
       Write = writer;
       this.name = name;
       Size = size;
+      _compressedSize = Size;
     }
+    private long _compressedSize;
+    public override long CompressedSize => _compressedSize;
     public readonly Action<Stream> Write;
     public bool Compress = false;
   }

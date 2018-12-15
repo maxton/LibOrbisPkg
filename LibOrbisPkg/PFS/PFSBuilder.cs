@@ -32,6 +32,8 @@ namespace LibOrbisPkg.PFS
 
     private PfsProperties properties;
 
+    private int emptyBlock = 0x4;
+
     private struct BlockSigInfo
     {
       public long Block;
@@ -64,13 +66,18 @@ namespace LibOrbisPkg.PFS
       // TODO: Combine the superroot-specific stuff with the rest of the data block writing.
       // I think this is as simple as adding superroot and flat_path_table to allNodes
 
+      // These don't seem to really matter when verifying a PKG so use all zeroes for now
+      var seed = new byte[16];
+      var sig = new byte[32];
       hdr = new PfsHeader {
         BlockSize = properties.BlockSize,
         ReadOnly = 1,
         Mode = (properties.Sign ? PfsMode.Signed : 0) 
              | (properties.Encrypt ? PfsMode.Encrypted : 0)
              | PfsMode.UnknownFlagAlwaysSet,
-        Seed = properties.Seed
+        UnknownIndex = 1,
+        Seed = properties.Encrypt || properties.Sign ? seed : null,
+        UnknownDigest = properties.Sign || properties.Encrypt ? sig : null,
       };
       inodes = new List<inode>();
 
@@ -117,10 +124,10 @@ namespace LibOrbisPkg.PFS
       }
       stream.SetLength(hdr.Ndblock * hdr.BlockSize);
 
-      if (properties.Sign)
+      if (hdr.Mode.HasFlag(PfsMode.Signed))
       {
         Log("Signing...");
-        var signKey = Crypto.PfsGenSignKey(properties.EKPFS, properties.Seed);
+        var signKey = Crypto.PfsGenSignKey(properties.EKPFS, hdr.Seed);
         foreach (var sig in sig_order)
         {
           var sig_buffer = new byte[properties.BlockSize];
@@ -132,10 +139,10 @@ namespace LibOrbisPkg.PFS
         }
       }
 
-      if (properties.Encrypt)
+      if (hdr.Mode.HasFlag(PfsMode.Encrypted))
       {
         Log("Encrypting...");
-        var encKey = Crypto.PfsGenEncKey(properties.EKPFS, properties.Seed);
+        var encKey = Crypto.PfsGenEncKey(properties.EKPFS, hdr.Seed);
         var dataKey = new byte[16];
         var tweakKey = new byte[16];
         Buffer.BlockCopy(encKey, 0, tweakKey, 0, 16);
@@ -148,6 +155,10 @@ namespace LibOrbisPkg.PFS
         byte[] sectorBuffer = new byte[sectorSize];
         while (xtsSector < totalSectors)
         {
+          if(xtsSector / 0x10 == emptyBlock)
+          {
+            xtsSector += 16;
+          }
           stream.Position = xtsSector * sectorSize;
           stream.Read(sectorBuffer, 0, sectorSize);
           transformer.EncryptSector(sectorBuffer, (ulong)xtsSector);
@@ -171,7 +182,8 @@ namespace LibOrbisPkg.PFS
           Number: (uint)inodes.Count,
           Blocks: 1,
           Size: 65536,
-          Flags: InodeFlags.@readonly
+          Flags: InodeFlags.@readonly,
+          Nlink: 2 // 1 link each for its own dirent and its . dirent
         );
         dir.ino = ino;
         dir.Dirents.Add(new PfsDirent { Name = ".", InodeNumber = ino.Number, Type = DirentType.Dot });
@@ -194,11 +206,15 @@ namespace LibOrbisPkg.PFS
         var ino = MakeInode(
           Mode: InodeMode.file | InodeMode.rx_only,
           Size: file.Size,
-          SizeCompressed: file.Size,
+          SizeCompressed: file.CompressedSize,
           Number: (uint)inodes.Count,
           Blocks: (uint)CeilDiv(file.Size, hdr.BlockSize),
-          Flags: InodeFlags.@readonly
+          Flags: InodeFlags.@readonly | (file.Compress ? InodeFlags.compressed : 0)
         );
+        if (properties.Sign) // HACK: Outer PFS images don't use readonly?
+        {
+          ino.Flags &= ~InodeFlags.@readonly;
+        }
         file.ino = ino;
         var dirent = new PfsDirent { Name = file.name, Type = DirentType.File, InodeNumber = (uint)inodes.Count };
         file.Parent.Dirents.Add(dirent);
@@ -259,10 +275,18 @@ namespace LibOrbisPkg.PFS
         fpt_ino.Size = fpt.Size;
         fpt_ino.SizeCompressed = fpt.Size;
         fpt_ino.Blocks = (uint)CeilDiv(fpt.Size, hdr.BlockSize);
+        sig_order.Push(new BlockSigInfo(fpt_ino.StartBlock, inoNumberToOffset(fpt_ino.Number)));
 
         for (int i = 1; i < fpt_ino.Blocks && i < 12; i++)
+        {
           fpt_ino.SetDirectBlock(i, (int)hdr.Ndblock++);
+          sig_order.Push(new BlockSigInfo(fpt_ino.StartBlock, inoNumberToOffset(fpt_ino.Number, i)));
+        }
+
         // DATs I've found include an empty block after the FPT
+        hdr.Ndblock++;
+        // HACK: outer PFS has a block of zeroes that is not encrypted???
+        emptyBlock = (int)hdr.Ndblock;
         hdr.Ndblock++;
 
         var ibStartBlock = hdr.Ndblock;
@@ -276,9 +300,10 @@ namespace LibOrbisPkg.PFS
           n.ino.SetDirectBlock(0, (int)hdr.Ndblock);
           n.ino.Blocks = (uint)blocks;
           n.ino.Size = n is FSDir ? roundUpSizeToBlock(n.Size) : n.Size;
-          n.ino.SizeCompressed = n.ino.Size;
+          if (n.ino.SizeCompressed == 0)
+            n.ino.SizeCompressed = n.ino.Size;
 
-          for (var i = 0; (blocks - i) > 0 && i < 12; i++)
+            for (var i = 0; (blocks - i) > 0 && i < 12; i++)
           {
             sig_order.Push(new BlockSigInfo((int)hdr.Ndblock++, inoNumberToOffset(n.ino.Number, i)));
           }
@@ -346,7 +371,8 @@ namespace LibOrbisPkg.PFS
           n.ino.SetDirectBlock(0, (int)hdr.Ndblock);
           n.ino.Blocks = (uint)blocks;
           n.ino.Size = n is FSDir ? roundUpSizeToBlock(n.Size) : n.Size;
-          n.ino.SizeCompressed = n.ino.Size;
+          if(n.ino.SizeCompressed == 0)
+            n.ino.SizeCompressed = n.ino.Size;
           for (int i = 1; i < blocks && i < 12; i++)
           {
             n.ino.SetDirectBlock(i, -1);
@@ -434,6 +460,12 @@ namespace LibOrbisPkg.PFS
         new PfsDirent { Name = ".", Type = DirentType.Dot, InodeNumber = 2 },
         new PfsDirent { Name = "..", Type = DirentType.DotDot, InodeNumber = 2 }
       };
+      if(properties.Sign) // HACK: Outer PFS lacks readonly flags
+      {
+        super_root_ino.Flags &= ~InodeFlags.@readonly;
+        fpt_ino.Flags &= ~InodeFlags.@readonly;
+        uroot_ino.Flags &= ~InodeFlags.@readonly;
+      }
     }
 
     /// <summary>

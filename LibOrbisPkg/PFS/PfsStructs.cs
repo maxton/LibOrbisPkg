@@ -46,7 +46,9 @@ namespace LibOrbisPkg.PFS
       SizeCompressed = 0x10000,
       Blocks = 1,
     };
+    public int UnknownIndex = 0;
     public byte[] Seed;
+    public byte[] UnknownDigest;
 
     public void WriteToStream(Stream s)
     {
@@ -68,9 +70,18 @@ namespace LibOrbisPkg.PFS
       s.WriteInt64LE(DinodeBlockCount);
       s.WriteInt64LE(0);
       InodeBlockSig.WriteToStream(s);
-      s.Position = start + 0x370;
-      if(Seed != null)
+      if (Seed != null)
+      {
+        s.Position = start + 0x36C;
+        s.WriteInt32LE(UnknownIndex);
         s.Write(Seed, 0, Seed.Length);
+        s.Write(UnknownDigest, 0, UnknownDigest.Length);
+      }
+      else
+      {
+        s.Position = start + 0x368;
+        s.WriteInt32LE(1);
+      }
     }
 
     public static PfsHeader ReadFromStream(System.IO.Stream s)
