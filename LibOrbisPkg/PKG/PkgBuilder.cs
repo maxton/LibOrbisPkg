@@ -35,21 +35,51 @@ namespace LibOrbisPkg.PKG
       var EKPFS = Crypto.ComputeKeys(project.volume.Package.ContentId, project.volume.Package.Passcode, 1);
       var pfsStream = new OffsetStream(s, s.Position);
       Console.WriteLine("Preparing inner PFS...");
-      var innerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeInnerPFSProps(project, projectDir), Console.WriteLine);
+      var innerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeInnerPFSProps(project, projectDir), x => Console.WriteLine($"[innerpfs] {x}"));
       Console.WriteLine("Preparing outer PFS...");
-      var outerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeOuterPFSProps(project, innerPfs, EKPFS), Console.WriteLine);
+      var outerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeOuterPFSProps(project, innerPfs, EKPFS), x => Console.WriteLine($"[outerpfs] {x}"));
       outerPfs.WriteImage(pfsStream);
+      
+      // Update header sizes now that we know how big things are...
+      UpdateHeaderInfo(pkg, s.Length, pfsStream.Length);
 
-      if(pkg.ParamSfo.ParamSfo.GetValueByName("PUBTOOLINFO") is SFO.Utf8Value v)
+      // Set PFS Image 1st block and full SHA256 hashes (mount image)
+      pkg.Header.pfs_signed_digest = Crypto.Sha256(s, (long)pkg.Header.pfs_image_offset, 0x10000);
+      pkg.Header.pfs_image_digest = Crypto.Sha256(s, (long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size);
+
+      if (pkg.ParamSfo.ParamSfo.GetValueByName("PUBTOOLINFO") is SFO.Utf8Value v)
       {
         v.Value += 
           $",img0_l0_size={pfsStream.Length / (1000 * 1000)}" +
           $",img0_l1_size=0" +
           $",img0_sc_ksize=512" +
-          $",img0_pc_ksize=576";
+          $",img0_pc_ksize=832";
       }
       // TODO: Generate hashes in Entries (body)
-      pkg.GeneralDigests.ParamDigest = Crypto.Sha256(pkg.ParamSfo.ParamSfo.Serialize());
+      pkg.GeneralDigests.Set(GeneralDigest.MajorParamDigest,
+        "C1F70C326D9C36DFF46153E03005BCB0C6BD98B98F66C1A798668E10EB46972E"
+        .FromHexCompact());
+      using (var ms = new MemoryStream())
+      {
+        ms.Write(Encoding.ASCII.GetBytes(pkg.Header.content_id), 0, 36);
+        ms.Write(new byte[12], 0, 12);
+        ms.WriteInt32BE((int)pkg.Header.drm_type);
+        ms.WriteInt32BE((int)pkg.Header.content_type);
+
+        if(pkg.Header.content_type == ContentType.AC 
+          || pkg.Header.content_type == ContentType.GD 
+          || pkg.Header.content_flags.HasFlag(ContentFlags.GD_AC))
+        {
+          ms.Write(pkg.Header.pfs_image_digest, 0, 32);
+        }
+        ms.Write(pkg.GeneralDigests.Digests[GeneralDigest.MajorParamDigest], 0, 32);
+        pkg.GeneralDigests.Set(GeneralDigest.ContentDigest, Crypto.Sha256(ms));
+      }
+      pkg.GeneralDigests.Set(GeneralDigest.GameDigest, pkg.Header.pfs_image_digest);
+      pkg.GeneralDigests.Set(GeneralDigest.HeaderDigest,
+        "9760F45A506692426206E25A709A4597D2874BCE98697877945B74935B5FB0CC"
+        .FromHexCompact());
+      pkg.GeneralDigests.Set(GeneralDigest.ParamDigest, Crypto.Sha256(pkg.ParamSfo.ParamSfo.Serialize()));
       pkg.ImageKey.FileData = Crypto.RSA2048EncryptKey(RSAKeyset.FakeKeyset.Modulus, EKPFS);
 
       pkg.Header.body_size = pkg.Header.pfs_image_offset - pkg.Header.body_offset;
@@ -58,9 +88,6 @@ namespace LibOrbisPkg.PKG
       writer.WriteBody(pkg, project.volume.Package.ContentId, project.volume.Package.Passcode);
 
       CalcHeaderHashes(pkg, s);
-
-      // Update header sizes now that we know how big things are...
-      UpdateHeaderInfo(pkg, s.Length, pfsStream.Length);
 
       // Now write header
       s.Position = 0;
@@ -122,10 +149,6 @@ namespace LibOrbisPkg.PKG
         }
         pkg.Header.sc_entries2_hash = Crypto.Sha256(ms);
       }
-
-      // PFS Image 1st block and full SHA256 hashes
-      pkg.Header.pfs_signed_digest = Crypto.Sha256(s, (long)pkg.Header.pfs_image_offset, 0x10000);
-      pkg.Header.pfs_image_digest = Crypto.Sha256(s, (long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size);
     }
 
     /// <summary>
@@ -175,7 +198,7 @@ namespace LibOrbisPkg.PKG
         mount_image_size = 0,
         package_size = 0,
         pfs_signed_size = 0x10000,
-        pfs_cache_size = 0x90000,
+        pfs_cache_size = 0xD0000,
         pfs_image_digest = new byte[32],
         pfs_signed_digest = new byte[32],
         pfs_split_size_nth_0 = 0,
@@ -190,21 +213,7 @@ namespace LibOrbisPkg.PKG
       {
         FileData = new byte[0x100]
       };
-      pkg.GeneralDigests = new GeneralDigestsEntry()
-      {
-        UnknownDigest = new byte[] {
-          0xD2, 0x56, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6E
-        },
-        ContentDigest = new byte[32],
-        GameDigest = new byte[32],
-        HeaderDigest = new byte[32],
-        SystemDigest = new byte[32],
-        MajorParamDigest = new byte[32],
-        ParamDigest = new byte[32],
-      };
+      pkg.GeneralDigests = new GeneralDigestsEntry();
       pkg.Metas = new MetasEntry();
       pkg.Digests = new GenericEntry(EntryId.DIGESTS);
       pkg.EntryNames = new NameTableEntry();
@@ -285,8 +294,8 @@ namespace LibOrbisPkg.PKG
           DataOffset = dataOffset,
           DataSize = entry.Length,
           // TODO
-          Flags1 = flagMap.ContainsKey(entry.Id) ? flagMap[entry.Id] : 0,
-          Flags2 = keyMap.ContainsKey(entry.Id) ? keyMap[entry.Id] : 0,
+          Flags1 = flagMap.GetOrDefault(entry.Id),
+          Flags2 = keyMap.GetOrDefault(entry.Id),
         };
         pkg.Metas.Metas.Add(e);
         if(entry == pkg.Metas)

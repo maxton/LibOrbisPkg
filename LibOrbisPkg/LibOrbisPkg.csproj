@@ -66,6 +66,7 @@
     <Compile Include="Rif\LicenseInfo.cs" />
     <Compile Include="SFO\ParamSfo.cs" />
     <Compile Include="Util\Crypto.cs" />
+    <Compile Include="Util\Extensions.cs" />
     <Compile Include="Util\Keys.cs" />
     <Compile Include="Util\MersenneTwister.cs" />
     <Compile Include="Util\OffsetStream.cs" />

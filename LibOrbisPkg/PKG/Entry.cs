@@ -219,31 +219,84 @@ namespace LibOrbisPkg.PKG
     }
   }
 
+  [Flags]
+  public enum GeneralDigest : int
+  {
+    DigestMetaData = 1 << 0, // Never set.
+    ContentDigest = 1 << 1,
+    GameDigest = 1 << 2,
+    HeaderDigest = 1 << 3,
+    SystemDigest = 1 << 4,
+    MajorParamDigest = 1 << 5,
+    ParamDigest = 1 << 6,
+    PlaygoDigest = 1 << 7,
+    TrophyDigest = 1 << 8,
+    ManualDigest = 1 << 9,
+    KeymapDigest = 1 << 10,
+    OriginDigest = 1 << 11,
+    TargetDigest = 1 << 12,
+    OriginGameDigest = 1 << 13,
+    TargetGameDigest = 1 << 14,
+  }
   public class GeneralDigestsEntry : Entry
   {
-    public byte[] UnknownDigest;
-    public byte[] ContentDigest;
-    public byte[] GameDigest;
-    public byte[] HeaderDigest;
-    public byte[] SystemDigest;
-    public byte[] MajorParamDigest;
-    public byte[] ParamDigest;
-    //public byte[] Unk; // 0xA0 of zeroes?
+    public ushort unk1 = 0xD256;
+    public ushort type = 0x100;
+    public GeneralDigest set_digests = 0;
+    public Dictionary<GeneralDigest, byte[]> Digests = new Dictionary<GeneralDigest, byte[]>
+    {
+      { GeneralDigest.ContentDigest, new byte[32] },
+      { GeneralDigest.GameDigest, new byte[32] },
+      { GeneralDigest.HeaderDigest, new byte[32] },
+      { GeneralDigest.SystemDigest, new byte[32] },
+      { GeneralDigest.MajorParamDigest, new byte[32] },
+      { GeneralDigest.ParamDigest, new byte[32] },
+      { GeneralDigest.PlaygoDigest, new byte[32] },
+      { GeneralDigest.TrophyDigest, new byte[32] },
+      { GeneralDigest.ManualDigest, new byte[32] },
+      { GeneralDigest.KeymapDigest, new byte[32] },
+      { GeneralDigest.OriginDigest, new byte[32] },
+      { GeneralDigest.TargetDigest, new byte[32] },
+      { GeneralDigest.OriginGameDigest, new byte[32] },
+      { GeneralDigest.TargetGameDigest, new byte[32] },
+    };
+
+    public void Set(GeneralDigest flag, byte[] value)
+    {
+      Buffer.BlockCopy(value, 0, Digests[flag], 0, 32);
+      set_digests |= flag;
+    }
 
     public override EntryId Id => EntryId.GENERAL_DIGESTS;
-    public override uint Length => 0x180;
+    public override uint Length => 
+      type == 0x100 ? 0x180u 
+      : type == 0x101 ? 0x1C0u
+      : 0x1E0u;
     public override string Name => null;
 
     public override void Write(Stream s)
     {
-      s.Write(UnknownDigest, 0, 32); 
-      s.Write(ContentDigest, 0, 32); 
-      s.Write(GameDigest, 0, 32); 
-      s.Write(HeaderDigest, 0, 32); 
-      s.Write(SystemDigest, 0, 32); 
-      s.Write(MajorParamDigest, 0, 32); 
-      s.Write(ParamDigest, 0, 32);
-      s.Position += 0xA0;
+      s.WriteUInt16BE(unk1);
+      s.WriteUInt16BE(type);
+      s.Position += 24;
+      s.WriteInt32BE((int)set_digests);
+      s.Write(Digests[GeneralDigest.ContentDigest], 0, 32); 
+      s.Write(Digests[GeneralDigest.GameDigest], 0, 32); 
+      s.Write(Digests[GeneralDigest.HeaderDigest], 0, 32); 
+      s.Write(Digests[GeneralDigest.SystemDigest], 0, 32); 
+      s.Write(Digests[GeneralDigest.MajorParamDigest], 0, 32); 
+      s.Write(Digests[GeneralDigest.ParamDigest], 0, 32);
+      if(type > 0x100)
+      {
+        s.Write(Digests[GeneralDigest.PlaygoDigest], 0, 32);
+        s.Write(Digests[GeneralDigest.TrophyDigest], 0, 32);
+        s.Write(Digests[GeneralDigest.ManualDigest], 0, 32);
+        s.Write(Digests[GeneralDigest.KeymapDigest], 0, 32);
+      }
+      else
+      {
+        s.Position += 0xA0;
+      }
     }
   }
 
