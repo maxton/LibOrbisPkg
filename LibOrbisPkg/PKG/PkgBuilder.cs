@@ -42,6 +42,7 @@ namespace LibOrbisPkg.PKG
       
       // Update header sizes now that we know how big things are...
       UpdateHeaderInfo(pkg, s.Length, pfsStream.Length);
+      pkg.Header.body_size = pkg.Header.pfs_image_offset - pkg.Header.body_offset;
 
       // Set PFS Image 1st block and full SHA256 hashes (mount image)
       pkg.Header.pfs_signed_digest = Crypto.Sha256(s, (long)pkg.Header.pfs_image_offset, 0x10000);
@@ -76,13 +77,20 @@ namespace LibOrbisPkg.PKG
         pkg.GeneralDigests.Set(GeneralDigest.ContentDigest, Crypto.Sha256(ms));
       }
       pkg.GeneralDigests.Set(GeneralDigest.GameDigest, pkg.Header.pfs_image_digest);
-      pkg.GeneralDigests.Set(GeneralDigest.HeaderDigest,
-        "9760F45A506692426206E25A709A4597D2874BCE98697877945B74935B5FB0CC"
-        .FromHexCompact());
+      using (var ms = new MemoryStream())
+      {
+        new PkgWriter(ms).WriteHeader(pkg.Header);
+        using (var hash = System.Security.Cryptography.SHA256.Create())
+        {
+          ms.Position = 0;
+          hash.TransformBlock(ms.ReadBytes(64), 0, 64, null, 0);
+          ms.Position = 0x400;
+          hash.TransformFinalBlock(ms.ReadBytes(128), 0, 128);
+          pkg.GeneralDigests.Set(GeneralDigest.HeaderDigest, hash.Hash);
+        }
+      }
       pkg.GeneralDigests.Set(GeneralDigest.ParamDigest, Crypto.Sha256(pkg.ParamSfo.ParamSfo.Serialize()));
       pkg.ImageKey.FileData = Crypto.RSA2048EncryptKey(RSAKeyset.FakeKeyset.Modulus, EKPFS);
-
-      pkg.Header.body_size = pkg.Header.pfs_image_offset - pkg.Header.body_offset;
 
       // Write body now because it will make calculating hashes easier.
       writer.WriteBody(pkg, project.volume.Package.ContentId, project.volume.Package.Passcode);
