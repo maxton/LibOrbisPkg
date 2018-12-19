@@ -201,7 +201,7 @@ namespace LibOrbisPkg.PFS
     /// </summary>
     void addFileInodes()
     {
-      foreach (var file in allFiles)
+      foreach (var file in allFiles.OrderBy(x => x.FullPath()))
       {
         var ino = MakeInode(
           Mode: InodeMode.file | InodeMode.rx_only,
