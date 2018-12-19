@@ -57,9 +57,13 @@ namespace LibOrbisPkg.PKG
           $",img0_pc_ksize=832";
       }
       // TODO: Generate hashes in Entries (body)
+      var majorParamString =
+        "ATTRIBUTE" + pkg.ParamSfo.ParamSfo.GetValueByName("ATTRIBUTE") +
+        "CATEGORY" + pkg.ParamSfo.ParamSfo.GetValueByName("CATEGORY") +
+        "FORMAT" + pkg.ParamSfo.ParamSfo.GetValueByName("FORMAT") +
+        "PUBTOOLVER" + pkg.ParamSfo.ParamSfo.GetValueByName("PUBTOOLVER");
       pkg.GeneralDigests.Set(GeneralDigest.MajorParamDigest,
-        "C1F70C326D9C36DFF46153E03005BCB0C6BD98B98F66C1A798668E10EB46972E"
-        .FromHexCompact());
+        Crypto.Sha256(Encoding.ASCII.GetBytes(majorParamString)));
       using (var ms = new MemoryStream())
       {
         ms.Write(Encoding.ASCII.GetBytes(pkg.Header.content_id), 0, 36);

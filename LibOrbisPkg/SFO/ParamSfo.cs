@@ -159,6 +159,10 @@ namespace LibOrbisPkg.SFO
     public override int Length => Value.Length;
     public override int MaxLength { get; }
     public override byte[] ToByteArray() => Value;
+    public override string ToString()
+    {
+      return Value.AsHexCompact();
+    }
   }
   public class Utf8Value : Value
   {
@@ -173,6 +177,10 @@ namespace LibOrbisPkg.SFO
     public override int MaxLength { get; }
     public string Value;
     public override byte[] ToByteArray() => Encoding.UTF8.GetBytes(Value);
+    public override string ToString()
+    {
+      return Value;
+    }
   }
   public class IntegerValue : Value
   {
@@ -186,5 +194,9 @@ namespace LibOrbisPkg.SFO
     public override int MaxLength => 4;
     public int Value;
     public override byte[] ToByteArray() => BitConverter.GetBytes(Value);
+    public override string ToString()
+    {
+      return $"0x{Value:x8}";
+    }
   }
 }
