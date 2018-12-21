@@ -48,7 +48,6 @@ namespace LibOrbisPkg.PFS
     };
     public int UnknownIndex = 0;
     public byte[] Seed;
-    public byte[] UnknownDigest;
 
     public void WriteToStream(Stream s)
     {
@@ -75,7 +74,6 @@ namespace LibOrbisPkg.PFS
         s.Position = start + 0x36C;
         s.WriteInt32LE(UnknownIndex);
         s.Write(Seed, 0, Seed.Length);
-        s.Write(UnknownDigest, 0, UnknownDigest.Length);
       }
       else
       {

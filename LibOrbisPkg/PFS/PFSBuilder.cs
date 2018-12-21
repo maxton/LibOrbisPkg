@@ -38,10 +38,12 @@ namespace LibOrbisPkg.PFS
     {
       public long Block;
       public long SigOffset;
-      public BlockSigInfo(long block, long offset)
+      public int Size;
+      public BlockSigInfo(long block, long offset, int size = 0x10000)
       {
         Block = block;
         SigOffset = offset;
+        Size = size;
       }
     }
     private Stack<BlockSigInfo> sig_order = new Stack<BlockSigInfo>();
@@ -66,9 +68,10 @@ namespace LibOrbisPkg.PFS
       // TODO: Combine the superroot-specific stuff with the rest of the data block writing.
       // I think this is as simple as adding superroot and flat_path_table to allNodes
 
-      // These don't seem to really matter when verifying a PKG so use all zeroes for now
+      // This doesn't seem to really matter when verifying a PKG so use all zeroes for now
       var seed = new byte[16];
-      var sig = new byte[32];
+      // Insert header digest to be calculated with the rest of the digests
+      sig_order.Push(new BlockSigInfo(0, 0x380, 0x5A0));
       hdr = new PfsHeader {
         BlockSize = properties.BlockSize,
         ReadOnly = 1,
@@ -76,8 +79,7 @@ namespace LibOrbisPkg.PFS
              | (properties.Encrypt ? PfsMode.Encrypted : 0)
              | PfsMode.UnknownFlagAlwaysSet,
         UnknownIndex = 1,
-        Seed = properties.Encrypt || properties.Sign ? seed : null,
-        UnknownDigest = properties.Sign || properties.Encrypt ? sig : null,
+        Seed = properties.Encrypt || properties.Sign ? seed : null
       };
       inodes = new List<inode>();
 
@@ -130,9 +132,9 @@ namespace LibOrbisPkg.PFS
         var signKey = Crypto.PfsGenSignKey(properties.EKPFS, hdr.Seed);
         foreach (var sig in sig_order)
         {
-          var sig_buffer = new byte[properties.BlockSize];
+          var sig_buffer = new byte[sig.Size];
           stream.Position = sig.Block * properties.BlockSize;
-          stream.Read(sig_buffer, 0, (int)properties.BlockSize);
+          stream.Read(sig_buffer, 0, sig.Size);
           stream.Position = sig.SigOffset;
           stream.Write(Crypto.HmacSha256(signKey, sig_buffer), 0, 32);
           stream.WriteLE((int)sig.Block);
