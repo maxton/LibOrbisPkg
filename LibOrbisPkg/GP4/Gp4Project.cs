@@ -51,6 +51,10 @@ namespace LibOrbisPkg.GP4
           file.OrigPath = file.TargetPath.Replace('/','\\');
         }
       }
+      if(proj.volume.Package.EntitlementKey == null)
+      {
+        proj.volume.Package.EntitlementKey = "00000000000000000000000000000000";
+      }
       return proj;
     }
 
