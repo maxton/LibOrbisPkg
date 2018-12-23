@@ -26,12 +26,15 @@ namespace PkgEditor.Views
     {
       get => modified;
       set {
-        modified = value;
-        if (modified)
-          Parent.Text = "*" + Path.GetFileName(path);
-        else
-          Parent.Text = Path.GetFileName(path);
-        OnSaveStatusChanged();
+        if(value != modified)
+        {
+          modified = value;
+          if (modified)
+            Parent.Text = "*" + Path.GetFileName(path);
+          else
+            Parent.Text = Path.GetFileName(path);
+          OnSaveStatusChanged();
+        }
       }
     }
     /// <summary>
@@ -278,6 +281,7 @@ namespace PkgEditor.Views
         TargetPath = targetPath + Path.GetFileName(origPath)
       };
       proj.files.Add(fileEntry);
+      Modified = true;
     }
 
     private void AddFileTree(Dir parent, string path)
@@ -292,6 +296,7 @@ namespace PkgEditor.Views
       {
         AddFile(targetPath, f);
       }
+      Modified = true;
     }
 
     private void filesListView_DragDrop(object sender, DragEventArgs e)
