@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace LibOrbisPkg.PKG
 {
@@ -678,4 +679,77 @@ namespace LibOrbisPkg.PKG
     KEYMAP_RP__30__009_PNG = 0x000017F8,
     KEYMAP_RP__30__010_PNG = 0x000017F9,
   };
+  public static class EntryNames
+  {
+    static EntryNames()
+    {
+      NameToId = new Dictionary<string, EntryId>();
+      IdToName = new Dictionary<EntryId, string>
+      {
+        { EntryId.DIGESTS, ".digests" },
+        { EntryId.ENTRY_KEYS, ".entry_keys" },
+        { EntryId.IMAGE_KEY, ".image_key" },
+        { EntryId.GENERAL_DIGESTS, ".general_digests" },
+        { EntryId.METAS, ".metas" },
+        { EntryId.ENTRY_NAMES, ".entry_names" },
+        { EntryId.LICENSE_DAT, "license.dat" },
+        { EntryId.LICENSE_INFO, "license.info" },
+        { EntryId.NPTITLE_DAT, "nptitle.dat" },
+        { EntryId.NPBIND_DAT, "npbind.dat" },
+        { EntryId.SELFINFO_DAT, "selfinfo.dat" },
+        { EntryId.IMAGEINFO_DAT, "imageinfo.dat" },
+        { EntryId.TARGET_DELTAINFO_DAT, "target-deltainfo.dat" },
+        { EntryId.ORIGIN_DELTAINFO_DAT, "origin-deltainfo.dat" },
+        { EntryId.PSRESERVED_DAT, "psreserved.dat" },
+        { EntryId.PARAM_SFO, "param.sfo" },
+        { EntryId.PLAYGO_CHUNK_DAT, "playgo-chunk.dat" },
+        { EntryId.PLAYGO_CHUNK_SHA, "playgo-chunk.sha" },
+        { EntryId.PLAYGO_MANIFEST_XML, "playgo-manifest.xml" },
+        { EntryId.PRONUNCIATION_SIG, "pronunciation.sig" },
+        { EntryId.PRONUNCIATION_XML, "pronunciation.xml" },
+        { EntryId.PIC1_PNG, "pic1.png" },
+        { EntryId.PUBTOOLINFO_DAT, "pubtoolinfo.dat" },
+        { EntryId.APP__PLAYGO_CHUNK_DAT, "app/playgo-chunk.dat" },
+        { EntryId.APP__PLAYGO_CHUNK_SHA, "app/playgo-chunk.sha" },
+        { EntryId.APP__PLAYGO_MANIFEST_XML, "app/playgo-manifest.xml" },
+        { EntryId.SHAREPARAM_JSON, "shareparam.json" },
+        { EntryId.SHAREOVERLAYIMAGE_PNG, "shareoverlayimage.png" },
+        { EntryId.SAVE_DATA_PNG, "save_data.png" },
+        { EntryId.SHAREPRIVACYGUARDIMAGE_PNG, "shareprivacyguardimage.png" },
+        { EntryId.ICON0_PNG, "icon0.png" },
+        { EntryId.PIC0_PNG, "pic0.png" },
+        { EntryId.SND0_AT9, "snd0.at9" },
+        { EntryId.CHANGEINFO__CHANGEINFO_XML, "changeinfo/changeinfo.xml" },
+        { EntryId.ICON0_DDS, "icon0.dds" },
+        { EntryId.PIC0_DDS, "pic0.dds" },
+        { EntryId.PIC1_DDS, "pic1.dds" },
+      };
+      for(var i = 0; i < 31; i++)
+      {
+        IdToName.Add((EntryId)((int)EntryId.ICON0_00_PNG + i), $"icon0_{i:d2}.png");
+        IdToName.Add((EntryId)((int)EntryId.ICON0_00_DDS + i), $"icon0_{i:d2}.dds");
+        IdToName.Add((EntryId)((int)EntryId.PIC1_00_PNG + i), $"pic1_{i:d2}.png");
+        IdToName.Add((EntryId)((int)EntryId.PIC1_00_DDS + i), $"pic1_{i:d2}.dds");
+        IdToName.Add((EntryId)((int)EntryId.CHANGEINFO__CHANGEINFO_00_XML + i), $"changeinfo/changeinfo_{i:d2}.xml");
+        if(i < 10)
+        {
+          IdToName.Add((EntryId)((int)EntryId.KEYMAP_RP__001_PNG + i), $"keymap_rp/0{i+1:d2}.png");
+        }
+        for(var j = 0; j < 10; j++)
+        {
+          IdToName.Add((EntryId)((int)EntryId.KEYMAP_RP__00__001_PNG + (16*i) + j), $"keymap_rp/{i:d2}/0{j+1:d2}.png");
+        }
+      }
+      for(var i = 0; i < 100; i++)
+      {
+        IdToName.Add((EntryId)((int)EntryId.TROPHY__TROPHY00_TRP + i), $"trophy/trophy{i:d2}.trp");
+      }
+      foreach(var kv in IdToName)
+      {
+        NameToId.Add(kv.Value, kv.Key);
+      }
+    }
+    public static Dictionary<string, EntryId> NameToId;
+    public static Dictionary<EntryId, string> IdToName;
+  }
 }

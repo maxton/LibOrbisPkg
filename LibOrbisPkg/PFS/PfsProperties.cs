@@ -91,7 +91,7 @@ namespace LibOrbisPkg.PFS
       foreach (var f in proj.files)
       {
         var lastSlash = f.TargetPath.LastIndexOf('/') + 1;
-        if (f.TargetPath == "sce_sys/param.sfo")
+        if (f.TargetPath.StartsWith("sce_sys/") && PKG.EntryNames.NameToId.ContainsKey(f.TargetPath.Substring(8)))
         {
           continue;
         }
