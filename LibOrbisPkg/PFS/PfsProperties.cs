@@ -19,7 +19,7 @@ namespace LibOrbisPkg.PFS
     {
       var root = new FSDir();
       BuildFSTree(root, proj, projDir);
-      var timestamp = DateTime.Parse(proj.volume.TimeStamp).ToUniversalTime().Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+      var timestamp = proj.volume.TimeStamp.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
       return new PfsProperties()
       {
         root = root,
@@ -52,7 +52,7 @@ namespace LibOrbisPkg.PFS
     private static long GetTimeStamp(GP4.Gp4Project proj)
     {
       // FIXME: This is incorrect when DST of current time and project time are different
-      var timestamp = DateTime.Parse(proj.volume.TimeStamp).ToUniversalTime().Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+      var timestamp = proj.volume.TimeStamp.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
       return (long)timestamp;
     }
     

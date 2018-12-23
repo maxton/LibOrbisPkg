@@ -181,7 +181,7 @@ namespace LibOrbisPkg.PKG
     public Pkg BuildPkg()
     {
       var pkg = new Pkg();
-      var volType = GP4.VolumeTypeUtil.OfString(project.volume.Type);
+      var volType = project.volume.Type;
       pkg.Header = new Header
       {
         CNTMagic = "\u007fCNT",

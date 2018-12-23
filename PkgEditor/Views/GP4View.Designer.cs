@@ -48,6 +48,10 @@
       this.buildPkgButton = new System.Windows.Forms.Button();
       this.label3 = new System.Windows.Forms.Label();
       this.entitlementKeyTextbox = new System.Windows.Forms.TextBox();
+      this.pkgTypeDropdown = new System.Windows.Forms.ComboBox();
+      this.label4 = new System.Windows.Forms.Label();
+      this.label5 = new System.Windows.Forms.Label();
+      this.volumeTimestampPicker = new System.Windows.Forms.DateTimePicker();
       ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
       this.splitContainer1.Panel1.SuspendLayout();
       this.splitContainer1.Panel2.SuspendLayout();
@@ -60,7 +64,7 @@
       this.splitContainer1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-      this.splitContainer1.Location = new System.Drawing.Point(3, 98);
+      this.splitContainer1.Location = new System.Drawing.Point(3, 125);
       this.splitContainer1.Name = "splitContainer1";
       // 
       // splitContainer1.Panel1
@@ -70,7 +74,7 @@
       // splitContainer1.Panel2
       // 
       this.splitContainer1.Panel2.Controls.Add(this.filesListView);
-      this.splitContainer1.Size = new System.Drawing.Size(697, 317);
+      this.splitContainer1.Size = new System.Drawing.Size(697, 290);
       this.splitContainer1.SplitterDistance = 232;
       this.splitContainer1.TabIndex = 0;
       // 
@@ -80,7 +84,7 @@
       this.dirsTreeView.HideSelection = false;
       this.dirsTreeView.Location = new System.Drawing.Point(0, 0);
       this.dirsTreeView.Name = "dirsTreeView";
-      this.dirsTreeView.Size = new System.Drawing.Size(232, 317);
+      this.dirsTreeView.Size = new System.Drawing.Size(232, 290);
       this.dirsTreeView.TabIndex = 0;
       this.dirsTreeView.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.dirsTreeView_AfterSelect);
       // 
@@ -96,7 +100,7 @@
       this.filesListView.LabelEdit = true;
       this.filesListView.Location = new System.Drawing.Point(0, 0);
       this.filesListView.Name = "filesListView";
-      this.filesListView.Size = new System.Drawing.Size(461, 317);
+      this.filesListView.Size = new System.Drawing.Size(461, 290);
       this.filesListView.SmallImageList = this.folderFileIcons;
       this.filesListView.TabIndex = 0;
       this.filesListView.UseCompatibleStateImageBehavior = false;
@@ -193,9 +197,9 @@
       // buildPfsButton
       // 
       this.buildPfsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-      this.buildPfsButton.Location = new System.Drawing.Point(625, 3);
+      this.buildPfsButton.Location = new System.Drawing.Point(625, 55);
       this.buildPfsButton.Name = "buildPfsButton";
-      this.buildPfsButton.Size = new System.Drawing.Size(75, 49);
+      this.buildPfsButton.Size = new System.Drawing.Size(75, 21);
       this.buildPfsButton.TabIndex = 5;
       this.buildPfsButton.Text = "Build PFS";
       this.buildPfsButton.UseVisualStyleBackColor = true;
@@ -204,7 +208,7 @@
       // buildPkgButton
       // 
       this.buildPkgButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-      this.buildPkgButton.Location = new System.Drawing.Point(544, 3);
+      this.buildPkgButton.Location = new System.Drawing.Point(625, 3);
       this.buildPkgButton.Name = "buildPkgButton";
       this.buildPkgButton.Size = new System.Drawing.Size(75, 49);
       this.buildPkgButton.TabIndex = 6;
@@ -215,25 +219,71 @@
       // label3
       // 
       this.label3.AutoSize = true;
-      this.label3.Location = new System.Drawing.Point(238, 39);
+      this.label3.Location = new System.Drawing.Point(3, 78);
       this.label3.Name = "label3";
-      this.label3.Size = new System.Drawing.Size(150, 13);
+      this.label3.Size = new System.Drawing.Size(195, 13);
       this.label3.TabIndex = 8;
-      this.label3.Text = "Entitlement Key (32 hex chars)";
+      this.label3.Text = "Entitlement Key (32 hex chars) (AC only)";
       // 
       // entitlementKeyTextbox
       // 
-      this.entitlementKeyTextbox.Location = new System.Drawing.Point(241, 55);
+      this.entitlementKeyTextbox.Location = new System.Drawing.Point(3, 94);
       this.entitlementKeyTextbox.MaxLength = 32;
       this.entitlementKeyTextbox.Name = "entitlementKeyTextbox";
       this.entitlementKeyTextbox.Size = new System.Drawing.Size(232, 20);
       this.entitlementKeyTextbox.TabIndex = 7;
       this.entitlementKeyTextbox.TextChanged += new System.EventHandler(this.propertyChanged);
       // 
+      // pkgTypeDropdown
+      // 
+      this.pkgTypeDropdown.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+      this.pkgTypeDropdown.FormattingEnabled = true;
+      this.pkgTypeDropdown.Items.AddRange(new object[] {
+            "Game Package",
+            "Additional Content"});
+      this.pkgTypeDropdown.Location = new System.Drawing.Point(284, 16);
+      this.pkgTypeDropdown.Name = "pkgTypeDropdown";
+      this.pkgTypeDropdown.Size = new System.Drawing.Size(186, 21);
+      this.pkgTypeDropdown.TabIndex = 9;
+      this.pkgTypeDropdown.SelectedIndexChanged += new System.EventHandler(this.pkgTypeDropdown_SelectedIndexChanged);
+      // 
+      // label4
+      // 
+      this.label4.AutoSize = true;
+      this.label4.Location = new System.Drawing.Point(281, 0);
+      this.label4.Name = "label4";
+      this.label4.Size = new System.Drawing.Size(77, 13);
+      this.label4.TabIndex = 10;
+      this.label4.Text = "Package Type";
+      // 
+      // label5
+      // 
+      this.label5.AutoSize = true;
+      this.label5.Location = new System.Drawing.Point(281, 40);
+      this.label5.Name = "label5";
+      this.label5.Size = new System.Drawing.Size(96, 13);
+      this.label5.TabIndex = 11;
+      this.label5.Text = "Volume Timestamp";
+      // 
+      // volumeTimestampPicker
+      // 
+      this.volumeTimestampPicker.CustomFormat = "yyyy-MM-dd HH:mm:ss";
+      this.volumeTimestampPicker.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+      this.volumeTimestampPicker.Location = new System.Drawing.Point(284, 55);
+      this.volumeTimestampPicker.Name = "volumeTimestampPicker";
+      this.volumeTimestampPicker.Size = new System.Drawing.Size(186, 20);
+      this.volumeTimestampPicker.TabIndex = 12;
+      this.volumeTimestampPicker.Value = new System.DateTime(2018, 12, 25, 0, 0, 0, 0);
+      this.volumeTimestampPicker.ValueChanged += new System.EventHandler(this.volumeTimestampPicker_ValueChanged);
+      // 
       // GP4View
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+      this.Controls.Add(this.volumeTimestampPicker);
+      this.Controls.Add(this.label5);
+      this.Controls.Add(this.label4);
+      this.Controls.Add(this.pkgTypeDropdown);
       this.Controls.Add(this.label3);
       this.Controls.Add(this.entitlementKeyTextbox);
       this.Controls.Add(this.buildPkgButton);
@@ -275,5 +325,9 @@
     private System.Windows.Forms.Button buildPkgButton;
     private System.Windows.Forms.Label label3;
     private System.Windows.Forms.TextBox entitlementKeyTextbox;
+    private System.Windows.Forms.ComboBox pkgTypeDropdown;
+    private System.Windows.Forms.Label label4;
+    private System.Windows.Forms.Label label5;
+    private System.Windows.Forms.DateTimePicker volumeTimestampPicker;
   }
 }

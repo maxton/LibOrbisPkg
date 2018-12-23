@@ -50,13 +50,33 @@ namespace PkgEditor.Views
       {
         this.proj = proj;
         this.path = path;
-        contentIdTextBox.Text = proj.volume.Package.ContentId;
-        passcodeTextBox.Text = proj.volume.Package.Passcode;
-        entitlementKeyTextbox.Text = proj.volume.Package.EntitlementKey;
         currentDir = null;
-        PopulateDirs();
-        loaded = true;
+        ReloadView();
       }
+    }
+
+    private void ReloadView()
+    {
+      loaded = false;
+      switch (proj.volume.Type)
+      {
+        case VolumeType.pkg_ps4_app:
+          pkgTypeDropdown.SelectedIndex = 0;
+          entitlementKeyTextbox.Enabled = false;
+          break;
+        case VolumeType.pkg_ps4_ac_data:
+          pkgTypeDropdown.SelectedIndex = 1;
+          entitlementKeyTextbox.Enabled = true;
+          break;
+        default:
+          break;
+      }
+      volumeTimestampPicker.Value = proj.volume.TimeStamp;
+      contentIdTextBox.Text = proj.volume.Package.ContentId;
+      passcodeTextBox.Text = proj.volume.Package.Passcode;
+      entitlementKeyTextbox.Text = proj.volume.Package.EntitlementKey;
+      PopulateDirs();
+      loaded = true;
     }
 
     public override bool CanSave => Modified;
@@ -79,6 +99,7 @@ namespace PkgEditor.Views
       if(ofd.ShowDialog() == DialogResult.OK)
       {
         path = ofd.FileName;
+        Parent.Text = Path.GetFileName(path);
         Save();
       }
     }
@@ -342,6 +363,32 @@ namespace PkgEditor.Views
           PopulateFiles();
         }
       }
+    }
+
+    private void pkgTypeDropdown_SelectedIndexChanged(object sender, EventArgs e)
+    {
+      if (!loaded) return;
+      switch(pkgTypeDropdown.SelectedIndex)
+      {
+        case 0: // GP
+          proj.SetType(VolumeType.pkg_ps4_app);
+          ReloadView();
+          break;
+        case 1: // AC
+          proj.SetType(VolumeType.pkg_ps4_ac_data);
+          ReloadView();
+          break;
+        default:
+          return;
+      }
+      Modified = true;
+    }
+
+    private void volumeTimestampPicker_ValueChanged(object sender, EventArgs e)
+    {
+      if (!loaded) return;
+      proj.volume.TimeStamp = volumeTimestampPicker.Value;
+      Modified = true;
     }
   }
 }

@@ -51,12 +51,38 @@ namespace LibOrbisPkg.GP4
           file.OrigPath = file.TargetPath.Replace('/','\\');
         }
       }
-      if(proj.volume.Package.EntitlementKey == null)
+      if(proj.volume.Package.EntitlementKey == null
+        && (proj.volume.Type == VolumeType.pkg_ps4_ac_data
+        || proj.volume.Type == VolumeType.pkg_ps4_ac_nodata))
       {
         proj.volume.Package.EntitlementKey = "00000000000000000000000000000000";
       }
       return proj;
     }
+
+    public static Gp4Project Create(VolumeType type)
+    {
+      var proj = new Gp4Project
+      {
+        files = new Files(),
+        Format = "gp4",
+        RootDir = new List<Dir>(),
+        version = 1000,
+        volume = new Volume
+        {
+          volume_ts = DateTime.UtcNow.ToString("s").Replace('T', ' '),
+          Package = new PackageInfo
+          {
+            ContentId = "XXXXXX-CUSA00000_00-ZZZZZZZZZZZZZZZZ",
+            Passcode = "00000000000000000000000000000000"
+          }
+        }
+      };
+      proj.SetType(type);
+      return proj;
+    }
+
+    #region Modification Functions
 
     public void RenameFile(Gp4File f, string newName)
     {
@@ -131,18 +157,84 @@ namespace LibOrbisPkg.GP4
       dir.Children.Clear();
       dir.Children = null;
     }
+
+    public void SetType(VolumeType type)
+    {
+      if (volume.volume_type != null && type == volume.Type) return;
+      switch (type)
+      {
+        case VolumeType.pkg_ps4_app:
+          volume.Package.EntitlementKey = null;
+          volume.Package.StorageType = "digital50";
+          volume.Package.AppType = "full";
+          volume.chunk_info = new ChunkInfo
+          {
+            chunks = new List<Chunk>
+            {
+              new Chunk
+              {
+                id = 0,
+                layer_no = 0,
+                label = "Chunk #0",
+              }
+            },
+            chunk_count = 1,
+            scenarios = new Scenarios
+            {
+              default_id = 0,
+              scenarios = new List<Scenario>
+              {
+                new Scenario
+                {
+                  id = 0,
+                  type = "sp",
+                  initial_chunk_count = 1,
+                  label = "Scenario #0",
+                  number = 0,
+                }
+              }
+            },
+            scenario_count = 1
+          };
+          break;
+        case VolumeType.pkg_ps4_ac_data:
+          volume.Package.EntitlementKey = "00000000000000000000000000000000";
+          volume.Package.StorageType = null;
+          volume.Package.AppType = null;
+          volume.chunk_info = null;
+          break;
+        default:
+          throw new Exception("Sorry, don't know how to make that project type!");
+      }
+      volume.Type = type;
+    }
+    #endregion
   }
 
   public class Volume
   {
     [XmlElement(ElementName = "volume_type")]
-    public string Type;
+    public string volume_type;
+    [XmlIgnore]
+    public VolumeType Type
+    {
+      get => VolumeTypeUtil.OfString(volume_type);
+      set => volume_type = value.ToString();
+    }
     [XmlElement(ElementName = "volume_id")]
     public string Id;
     [XmlElement(ElementName = "volume_ts")]
-    public string TimeStamp;
+    public string volume_ts;
+    [XmlIgnore]
+    public DateTime TimeStamp
+    {
+      get => DateTime.Parse(volume_ts).ToUniversalTime();
+      set => volume_ts = value.ToString("s").Replace('T', ' ');
+    }
     [XmlElement(ElementName = "package")]
     public PackageInfo Package;
+    [XmlElement(ElementName = "chunk_info")]
+    public ChunkInfo chunk_info;
   }
 
   public enum VolumeType
@@ -200,6 +292,10 @@ namespace LibOrbisPkg.GP4
     public string Passcode;
     [XmlAttribute("entitlement_key")]
     public string EntitlementKey;
+    [XmlAttribute("storage_type")]
+    public string StorageType;
+    [XmlAttribute("app_type")]
+    public string AppType;
     [XmlAttribute("c_date")]
     public string CreationDate;
   }
@@ -261,4 +357,49 @@ namespace LibOrbisPkg.GP4
     }
   }
 
+  public class ChunkInfo
+  {
+    [XmlAttribute(AttributeName = "chunk_count")]
+    public int chunk_count;
+
+    [XmlAttribute(AttributeName = "scenario_count")]
+    public int scenario_count;
+
+    [XmlArrayItem(Type = typeof(Chunk), ElementName = "chunk")]
+    [XmlArray(ElementName = "chunks")]
+    public List<Chunk> chunks = new List<Chunk>();
+
+    [XmlElement(ElementName = "scenarios")]
+    public Scenarios scenarios;
+  }
+  public class Chunk
+  {
+    [XmlAttribute(AttributeName = "id")]
+    public int id;
+    [XmlAttribute(AttributeName = "layer_no")]
+    public int layer_no;
+    [XmlAttribute(AttributeName = "label")]
+    public string label;
+  }
+  public class Scenarios
+  {
+    [XmlAttribute(AttributeName = "default_id")]
+    public int default_id;
+
+    [XmlElement(Type = typeof(Scenario), ElementName = "scenario")]
+    public List<Scenario> scenarios = new List<Scenario>();
+  }
+  public class Scenario
+  {
+    [XmlAttribute(AttributeName = "id")]
+    public int id;
+    [XmlAttribute(AttributeName = "type")]
+    public string type;
+    [XmlAttribute(AttributeName = "initial_chunk_count")]
+    public int initial_chunk_count;
+    [XmlAttribute(AttributeName = "label")]
+    public string label;
+    [XmlText]
+    public int number;
+  }
 }
