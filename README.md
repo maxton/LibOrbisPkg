@@ -8,8 +8,7 @@ Without a proper open PKG tool, the PS4 homebrew scene cannot flourish.
 All code in this repository is licensed under the GNU LGPL version 3, which can be found in LICENSE.txt.
 
 # Note - Incomplete!
-Some sites have been reporting that I have "released" this software - keep in mind that this is still **unfinished** and will not create valid PKGs yet!
-Once valid PKGs can be generated I'll create an actual GitHub release.
+This is still **unfinished** software and can only create valid AC (DLC) PKGs.
 
 ## Usage
 
@@ -30,11 +29,12 @@ PkgTool.exe <verb> <input> <output>
 
 Verbs:
   makepfs <input_project.gp4> <output_pfs.dat>
+  makeouterpfs [--encrypt] <input_project.gp4> <output_pfs.dat>
   makepkg <input_project.gp4> <output_directory>
   extractpkg <input.pkg> <passcode> <output_directory>
-  extractouterpfs <input.pkg> <passcode> <output_pfs.dat>
+  extractinnerpfs <input.pkg> <passcode> <output_pfs.dat>
   extractouterpfs_e <input.pkg> <output_pfs_encrypted.dat>
-  extractinnerpfs <input.pkg> <passcode> <pfs_image.dat>
+  extractouterpfs <input.pkg> <passcode> <pfs_image.dat>
   listentries <input.pkg>
   extractentry <input.pkg> <entry_id> <output.bin>
 
