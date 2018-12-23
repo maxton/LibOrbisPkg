@@ -41,7 +41,9 @@ namespace LibOrbisPkg.PKG
       outerPfs.WriteImage(pfsStream);
       
       // Update header sizes now that we know how big things are...
-      UpdateHeaderInfo(pkg, s.Length, pfsStream.Length);
+      pkg.Header.package_size = (ulong)s.Length;
+      pkg.Header.mount_image_size = (ulong)s.Length;
+      pkg.Header.pfs_image_size = (ulong)pfsStream.Length;
       pkg.Header.body_size = pkg.Header.pfs_image_offset - pkg.Header.body_offset;
 
       // Set PFS Image 1st block and full SHA256 hashes (mount image)
@@ -56,12 +58,41 @@ namespace LibOrbisPkg.PKG
           $",img0_sc_ksize=512" +
           $",img0_pc_ksize=832";
       }
-      // TODO: Generate hashes in Entries (body)
+      CalcGeneralDigests(pkg);
+      pkg.ImageKey.FileData = Crypto.RSA2048EncryptKey(RSAKeyset.FakeKeyset.Modulus, EKPFS);
+
+      // Write body now because it will make calculating hashes easier.
+      writer.WriteBody(pkg, project.volume.Package.ContentId, project.volume.Package.Passcode);
+
+      CalcBodyDigests(pkg, s);
+
+      // Now write header
+      s.Position = 0;
+      writer.WriteHeader(pkg.Header);
+
+      // Final Pkg digest and signature
+      pkg.HeaderDigest = Crypto.Sha256(s, 0, 0xFE0);
+      s.Position = 0xFE0;
+      s.Write(pkg.HeaderDigest, 0, pkg.HeaderDigest.Length);
+      byte[] header_sha256 = Crypto.Sha256(s, 0, 0x1000);
+      s.Position = 0x1000;
+      s.Write(pkg.HeaderSignature = Crypto.RSA2048EncryptKey(Keys.PkgSignKey, header_sha256), 0, 256);
+
+      return pkg;
+    }
+
+    /// <summary>
+    /// Calculates the digests for the GeneralDigests entry
+    /// </summary>
+    /// <param name="pkg"></param>
+    private static void CalcGeneralDigests(Pkg pkg)
+    {
+      var sfo = pkg.ParamSfo.ParamSfo;
       var majorParamString =
-        "ATTRIBUTE" + pkg.ParamSfo.ParamSfo.GetValueByName("ATTRIBUTE") +
-        "CATEGORY" + pkg.ParamSfo.ParamSfo.GetValueByName("CATEGORY") +
-        "FORMAT" + pkg.ParamSfo.ParamSfo.GetValueByName("FORMAT") +
-        "PUBTOOLVER" + pkg.ParamSfo.ParamSfo.GetValueByName("PUBTOOLVER");
+        "ATTRIBUTE" + sfo["ATTRIBUTE"] +
+        "CATEGORY" + sfo["CATEGORY"] +
+        "FORMAT" + sfo["FORMAT"] +
+        "PUBTOOLVER" + sfo["PUBTOOLVER"];
       pkg.GeneralDigests.Set(GeneralDigest.MajorParamDigest,
         Crypto.Sha256(Encoding.ASCII.GetBytes(majorParamString)));
       using (var ms = new MemoryStream())
@@ -71,8 +102,8 @@ namespace LibOrbisPkg.PKG
         ms.WriteInt32BE((int)pkg.Header.drm_type);
         ms.WriteInt32BE((int)pkg.Header.content_type);
 
-        if(pkg.Header.content_type == ContentType.AC 
-          || pkg.Header.content_type == ContentType.GD 
+        if (pkg.Header.content_type == ContentType.AC
+          || pkg.Header.content_type == ContentType.GD
           || pkg.Header.content_flags.HasFlag(ContentFlags.GD_AC))
         {
           ms.Write(pkg.Header.pfs_image_digest, 0, 32);
@@ -94,33 +125,14 @@ namespace LibOrbisPkg.PKG
         }
       }
       pkg.GeneralDigests.Set(GeneralDigest.ParamDigest, Crypto.Sha256(pkg.ParamSfo.ParamSfo.Serialize()));
-      pkg.ImageKey.FileData = Crypto.RSA2048EncryptKey(RSAKeyset.FakeKeyset.Modulus, EKPFS);
-
-      // Write body now because it will make calculating hashes easier.
-      writer.WriteBody(pkg, project.volume.Package.ContentId, project.volume.Package.Passcode);
-
-      CalcHeaderHashes(pkg, s);
-
-      // Now write header
-      s.Position = 0;
-      writer.WritePkg(pkg);
-
-      // Pkg Signature
-      byte[] header_sha256 = Crypto.Sha256(s, 0, 0x1000);
-      s.Position = 0x1000;
-      s.Write(Crypto.RSA2048EncryptKey(Keys.PkgSignKey, header_sha256), 0, 256);
-
-      return pkg;
     }
 
-    private void UpdateHeaderInfo(Pkg pkg, long stream_length, long pfs_length)
-    {
-      pkg.Header.package_size = (ulong)stream_length;
-      pkg.Header.mount_image_size = (ulong)stream_length;
-      pkg.Header.pfs_image_size = (ulong)pfs_length;
-    }
-
-    private void CalcHeaderHashes(Pkg pkg, Stream s)
+    /// <summary>
+    /// Calculates and writes the digests for the body (entries / SC filesystem)
+    /// </summary>
+    /// <param name="pkg"></param>
+    /// <param name="s"></param>
+    private static void CalcBodyDigests(Pkg pkg, Stream s)
     {
       // Entry digests
       var digests = pkg.Digests;
