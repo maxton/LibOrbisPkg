@@ -9,6 +9,18 @@ namespace LibOrbisPkg.SFO
 {
   public class ParamSfo
   {
+    public Value this[string name]
+    {
+      get { return GetValueByName(name); }
+      set
+      {
+        if (GetValueByName(name) is Value v)
+        {
+          Values.Remove(v);
+        }
+        Values.Add(value);
+      }
+    }
     public List<Value> Values;
     public ParamSfo()
     {
