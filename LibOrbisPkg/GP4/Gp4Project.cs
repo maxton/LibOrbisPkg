@@ -17,8 +17,7 @@ namespace LibOrbisPkg.GP4
     public int version;
     [XmlElement(ElementName = "volume")]
     public Volume volume;
-    [XmlArrayItem(Type = typeof(Gp4File), ElementName = "file")]
-    [XmlArray(ElementName = "files")]
+    [XmlElement(ElementName = "files")]
     public Files files;
     [XmlArrayItem(Type = typeof(Dir), ElementName = "dir")]
     [XmlArray(ElementName = "rootdir")]
@@ -44,7 +43,7 @@ namespace LibOrbisPkg.GP4
         }
       }
       setParent(proj.RootDir, null);
-      foreach(var file in proj.files)
+      foreach(var file in proj.files.Items)
       {
         if(file.OrigPath == null)
         {
@@ -94,7 +93,7 @@ namespace LibOrbisPkg.GP4
       var origPath = d.Path;
       d.TargetName = newName;
       var newPath = d.Path;
-      foreach (var file in files)
+      foreach (var file in files.Items)
       {
         if (file.TargetPath.StartsWith(origPath))
         {
@@ -108,7 +107,7 @@ namespace LibOrbisPkg.GP4
     /// </summary>
     public void DeleteFile(Gp4File f)
     {
-      files.Remove(f);
+      files.Items.Remove(f);
     }
 
     /// <summary>
@@ -119,14 +118,14 @@ namespace LibOrbisPkg.GP4
       var path = d.Path;
       var deleteQueue = new List<Gp4File>();
       // This covers all children files, too.
-      foreach (var f in files)
+      foreach (var f in files.Items)
       {
         if (f.TargetPath.StartsWith(path))
           deleteQueue.Add(f);
       }
       foreach (var f in deleteQueue)
       {
-        files.Remove(f);
+        files.Items.Remove(f);
       }
       RootDir.Remove(d);
       DeleteDirs(d);
@@ -300,27 +299,12 @@ namespace LibOrbisPkg.GP4
     public string CreationDate;
   }
 
-  public class Files : ICollection<Gp4File>
+  public class Files
   {
     [XmlAttribute("img_no")]
     public int ImageNum;
-    [XmlIgnore]
+    [XmlElement(ElementName = "file")]
     public List<Gp4File> Items = new List<Gp4File>();
-    [XmlIgnore]
-    public int Count => Items.Count;
-    [XmlIgnore]
-    public bool IsReadOnly => false;
-    public void Add(Gp4File item) => Items.Add(item);
-    public void Clear() => Items.Clear();
-    public bool Contains(Gp4File item) => Items.Contains(item);
-    public void CopyTo(Gp4File[] array, int arrayIndex) => Items.CopyTo(array, arrayIndex);
-    public bool Remove(Gp4File item) => Items.Remove(item);
-    IEnumerator IEnumerable.GetEnumerator() => Items.GetEnumerator();
-    public IEnumerator<Gp4File> GetEnumerator()
-    {
-      foreach (var item in Items) yield return item;
-    }
-
   }
 
   public class Gp4File
@@ -371,6 +355,10 @@ namespace LibOrbisPkg.GP4
 
     [XmlElement(ElementName = "scenarios")]
     public Scenarios scenarios;
+
+    [XmlArrayItem(Type = typeof(ScenarioInfo), ElementName = "scenario_info")]
+    [XmlArray(ElementName = "scenarios_info")]
+    public List<ScenarioInfo> ScenariosInfo;
   }
   public class Chunk
   {
@@ -401,5 +389,22 @@ namespace LibOrbisPkg.GP4
     public string label;
     [XmlText]
     public int number;
+  }
+  public class ScenarioInfo
+  {
+    [XmlAttribute("id")]
+    public int id;
+    [XmlAttribute("type")]
+    public string type;
+
+    [XmlElement(ElementName = "lang")]
+    public List<ScenarioLang> Langs;
+  }
+  public class ScenarioLang
+  {
+    [XmlAttribute("type")]
+    public string type;
+    [XmlAttribute("name")]
+    public string name;
   }
 }

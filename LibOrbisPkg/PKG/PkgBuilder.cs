@@ -243,7 +243,7 @@ namespace LibOrbisPkg.PKG
       pkg.EntryNames = new NameTableEntry();
       pkg.LicenseDat = new GenericEntry(EntryId.LICENSE_DAT) { FileData = GenLicense(pkg) };
       pkg.LicenseInfo = new GenericEntry(EntryId.LICENSE_INFO) { FileData = GenLicenseInfo(pkg) };
-      var paramSfoPath = project.files.Where(f => f.TargetPath == "sce_sys/param.sfo").First().OrigPath;
+      var paramSfoPath = project.files.Items.Where(f => f.TargetPath == "sce_sys/param.sfo").First().OrigPath;
       using (var paramSfo = File.OpenRead(Path.Combine(projectDir, paramSfoPath)))
       {
         var sfo = SFO.ParamSfo.FromStream(paramSfo);
@@ -284,7 +284,7 @@ namespace LibOrbisPkg.PKG
         pkg.ParamSfo,
         pkg.PsReservedDat
       };
-      foreach(var file in project.files.Where(f => f.DirName == "sce_sys/"))
+      foreach(var file in project.files.Items.Where(f => f.DirName == "sce_sys/"))
       {
         var name = file.FileName;
         if (name == "param.sfo") continue;

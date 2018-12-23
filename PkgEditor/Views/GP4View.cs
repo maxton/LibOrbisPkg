@@ -139,7 +139,7 @@ namespace PkgEditor.Views
         item.ImageIndex = 0;
         item.Tag = dir;
       }
-      var files = proj.files.Where(f => f.TargetPath.LastIndexOf('/') < listViewPath.Length && f.TargetPath.StartsWith(listViewPath));
+      var files = proj.files.Items.Where(f => f.TargetPath.LastIndexOf('/') < listViewPath.Length && f.TargetPath.StartsWith(listViewPath));
       foreach (var f in files)
       {
         var item = filesListView.Items.Add(
@@ -301,7 +301,7 @@ namespace PkgEditor.Views
         OrigPath = f,
         TargetPath = targetPath + Path.GetFileName(origPath)
       };
-      proj.files.Add(fileEntry);
+      proj.files.Items.Add(fileEntry);
       Modified = true;
     }
 

@@ -88,7 +88,7 @@ namespace LibOrbisPkg.PFS
 
       AddDirs(root, proj.RootDir);
 
-      foreach (var f in proj.files)
+      foreach (var f in proj.files.Items)
       {
         var lastSlash = f.TargetPath.LastIndexOf('/') + 1;
         if (f.TargetPath.StartsWith("sce_sys/") && PKG.EntryNames.NameToId.ContainsKey(f.TargetPath.Substring(8)))
