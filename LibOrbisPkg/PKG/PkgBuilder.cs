@@ -348,11 +348,6 @@ namespace LibOrbisPkg.PKG
       return pkg;
     }
 
-    private static List<GP4.Gp4File> GetScFiles(GP4.Gp4Project project)
-    {
-      return null;
-    }
-
     private byte[] GenLicense(Pkg pkg)
     {
       var license = new LicenseDat(
