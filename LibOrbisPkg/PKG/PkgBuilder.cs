@@ -284,6 +284,13 @@ namespace LibOrbisPkg.PKG
         pkg.ParamSfo,
         pkg.PsReservedDat
       };
+      foreach(var file in project.files.Where(f => f.DirName == "sce_sys/"))
+      {
+        var name = file.FileName;
+        if (name == "param.sfo") continue;
+        var entry = new FileEntry(EntryNames.NameToId[name], Path.Combine(projectDir, file.OrigPath));
+        pkg.Entries.Add(entry);
+      }
       pkg.Digests.FileData = new byte[pkg.Entries.Count * Pkg.HASH_SIZE];
 
       // 1st pass: set names
@@ -339,6 +346,11 @@ namespace LibOrbisPkg.PKG
       pkg.Header.entry_count_2 = (ushort)pkg.Entries.Count;
       pkg.Header.body_size = dataOffset;
       return pkg;
+    }
+
+    private static List<GP4.Gp4File> GetScFiles(GP4.Gp4Project project)
+    {
+      return null;
     }
 
     private byte[] GenLicense(Pkg pkg)

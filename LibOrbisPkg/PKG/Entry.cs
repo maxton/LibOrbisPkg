@@ -100,7 +100,25 @@ namespace LibOrbisPkg.PKG
       s.Write(FileData, 0, FileData.Length);
     }
   }
-
+  public class FileEntry : Entry
+  {
+    public FileEntry(EntryId id, string path)
+    {
+      Id = id;
+      this.path = path;
+      Name = EntryNames.IdToName[id];
+      Length = (uint)new FileInfo(path).Length;
+    }
+    private string path;
+    public override EntryId Id { get; }
+    public override string Name { get; }
+    public override uint Length { get; }
+    public override void Write(Stream s)
+    {
+      using (var f = File.OpenRead(path))
+        f.CopyTo(s);
+    }
+  }
   public class PkgEntryKey
   {
     public byte[] digest = new byte[32];
