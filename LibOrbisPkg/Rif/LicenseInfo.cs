@@ -35,7 +35,7 @@ namespace LibOrbisPkg.Rif
     {
       Write(Encoding.ASCII.GetBytes(dat.ContentId));
       Write(new byte[12]);
-      Write(dat.EntitlementKey);
+      Write(dat.EntitlementKey ?? new byte[16]);
       Write(dat.Unknown_40);
       Write((int)dat.ContentType);
       Write(dat.Unknown_48);

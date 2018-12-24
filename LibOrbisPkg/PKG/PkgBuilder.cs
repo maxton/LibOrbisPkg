@@ -27,17 +27,17 @@ namespace LibOrbisPkg.PKG
     /// <returns>Completed Pkg structure</returns>
     public Pkg Write(Stream s)
     {
-      var pkg = BuildPkg();
-      var writer = new PkgWriter(s);
-
       // Write PFS first, to get stream length
-      s.Position = (long) pkg.Header.pfs_image_offset;
       var EKPFS = Crypto.ComputeKeys(project.volume.Package.ContentId, project.volume.Package.Passcode, 1);
-      var pfsStream = new OffsetStream(s, s.Position);
       Console.WriteLine("Preparing inner PFS...");
       var innerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeInnerPFSProps(project, projectDir), x => Console.WriteLine($"[innerpfs] {x}"));
       Console.WriteLine("Preparing outer PFS...");
       var outerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeOuterPFSProps(project, innerPfs, EKPFS), x => Console.WriteLine($"[outerpfs] {x}"));
+
+      var pkg = BuildPkg(outerPfs.CalculatePfsSize());
+      var writer = new PkgWriter(s);
+      s.Position = (long)pkg.Header.pfs_image_offset;
+      var pfsStream = new OffsetStream(s, s.Position);
       outerPfs.WriteImage(pfsStream);
       
       // Update header sizes now that we know how big things are...
@@ -60,6 +60,12 @@ namespace LibOrbisPkg.PKG
       }
       CalcGeneralDigests(pkg);
       pkg.ImageKey.FileData = Crypto.RSA2048EncryptKey(RSAKeyset.FakeKeyset.Modulus, EKPFS);
+      if(pkg.Header.content_type == ContentType.GD)
+      {
+        CalcPlaygoDigests(pkg, s);
+        pkg.ChunkDat.MchunkAttrs[0].size = (ulong)s.Length;
+        pkg.ChunkDat.InnerMChunkAttrs[0].size = (ulong)innerPfs.CalculatePfsSize();
+      }
 
       // Write body now because it will make calculating hashes easier.
       writer.WriteBody(pkg, project.volume.Package.ContentId, project.volume.Package.Passcode);
@@ -175,10 +181,19 @@ namespace LibOrbisPkg.PKG
       }
     }
 
+    private static void CalcPlaygoDigests(Pkg pkg, Stream s)
+    {
+      const int CHUNK_SIZE = 0x10000;
+      for(long i = (long)pkg.Header.pfs_image_offset / CHUNK_SIZE; i < s.Length / CHUNK_SIZE; i++)
+      {
+        Buffer.BlockCopy(Crypto.Sha256(s, i * CHUNK_SIZE, CHUNK_SIZE), 0, pkg.ChunkSha.FileData, (int)i * 4, 4);
+      }
+    }
+
     /// <summary>
     /// Create the Pkg struct. Does not compute hashes or data sizes.
     /// </summary>
-    public Pkg BuildPkg()
+    public Pkg BuildPkg(long pfsSize)
     {
       var pkg = new Pkg();
       var volType = project.volume.Type;
@@ -217,7 +232,7 @@ namespace LibOrbisPkg.PKG
         pfs_image_count = 1,
         pfs_flags = 0x80000000000003CC,
         pfs_image_offset = 0x80000,
-        pfs_image_size = 0,
+        pfs_image_size = (ulong)pfsSize,
         mount_image_offset = 0,
         mount_image_size = 0,
         package_size = 0,
@@ -278,12 +293,31 @@ namespace LibOrbisPkg.PKG
         pkg.GeneralDigests,
         pkg.Metas,
         pkg.Digests,
-        pkg.EntryNames,
+        pkg.EntryNames
+      };
+      if (pkg.Header.content_type == ContentType.GD)
+      {
+        pkg.ChunkDat = PlayGo.ChunkDat.FromProject(project);
+        pkg.ChunkSha = new GenericEntry(EntryId.PLAYGO_CHUNK_SHA, "playgo-chunk.sha");
+        pkg.ChunkXml = new GenericEntry(EntryId.PLAYGO_MANIFEST_XML, "playgo-manifest.xml")
+        {
+          FileData = PlayGo.Manifest.Default
+        };
+        // Add playgo entries for GD PKGs
+        pkg.Entries.AddRange(new Entry[]
+        {
+          pkg.ChunkDat,
+          pkg.ChunkSha,
+          pkg.ChunkXml
+        });
+      }
+      pkg.Entries.AddRange(new Entry[]
+      { 
         pkg.LicenseDat,
         pkg.LicenseInfo,
         pkg.ParamSfo,
         pkg.PsReservedDat
-      };
+      });
       foreach(var file in project.files.Items.Where(f => f.DirName == "sce_sys/"))
       {
         var name = file.FileName;
@@ -294,9 +328,25 @@ namespace LibOrbisPkg.PKG
       pkg.Digests.FileData = new byte[pkg.Entries.Count * Pkg.HASH_SIZE];
 
       // 1st pass: set names
-      foreach (var entry in pkg.Entries)
+      foreach (var entry in pkg.Entries.OrderBy(e => e.Name))
       {
         pkg.EntryNames.GetOffset(entry.Name);
+      }
+      // estimate size for playgo
+      if (pkg.Header.content_type == ContentType.GD)
+      {
+        long bodySize = 0;
+        foreach(var e in pkg.Entries)
+        {
+          bodySize += (e.Length + 15) & ~15; // round up to nearest 16
+        }
+        bodySize += 32 * pkg.Entries.Count; // metas
+        bodySize += 4 * (pfsSize / 0x10000); // playgo hashes of pfs
+        if (bodySize + (long)pkg.Header.body_offset >= (long)pkg.Header.pfs_image_offset)
+        {
+          pkg.Header.pfs_image_offset += 0x10000;
+        }
+        pkg.ChunkSha.FileData = new byte[4 * ((pkg.Header.pfs_image_offset + pkg.Header.pfs_image_size) / 0x10000)];
       }
       // 2nd pass: set sizes, offsets in meta table
       var dataOffset = 0x2000u;
@@ -353,7 +403,7 @@ namespace LibOrbisPkg.PKG
       var license = new LicenseDat(
         pkg.Header.content_id,
         pkg.Header.content_type,
-        project.volume.Package.EntitlementKey.FromHexCompact());
+        project.volume.Package.EntitlementKey?.FromHexCompact());
       using (var ms = new MemoryStream())
       {
         new LicenseDatWriter(ms).Write(license);
@@ -367,7 +417,7 @@ namespace LibOrbisPkg.PKG
       var info = new LicenseInfo(
         pkg.Header.content_id,
         pkg.Header.content_type,
-        project.volume.Package.EntitlementKey.FromHexCompact());
+        project.volume.Package.EntitlementKey?.FromHexCompact());
       using (var ms = new MemoryStream())
       {
         new LicenseInfoWriter(ms).Write(info);

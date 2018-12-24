@@ -13,4 +13,16 @@ namespace LibOrbisPkg.Util
       return def;
     }
   }
+
+  public static class ArrayExtensions
+  {
+    public static T[] Fill<T>(this T[] arr, T val)
+    {
+      for (var i = 0; i < arr.Length; i++)
+      {
+        arr[i] = val;
+      }
+      return arr;
+    }
+  }
 }

@@ -94,7 +94,7 @@ namespace LibOrbisPkg.PKG
     public byte[] FileData;
     public override EntryId Id { get; }
     public override string Name { get; }
-    public override uint Length => (uint)FileData.Length;
+    public override uint Length => (uint)(FileData?.Length ?? 0);
     public override void Write(Stream s)
     {
       s.Write(FileData, 0, FileData.Length);

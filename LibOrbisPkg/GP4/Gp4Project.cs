@@ -189,7 +189,7 @@ namespace LibOrbisPkg.GP4
                   type = "sp",
                   initial_chunk_count = 1,
                   label = "Scenario #0",
-                  number = 0,
+                  chunks = "0",
                 }
               }
             },
@@ -388,7 +388,7 @@ namespace LibOrbisPkg.GP4
     [XmlAttribute(AttributeName = "label")]
     public string label;
     [XmlText]
-    public int number;
+    public string chunks;
   }
   public class ScenarioInfo
   {

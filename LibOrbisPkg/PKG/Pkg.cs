@@ -30,6 +30,9 @@ namespace LibOrbisPkg.PKG
     public GenericEntry LicenseInfo;
     public SfoEntry ParamSfo;
     public GenericEntry PsReservedDat;
+    public PlayGo.ChunkDat ChunkDat;
+    public GenericEntry ChunkSha;
+    public GenericEntry ChunkXml;
 
     public List<Entry> Entries;
 

@@ -1,0 +1,86 @@
+LittleEndian();
+
+char magic[4];
+uint16 version_major;
+uint16 version_minor;
+uint16 image_count;
+uint16 chunk_count;
+uint16 mchunk_count;
+uint16 scenario_count;
+uint32 file_size;
+uint16 default_scenario_id;
+uint16 attrib;
+uint32 sdk_ver;
+uint16 disc_count;
+uint16 layer_bmp;
+char reserved[32];
+char content_id[48];
+
+FSeek(0xC0);
+uint32 chunk_attrs_offset;
+uint32 chunk_attrs_size;
+
+uint32 chunk_mchunks_offset;
+uint32 chunk_mchunks_size;
+
+uint32 chunk_labels_offset;
+uint32 chunk_labels_size;
+
+uint32 mchunk_attrs_offset;
+uint32 mchunk_attrs_size;
+
+uint32 scenario_attrs_offset;
+uint32 scenario_attrs_size;
+
+uint32 scenario_chunks_offset;
+uint32 scenario_chunks_size;
+
+uint32 scenario_labels_offset;
+uint32 scenario_labels_size;
+
+uint32 inner_mchunk_attrs_offset;
+uint32 inner_mchunk_attrs_size;
+
+FSeek(chunk_attrs_offset);
+struct {
+    byte flag;
+    byte image_disc_layer_no;
+    byte req_locus;
+    FSeek(FTell() + 0xB);
+    uint16 mchunk_count;
+    uint64 language_mask;
+    uint32 mchunks_offset;
+    uint32 label_offset;
+} chunk_attrs[chunk_count];
+FSeek(chunk_mchunks_offset);
+uint16 chunk_mchunks[chunk_mchunks_size/2];
+FSeek(chunk_labels_offset);
+char chunk_labels[chunk_labels_size];
+
+typedef struct {
+    uint64 offset;
+    uint64 size;
+} mchunk_attr;
+
+FSeek(mchunk_attrs_offset);
+mchunk_attr mchunk_attrs[mchunk_count];
+
+FSeek(inner_mchunk_attrs_offset);
+mchunk_attr inner_mchunk_attrs[mchunk_count];
+
+
+FSeek(scenario_attrs_offset);
+struct {
+    byte type;
+    FSeek(0x13 + FTell());
+    uint16 initial_chunk_count;
+    uint16 chunk_count;
+    uint32 chunks_offset;
+    uint32 label_offset;
+} scenario_attrs[scenario_count];
+
+FSeek(scenario_chunks_offset);
+uint16 scenario_chunks[scenario_chunks_size/2];
+
+FSeek(scenario_labels_offset);
+char scenario_labels[scenario_labels_size];
