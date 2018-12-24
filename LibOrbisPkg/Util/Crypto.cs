@@ -278,6 +278,14 @@ namespace LibOrbisPkg.Util
       return Sha256(data);
     }
 
+    public static byte[] CreateKeystone(string passcode)
+    {
+      var keystoneHeader = "6b657973746f6e65020001000000000000000000000000000000000000000000".FromHexCompact();
+      var fingerprint = HmacSha256(Keys.keystone_hmac_key, Encoding.ASCII.GetBytes(passcode));
+      var final = HmacSha256(Keys.keystone_mac_data, keystoneHeader.Concat(fingerprint).ToArray());
+      return keystoneHeader.Concat(fingerprint).Concat(final).ToArray();
+    }
+
     /// <summary>
     /// XORs a with b and stores the result in a
     /// </summary>

@@ -19,6 +19,10 @@ namespace LibOrbisPkg.PFS
     {
       var root = new FSDir();
       BuildFSTree(root, proj, projDir);
+      if(proj.volume.Type == GP4.VolumeType.pkg_ps4_app)
+      {
+        AddFile(root, "sce_sys", "keystone", Util.Crypto.CreateKeystone(proj.volume.Package.Passcode));
+      }
       var timestamp = proj.volume.TimeStamp.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
       return new PfsProperties()
       {
@@ -56,7 +60,11 @@ namespace LibOrbisPkg.PFS
       return (long)timestamp;
     }
     
-
+    static void AddFile(FSDir root, string path, string name, byte[] data)
+    {
+      var dir = FindDir(path, root);
+      dir.Files.Add(new FSFile(s => s.Write(data, 0, data.Length), name, data.Length) { Parent = dir });
+    }
 
     /// <summary>
     /// Takes a directory and a root node, and recursively makes a filesystem tree.
@@ -75,16 +83,6 @@ namespace LibOrbisPkg.PFS
           AddDirs(dir, d.Children);
         }
       }
-      FSDir FindDir(string name)
-      {
-        FSDir dir = root;
-        var breadcrumbs = name.Split('/');
-        foreach (var crumb in breadcrumbs)
-        {
-          dir = dir.Dirs.Where(d => d.name == crumb).First();
-        }
-        return dir;
-      }
 
       AddDirs(root, proj.RootDir);
 
@@ -97,13 +95,24 @@ namespace LibOrbisPkg.PFS
         }
         var name = f.TargetPath.Substring(lastSlash);
         var source = Path.Combine(projDir, f.OrigPath);
-        var parent = lastSlash == 0 ? root : FindDir(f.TargetPath.Substring(0, lastSlash - 1));
+        var parent = lastSlash == 0 ? root : FindDir(f.TargetPath.Substring(0, lastSlash - 1), root);
         parent.Files.Add(new FSFile(source)
         {
           Parent = parent,
           name = name,
         });
       }
+    }
+
+    static FSDir FindDir(string name, FSDir root)
+    {
+      FSDir dir = root;
+      var breadcrumbs = name.Split('/');
+      foreach (var crumb in breadcrumbs)
+      {
+        dir = dir.Dirs.Where(d => d.name == crumb).First();
+      }
+      return dir;
     }
   }
 }

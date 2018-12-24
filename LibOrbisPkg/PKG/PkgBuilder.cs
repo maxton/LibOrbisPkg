@@ -318,7 +318,7 @@ namespace LibOrbisPkg.PKG
         pkg.ParamSfo,
         pkg.PsReservedDat
       });
-      foreach(var file in project.files.Items.Where(f => f.DirName == "sce_sys/"))
+      foreach(var file in project.files.Items.Where(f => f.DirName == "sce_sys/" && EntryNames.NameToId.ContainsKey(f.FileName)))
       {
         var name = file.FileName;
         if (name == "param.sfo") continue;
@@ -344,7 +344,7 @@ namespace LibOrbisPkg.PKG
         bodySize += 4 * (pfsSize / 0x10000); // playgo hashes of pfs
         if (bodySize + (long)pkg.Header.body_offset >= (long)pkg.Header.pfs_image_offset)
         {
-          pkg.Header.pfs_image_offset += 0x10000;
+          pkg.Header.pfs_image_offset = (ulong)((bodySize + (long)pkg.Header.body_offset + 0xFFFF) & ~0xFFFFL);
         }
         pkg.ChunkSha.FileData = new byte[4 * ((pkg.Header.pfs_image_offset + pkg.Header.pfs_image_size) / 0x10000)];
       }
