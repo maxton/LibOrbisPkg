@@ -16,7 +16,7 @@ This is still **unfinished** software and can only create valid AC (DLC) PKGs.
 PkgEditor is a GUI tool with which you can edit GP4 projects, and build PKG and PFS archives.
 Click `File -> Open GP4...`, then click `Build PKG` to create a PKG.
 
-![Screenshot](https://i.imgur.com/BsNFQDo.png)
+![Screenshot](https://i.imgur.com/CTFpZXW.png)
 
 The tool also supports opening PKGs directly. You can see the header, entries, and if the package is a fake PKG or
 you enter a passcode, you can browse files as well.
