@@ -15,26 +15,24 @@ namespace LibOrbisPkg.PFS
     public byte[] EKPFS;
     public byte[] Seed;
 
-    public static PfsProperties MakeInnerPFSProps(GP4.Gp4Project proj, string projDir)
+    public static PfsProperties MakeInnerPFSProps(PKG.PkgProperties props)
     {
-      var root = new FSDir();
-      BuildFSTree(root, proj, projDir);
-      if(proj.volume.Type == GP4.VolumeType.pkg_ps4_app)
+      if(props.VolumeType == GP4.VolumeType.pkg_ps4_app)
       {
-        AddFile(root, "sce_sys", "keystone", Util.Crypto.CreateKeystone(proj.volume.Package.Passcode));
+        AddFile(props.RootDir, "sce_sys", "keystone", Util.Crypto.CreateKeystone(props.Passcode));
       }
-      var timestamp = proj.volume.TimeStamp.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+      var timestamp = props.TimeStamp.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
       return new PfsProperties()
       {
-        root = root,
+        root = props.RootDir,
         BlockSize = 0x10000,
         Encrypt = false,
         Sign = false,
-        FileTime = GetTimeStamp(proj),
+        FileTime = GetTimeStamp(props),
       };
     }
 
-    public static PfsProperties MakeOuterPFSProps(GP4.Gp4Project proj, PfsBuilder innerPFS, byte[] EKPFS, bool encrypt = true)
+    public static PfsProperties MakeOuterPFSProps(PKG.PkgProperties props, PfsBuilder innerPFS, byte[] EKPFS, bool encrypt = true)
     {
       var root = new FSDir();
       root.Files.Add(new FSFile(innerPFS)
@@ -49,14 +47,14 @@ namespace LibOrbisPkg.PFS
         Sign = true,
         EKPFS = EKPFS,
         Seed = new byte[16],
-        FileTime = GetTimeStamp(proj),
+        FileTime = GetTimeStamp(props),
       };
     }
 
-    private static long GetTimeStamp(GP4.Gp4Project proj)
+    private static long GetTimeStamp(PKG.PkgProperties props)
     {
       // FIXME: This is incorrect when DST of current time and project time are different
-      var timestamp = proj.volume.TimeStamp.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+      var timestamp = props.TimeStamp.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
       return (long)timestamp;
     }
     
@@ -69,10 +67,10 @@ namespace LibOrbisPkg.PFS
     /// <summary>
     /// Takes a directory and a root node, and recursively makes a filesystem tree.
     /// </summary>
-    /// <param name="root">Root directory of the image</param>
     /// <param name="proj">GP4 Project</param>
     /// <param name="projDir">Directory of GP4 file</param>
-    static void BuildFSTree(FSDir root, GP4.Gp4Project proj, string projDir)
+    /// <returns>Root directory of the image</returns>
+    public static FSDir BuildFSTree(GP4.Gp4Project proj, string projDir)
     {
       void AddDirs(FSDir parent, List<GP4.Dir> imgDir)
       {
@@ -83,16 +81,12 @@ namespace LibOrbisPkg.PFS
           AddDirs(dir, d.Children);
         }
       }
-
+      var root = new FSDir();
       AddDirs(root, proj.RootDir);
 
       foreach (var f in proj.files.Items)
       {
         var lastSlash = f.TargetPath.LastIndexOf('/') + 1;
-        if (f.TargetPath.StartsWith("sce_sys/") && PKG.EntryNames.NameToId.ContainsKey(f.TargetPath.Substring(8)))
-        {
-          continue;
-        }
         var name = f.TargetPath.Substring(lastSlash);
         var source = Path.Combine(projDir, f.OrigPath);
         var parent = lastSlash == 0 ? root : FindDir(f.TargetPath.Substring(0, lastSlash - 1), root);
@@ -102,6 +96,7 @@ namespace LibOrbisPkg.PFS
           name = name,
         });
       }
+      return root;
     }
 
     static FSDir FindDir(string name, FSDir root)

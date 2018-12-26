@@ -41,7 +41,7 @@ namespace LibOrbisPkg.PlayGo
 
     public override string Name => "playgo-chunk.dat";
 
-    public static ChunkDat FromProject(GP4.Gp4Project proj)
+    public static ChunkDat FromProject(string contentId)
     {
       var dat = new ChunkDat
       {
@@ -59,7 +59,7 @@ namespace LibOrbisPkg.PlayGo
         disc_count = 0,
         layer_bmp = 0,
         reserved = new byte[32].Fill((byte)0xff),
-        content_id = proj.volume.Package.ContentId,
+        content_id = contentId,
         ChunkAtrrs = new List<ChunkAttr>()
         {
           new ChunkAttr

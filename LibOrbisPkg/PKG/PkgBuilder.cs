@@ -10,13 +10,11 @@ namespace LibOrbisPkg.PKG
 {
   public class PkgBuilder
   {
-    private GP4.Gp4Project project;
-    private string projectDir;
+    private PkgProperties project;
 
-    public PkgBuilder(GP4.Gp4Project proj, string proj_dir)
+    public PkgBuilder(PkgProperties proj)
     {
       project = proj;
-      projectDir = proj_dir;
     }
 
     /// <summary>
@@ -28,9 +26,9 @@ namespace LibOrbisPkg.PKG
     public Pkg Write(Stream s)
     {
       // Write PFS first, to get stream length
-      var EKPFS = Crypto.ComputeKeys(project.volume.Package.ContentId, project.volume.Package.Passcode, 1);
+      var EKPFS = Crypto.ComputeKeys(project.ContentId, project.Passcode, 1);
       Console.WriteLine("Preparing inner PFS...");
-      var innerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeInnerPFSProps(project, projectDir), x => Console.WriteLine($"[innerpfs] {x}"));
+      var innerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeInnerPFSProps(project), x => Console.WriteLine($"[innerpfs] {x}"));
       Console.WriteLine("Preparing outer PFS...");
       var outerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeOuterPFSProps(project, innerPfs, EKPFS), x => Console.WriteLine($"[outerpfs] {x}"));
 
@@ -68,7 +66,7 @@ namespace LibOrbisPkg.PKG
       }
 
       // Write body now because it will make calculating hashes easier.
-      writer.WriteBody(pkg, project.volume.Package.ContentId, project.volume.Package.Passcode);
+      writer.WriteBody(pkg, project.ContentId, project.Passcode);
 
       CalcBodyDigests(pkg, s);
 
@@ -196,7 +194,7 @@ namespace LibOrbisPkg.PKG
     public Pkg BuildPkg(long pfsSize)
     {
       var pkg = new Pkg();
-      var volType = project.volume.Type;
+      var volType = project.VolumeType;
       pkg.Header = new Header
       {
         CNTMagic = "\u007fCNT",
@@ -210,7 +208,7 @@ namespace LibOrbisPkg.PKG
         main_ent_data_size = 0xD00,
         body_offset = 0x2000,
         body_size = 0x7E000,
-        content_id = project.volume.Package.ContentId,
+        content_id = project.ContentId,
         drm_type = DrmType.PS4,
         content_type = VolTypeToContentType(volType),
         content_flags = ContentFlags.Unk_x8000000 | VolTypeToContentFlags(volType),
@@ -246,8 +244,8 @@ namespace LibOrbisPkg.PKG
       pkg.HeaderDigest = new byte[32];
       pkg.HeaderSignature = new byte[0x100];
       pkg.EntryKeys = new KeysEntry(
-        project.volume.Package.ContentId, 
-        project.volume.Package.Passcode);
+        project.ContentId, 
+        project.Passcode);
       pkg.ImageKey = new GenericEntry(EntryId.IMAGE_KEY)
       {
         FileData = new byte[0x100]
@@ -258,28 +256,32 @@ namespace LibOrbisPkg.PKG
       pkg.EntryNames = new NameTableEntry();
       pkg.LicenseDat = new GenericEntry(EntryId.LICENSE_DAT) { FileData = GenLicense(pkg) };
       pkg.LicenseInfo = new GenericEntry(EntryId.LICENSE_INFO) { FileData = GenLicenseInfo(pkg) };
-      var paramSfoPath = project.files.Items.Where(f => f.TargetPath == "sce_sys/param.sfo").First().OrigPath;
-      using (var paramSfo = File.OpenRead(Path.Combine(projectDir, paramSfoPath)))
+      var paramSfoFile = project.RootDir.GetFile("sce_sys/param.sfo");
+      if(paramSfoFile == null)
       {
+        throw new Exception("Missing param.sfo!");
+      }
+      using (var paramSfo = new MemoryStream())
+      {
+        paramSfoFile.Write(paramSfo);
+        paramSfo.Position = 0;
         var sfo = SFO.ParamSfo.FromStream(paramSfo);
         pkg.ParamSfo = new SfoEntry(sfo);
         string date = "", time = "";
-        if((project.volume.Package.CreationDate ?? "") == "")
+        if(project.CreationDate == default)
         {
           date = "c_date=" + DateTime.UtcNow.ToString("yyyyMMdd");
         }
         else
         {
-          var split = project.volume.Package.CreationDate.Split(' ');
-          var dateTime = DateTime.Parse(project.volume.Package.CreationDate).ToUniversalTime();
-          if(split.Length == 2) // Date and time specified
+          if(project.UseCreationTime)
           {
-            date = "c_date=" + dateTime.ToString("yyyyMMdd");
-            time = ",c_time=" + dateTime.ToString("HHmmss");
+            date = "c_date=" + project.CreationDate.ToString("yyyyMMdd");
+            time = ",c_time=" + project.CreationDate.ToString("HHmmss");
           }
           else //  just date is specified
           {
-            date = "c_date=" + dateTime.ToString("yyyyMMdd");
+            date = "c_date=" + project.CreationDate.ToString("yyyyMMdd");
           }
         }
         sfo.Values.Add(new SFO.Utf8Value("PUBTOOLINFO", date+time, 0x200));
@@ -297,7 +299,7 @@ namespace LibOrbisPkg.PKG
       };
       if (pkg.Header.content_type == ContentType.GD)
       {
-        pkg.ChunkDat = PlayGo.ChunkDat.FromProject(project);
+        pkg.ChunkDat = PlayGo.ChunkDat.FromProject(project.ContentId);
         pkg.ChunkSha = new GenericEntry(EntryId.PLAYGO_CHUNK_SHA, "playgo-chunk.sha");
         pkg.ChunkXml = new GenericEntry(EntryId.PLAYGO_MANIFEST_XML, "playgo-manifest.xml")
         {
@@ -318,11 +320,11 @@ namespace LibOrbisPkg.PKG
         pkg.ParamSfo,
         pkg.PsReservedDat
       });
-      foreach(var file in project.files.Items.Where(f => f.DirName == "sce_sys/" && EntryNames.NameToId.ContainsKey(f.FileName)))
+      foreach(var file in project.RootDir.Dirs.Where(f => f.name == "sce_sys").First().Files.Where(f => EntryNames.NameToId.ContainsKey(f.name)))
       {
-        var name = file.FileName;
+        var name = file.name;
         if (name == "param.sfo") continue;
-        var entry = new FileEntry(EntryNames.NameToId[name], Path.Combine(projectDir, file.OrigPath));
+        var entry = new FileEntry(EntryNames.NameToId[name], file.Write, (uint)file.Size);
         pkg.Entries.Add(entry);
       }
       pkg.Digests.FileData = new byte[pkg.Entries.Count * Pkg.HASH_SIZE];
@@ -403,7 +405,7 @@ namespace LibOrbisPkg.PKG
       var license = new LicenseDat(
         pkg.Header.content_id,
         pkg.Header.content_type,
-        project.volume.Package.EntitlementKey?.FromHexCompact());
+        project.EntitlementKey?.FromHexCompact());
       using (var ms = new MemoryStream())
       {
         new LicenseDatWriter(ms).Write(license);
@@ -417,7 +419,7 @@ namespace LibOrbisPkg.PKG
       var info = new LicenseInfo(
         pkg.Header.content_id,
         pkg.Header.content_type,
-        project.volume.Package.EntitlementKey?.FromHexCompact());
+        project.EntitlementKey?.FromHexCompact());
       using (var ms = new MemoryStream())
       {
         new LicenseInfoWriter(ms).Write(info);

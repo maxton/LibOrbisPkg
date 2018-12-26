@@ -59,6 +59,7 @@
     <Compile Include="PFS\PfsProperties.cs" />
     <Compile Include="PFS\PfsStructs.cs" />
     <Compile Include="PKG\Pkg.cs" />
+    <Compile Include="PKG\PkgProperties.cs" />
     <Compile Include="PKG\PkgReader.cs" />
     <Compile Include="PKG\PkgWriter.cs" />
     <Compile Include="PlayGo\ChunkDat.cs" />

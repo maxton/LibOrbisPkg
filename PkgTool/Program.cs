@@ -39,9 +39,9 @@ namespace PkgTool
           var proj = args[1];
           var output = args[2];
           var outFile = File.OpenWrite(output);
-          var props = PfsProperties.MakeInnerPFSProps(
+          var props = PfsProperties.MakeInnerPFSProps(PkgProperties.FromGp4(
               Gp4Project.ReadFrom(File.OpenRead(proj)),
-              Path.GetDirectoryName(proj));
+              Path.GetDirectoryName(proj)));
           new PfsBuilder(props, Console.WriteLine).WriteImage(outFile);
         }),
       Verb.Create(
@@ -54,11 +54,12 @@ namespace PkgTool
           var outFile = File.Open(output, FileMode.Create);
           var project = Gp4Project.ReadFrom(File.OpenRead(proj));
           var projectDir = Path.GetDirectoryName(proj);
+          var pkgProps = PkgProperties.FromGp4(project, projectDir);
           var EKPFS = Crypto.ComputeKeys(project.volume.Package.ContentId, project.volume.Package.Passcode, 1);
           Console.WriteLine("Preparing inner PFS...");
-          var innerPfs = new PfsBuilder(PfsProperties.MakeInnerPFSProps(project, projectDir), x => Console.WriteLine($"[innerpfs] {x}"));
+          var innerPfs = new PfsBuilder(PfsProperties.MakeInnerPFSProps(pkgProps), x => Console.WriteLine($"[innerpfs] {x}"));
           Console.WriteLine("Preparing outer PFS...");
-          var outerPfs = new PfsBuilder(PfsProperties.MakeOuterPFSProps(project, innerPfs, EKPFS, switches["encrypt"]), x => Console.WriteLine($"[outerpfs] {x}"));
+          var outerPfs = new PfsBuilder(PfsProperties.MakeOuterPFSProps(pkgProps, innerPfs, EKPFS, switches["encrypt"]), x => Console.WriteLine($"[outerpfs] {x}"));
           outerPfs.WriteImage(outFile);
         }),
       Verb.Create(
@@ -68,6 +69,7 @@ namespace PkgTool
         {
           var proj = args[1];
           var project = Gp4Project.ReadFrom(File.OpenRead(proj));
+          var props = PkgProperties.FromGp4(project, Path.GetDirectoryName(proj));
           var outputPath = args[2];
 
           using (var outFile = File.Open(
@@ -76,7 +78,7 @@ namespace PkgTool
               $"{project.volume.Package.ContentId}.pkg"),
               FileMode.Create))
           {
-            new PkgBuilder(project, Path.GetDirectoryName(proj)).Write(outFile);
+            new PkgBuilder(props).Write(outFile);
           }
         }),
       Verb.Create(

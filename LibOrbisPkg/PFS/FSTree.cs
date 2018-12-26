@@ -57,6 +57,17 @@ namespace LibOrbisPkg.PFS
           ret.Add(f);
       return ret;
     }
+
+    public FSFile GetFile(string path)
+    {
+      var breadcrumbs = path.Split('/');
+      if(breadcrumbs.Length == 1)
+      {
+        return Files.Find(f => f.name == path);
+      }
+      var dir = Dirs.Find(d => d.name == breadcrumbs[0]);
+      return dir.GetFile(path.Substring(path.IndexOf('/') + 1));
+    }
   }
 
   public class FSFile : FSNode

@@ -187,7 +187,7 @@ namespace PkgEditor.Views
         logBox.Show();
         using (var fs = File.OpenWrite(ofd.FileName))
         {
-          new PfsBuilder(PfsProperties.MakeInnerPFSProps(proj, Path.GetDirectoryName(path)), Console.WriteLine).WriteImage(fs);
+          new PfsBuilder(PfsProperties.MakeInnerPFSProps(PkgProperties.FromGp4(proj, Path.GetDirectoryName(path))), Console.WriteLine).WriteImage(fs);
           Console.WriteLine("Done! Saved to {0}", ofd.FileName);
         }
       }
@@ -206,7 +206,7 @@ namespace PkgEditor.Views
         logBox.Show();
         using (var fs = File.Open(ofd.FileName, FileMode.Create))
         {
-          new PkgBuilder(proj, Path.GetDirectoryName(path)).Write(fs);
+          new PkgBuilder(PkgProperties.FromGp4(proj, Path.GetDirectoryName(path))).Write(fs);
           Console.WriteLine("Done! Saved to {0}", ofd.FileName);
         }
       }

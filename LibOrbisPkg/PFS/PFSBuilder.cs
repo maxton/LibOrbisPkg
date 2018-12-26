@@ -86,7 +86,7 @@ namespace LibOrbisPkg.PFS
       Log("Setting up root structure...");
       SetupRootStructure();
       allDirs = root.GetAllChildrenDirs();
-      allFiles = root.GetAllChildrenFiles();
+      allFiles = root.GetAllChildrenFiles().Where(f => f.Parent?.name != "sce_sys" || !PKG.EntryNames.NameToId.ContainsKey(f.name)).ToList();
       allNodes = new List<FSNode>(allDirs);
       allNodes.AddRange(allFiles);
 

@@ -102,22 +102,32 @@ namespace LibOrbisPkg.PKG
   }
   public class FileEntry : Entry
   {
-    public FileEntry(EntryId id, string path)
+    /// <summary>
+    /// FileEntry constructor abstraction for any file
+    /// </summary>
+    /// <param name="id">ID of the file entry</param>
+    /// <param name="writer">Thunk to write the file to a stream</param>
+    /// <param name="length">Length of the file</param>
+    public FileEntry(EntryId id, Action<Stream> writer, uint length)
     {
       Id = id;
-      this.path = path;
       Name = EntryNames.IdToName[id];
-      Length = (uint)new FileInfo(path).Length;
+      Length = length;
+      Writer = writer;
     }
-    private string path;
+    /// <summary>
+    /// FileEntry constructor for a file on the hard drive
+    /// </summary>
+    /// <param name="id">Entry ID</param>
+    /// <param name="path">Path to the file</param>
+    public FileEntry(EntryId id, string path)
+      : this(id, s => { using (var f = File.OpenRead(path)) f.CopyTo(s); }, (uint)new FileInfo(path).Length)
+    { }
+    private Action<Stream> Writer;
     public override EntryId Id { get; }
     public override string Name { get; }
     public override uint Length { get; }
-    public override void Write(Stream s)
-    {
-      using (var f = File.OpenRead(path))
-        f.CopyTo(s);
-    }
+    public override void Write(Stream s) => Writer(s);
   }
   public class PkgEntryKey
   {
