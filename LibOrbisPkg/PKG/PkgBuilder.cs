@@ -21,16 +21,18 @@ namespace LibOrbisPkg.PKG
     /// Writes your PKG to the given stream.
     /// Assumes exclusive use of the stream (writes are absolute, relative to 0)
     /// </summary>
-    /// <param name="s"></param>
+    /// <param name="s">Output PKG stream</param>
+    /// <param name="Logger">Log lines are written as calls to this function, if provided</param>
     /// <returns>Completed Pkg structure</returns>
-    public Pkg Write(Stream s)
+    public Pkg Write(Stream s, Action<string> Logger = null)
     {
+      Logger = Logger ?? Console.WriteLine;
       // Write PFS first, to get stream length
       var EKPFS = Crypto.ComputeKeys(project.ContentId, project.Passcode, 1);
-      Console.WriteLine("Preparing inner PFS...");
-      var innerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeInnerPFSProps(project), x => Console.WriteLine($"[innerpfs] {x}"));
-      Console.WriteLine("Preparing outer PFS...");
-      var outerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeOuterPFSProps(project, innerPfs, EKPFS), x => Console.WriteLine($"[outerpfs] {x}"));
+      Logger("Preparing inner PFS...");
+      var innerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeInnerPFSProps(project), x => Logger($"[innerpfs] {x}"));
+      Logger("Preparing outer PFS...");
+      var outerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeOuterPFSProps(project, innerPfs, EKPFS), x => Logger($"[outerpfs] {x}"));
 
       var pkg = BuildPkg(outerPfs.CalculatePfsSize());
       var writer = new PkgWriter(s);
@@ -81,7 +83,7 @@ namespace LibOrbisPkg.PKG
       byte[] header_sha256 = Crypto.Sha256(s, 0, 0x1000);
       s.Position = 0x1000;
       s.Write(pkg.HeaderSignature = Crypto.RSA2048EncryptKey(Keys.PkgSignKey, header_sha256), 0, 256);
-
+      Logger("Done!");
       return pkg;
     }
 
