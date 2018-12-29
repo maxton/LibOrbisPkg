@@ -150,11 +150,15 @@ namespace LibOrbisPkg.Util
     /// <param name="mod"></param>
     /// <returns></returns>
     public static byte[] RSA2048Encrypt(byte[] value, byte[] mod, int exp = 65537)
-    { 
+    {
       var message = new BigInteger(value.Reverse().ToArray());
       var modulus = new BigInteger(mod.Reverse().Concat(new byte[] { 0 }).ToArray());
       var exponent = new BigInteger(exp);
-      return BigInteger.ModPow(message, exponent, modulus).ToByteArray().Take(256).Reverse().ToArray();
+      var leResult = BigInteger.ModPow(message, exponent, modulus).ToByteArray().Take(256);
+      return leResult
+        .Concat(Enumerable.Range(0, 256 - leResult.Count()).Select(x => (byte)0))
+        .Reverse()
+        .ToArray();
     }
 
     public static byte[] RSA2048Decrypt(byte[] ciphertext, RSAKeyset keyset)
