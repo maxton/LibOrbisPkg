@@ -32,13 +32,13 @@
       this.menuStrip = new System.Windows.Forms.MenuStrip();
       this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+      this.gP4ProjectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.sFOFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.openGP4ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-      this.gP4ProjectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-      this.sFOFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.menuStrip.SuspendLayout();
       this.SuspendLayout();
       // 
@@ -84,6 +84,20 @@
       this.toolStripMenuItem1.Size = new System.Drawing.Size(195, 22);
       this.toolStripMenuItem1.Text = "&New";
       // 
+      // gP4ProjectToolStripMenuItem
+      // 
+      this.gP4ProjectToolStripMenuItem.Name = "gP4ProjectToolStripMenuItem";
+      this.gP4ProjectToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
+      this.gP4ProjectToolStripMenuItem.Text = "GP4 Project";
+      this.gP4ProjectToolStripMenuItem.Click += new System.EventHandler(this.newGp4ProjectMenuItem_Click);
+      // 
+      // sFOFileToolStripMenuItem
+      // 
+      this.sFOFileToolStripMenuItem.Name = "sFOFileToolStripMenuItem";
+      this.sFOFileToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
+      this.sFOFileToolStripMenuItem.Text = "SFO File";
+      this.sFOFileToolStripMenuItem.Click += new System.EventHandler(this.sfoFileToolStripMenuItem_Click);
+      // 
       // openGP4ToolStripMenuItem
       // 
       this.openGP4ToolStripMenuItem.Name = "openGP4ToolStripMenuItem";
@@ -127,20 +141,6 @@
       this.exitToolStripMenuItem.Text = "E&xit";
       this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
       // 
-      // gP4ProjectToolStripMenuItem
-      // 
-      this.gP4ProjectToolStripMenuItem.Name = "gP4ProjectToolStripMenuItem";
-      this.gP4ProjectToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-      this.gP4ProjectToolStripMenuItem.Text = "GP4 Project";
-      this.gP4ProjectToolStripMenuItem.Click += new System.EventHandler(this.newGp4ProjectMenuItem_Click);
-      // 
-      // sFOFileToolStripMenuItem
-      // 
-      this.sFOFileToolStripMenuItem.Name = "sFOFileToolStripMenuItem";
-      this.sFOFileToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-      this.sFOFileToolStripMenuItem.Text = "SFO File";
-      this.sFOFileToolStripMenuItem.Click += new System.EventHandler(this.sfoFileToolStripMenuItem_Click);
-      // 
       // MainWin
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -152,7 +152,7 @@
       this.MainMenuStrip = this.menuStrip;
       this.Name = "MainWin";
       this.ShowIcon = false;
-      this.Text = "PKG Tool";
+      this.Text = "PkgEditor";
       this.menuStrip.ResumeLayout(false);
       this.menuStrip.PerformLayout();
       this.ResumeLayout(false);

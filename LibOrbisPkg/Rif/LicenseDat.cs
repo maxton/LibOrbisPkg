@@ -27,7 +27,7 @@ namespace LibOrbisPkg.Rif
       var tmp = Crypto.Sha256(contentId);
       Buffer.BlockCopy(tmp, 0, SecretIv, 0, 16);
       Buffer.BlockCopy(tmp, 16, Secret, 0, 16);
-      if(EntitlementKey != null) Buffer.BlockCopy(EntitlementKey, 0, Secret, 0x70, 16);
+      if(EntitlementKey != null && EntitlementKey.Length == 16) Buffer.BlockCopy(EntitlementKey, 0, Secret, 0x70, 16);
       EncryptSecretWithDebugKey();
       Sign();
     }
