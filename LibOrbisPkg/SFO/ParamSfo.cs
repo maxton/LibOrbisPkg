@@ -19,6 +19,7 @@ namespace LibOrbisPkg.SFO
           Values.Remove(v);
         }
         Values.Add(value);
+        Values.Sort((v1, v2) => v1.Name.CompareTo(v2.Name));
       }
     }
     public List<Value> Values;
@@ -138,6 +139,26 @@ namespace LibOrbisPkg.SFO
       using (var ms = new MemoryStream(file))
         return FromStream(ms);
     }
+    public static ParamSfo DefaultAC = new ParamSfo()
+    {
+      Values = new List<Value>
+      {
+        new IntegerValue("ATTRIBUTE", 0),
+        new Utf8Value("CATEGORY", "ac", 4),
+        new Utf8Value("CONTENT_ID", "AAXXXX-BBBBYYYYY_00-ZZZZZZZZZZZZZZZZ", 48),
+        new Utf8Value("FORMAT", "obs", 4),
+        new Utf8Value("TITLE", "Title", 128),
+        new Utf8Value("TITLE_ID", "BBBBYYYYY", 12),
+        new Utf8Value("VERSION", "01.00", 8),
+      }
+    };
+    public static ParamSfo DefaultGD = new ParamSfo()
+    {
+      Values = new List<Value>
+      {
+
+      }
+    };
   }
 
   public enum SfoEntryType : ushort

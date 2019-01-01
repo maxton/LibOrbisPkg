@@ -43,14 +43,10 @@
       this.passcodeTextBox = new System.Windows.Forms.TextBox();
       this.button1 = new System.Windows.Forms.Button();
       this.tabPage1 = new System.Windows.Forms.TabPage();
-      this.button4 = new System.Windows.Forms.Button();
-      this.button3 = new System.Windows.Forms.Button();
-      this.button2 = new System.Windows.Forms.Button();
       this.tabControl1.SuspendLayout();
       this.headerTab.SuspendLayout();
       this.entriesTab.SuspendLayout();
       this.filesTab.SuspendLayout();
-      this.tabPage1.SuspendLayout();
       this.SuspendLayout();
       // 
       // tabControl1
@@ -181,44 +177,13 @@
       // 
       // tabPage1
       // 
-      this.tabPage1.Controls.Add(this.button4);
-      this.tabPage1.Controls.Add(this.button3);
-      this.tabPage1.Controls.Add(this.button2);
       this.tabPage1.Location = new System.Drawing.Point(4, 22);
       this.tabPage1.Name = "tabPage1";
       this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
       this.tabPage1.Size = new System.Drawing.Size(535, 370);
       this.tabPage1.TabIndex = 3;
-      this.tabPage1.Text = "Dump";
+      this.tabPage1.Text = "SFO";
       this.tabPage1.UseVisualStyleBackColor = true;
-      // 
-      // button4
-      // 
-      this.button4.Location = new System.Drawing.Point(6, 64);
-      this.button4.Name = "button4";
-      this.button4.Size = new System.Drawing.Size(190, 23);
-      this.button4.TabIndex = 2;
-      this.button4.Text = "Dump Inner PFS";
-      this.button4.UseVisualStyleBackColor = true;
-      // 
-      // button3
-      // 
-      this.button3.Location = new System.Drawing.Point(6, 35);
-      this.button3.Name = "button3";
-      this.button3.Size = new System.Drawing.Size(190, 23);
-      this.button3.TabIndex = 1;
-      this.button3.Text = "Dump Outer PFS (Decrypted)";
-      this.button3.UseVisualStyleBackColor = true;
-      // 
-      // button2
-      // 
-      this.button2.Location = new System.Drawing.Point(6, 6);
-      this.button2.Name = "button2";
-      this.button2.Size = new System.Drawing.Size(190, 23);
-      this.button2.TabIndex = 0;
-      this.button2.Text = "Dump Outer PFS (Encrypted)";
-      this.button2.UseVisualStyleBackColor = true;
-      this.button2.Click += new System.EventHandler(this.button2_Click);
       // 
       // PkgView
       // 
@@ -232,7 +197,6 @@
       this.entriesTab.ResumeLayout(false);
       this.filesTab.ResumeLayout(false);
       this.filesTab.PerformLayout();
-      this.tabPage1.ResumeLayout(false);
       this.ResumeLayout(false);
 
     }
@@ -254,8 +218,5 @@
     private System.Windows.Forms.TextBox passcodeTextBox;
     private System.Windows.Forms.Button button1;
     private System.Windows.Forms.TabPage tabPage1;
-    private System.Windows.Forms.Button button4;
-    private System.Windows.Forms.Button button3;
-    private System.Windows.Forms.Button button2;
   }
 }

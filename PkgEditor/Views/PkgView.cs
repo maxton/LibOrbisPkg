@@ -28,9 +28,12 @@ namespace PkgEditor.Views
       InitializeComponent();
       this.pkgFile = pkgFile;
       using (var s = pkgFile.GetStream())
-        ObjectPreview(new LibOrbisPkg.PKG.PkgReader(s).ReadHeader());
+        ObjectPreview(new PkgReader(s).ReadHeader());
       using (var s = pkgFile.GetStream())
         pkg = new PkgReader(s).ReadPkg();
+      var sfoEditor = new SFOView(pkg.ParamSfo.ParamSfo, true);
+      sfoEditor.Dock = DockStyle.Fill;
+      tabPage1.Controls.Add(sfoEditor);
       try
       {
         var dk3 = Crypto.RSA2048Decrypt(pkg.EntryKeys.Keys[3].key, RSAKeyset.PkgDerivedKey3Keyset);
@@ -207,7 +210,7 @@ namespace PkgEditor.Views
     {
       if(entriesListView.SelectedItems[0].SubItems[0].Text == "PARAM_SFO")
       {
-        mainWin.OpenTab(new SFOView(pkg.ParamSfo.ParamSfo), "param.sfo");
+        mainWin.OpenTab(new SFOView(pkg.ParamSfo.ParamSfo, true), "param.sfo");
       }
     }
 
