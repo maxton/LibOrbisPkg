@@ -183,18 +183,31 @@ namespace PkgEditor.Views
       if(ofd.ShowDialog() == DialogResult.OK)
       {
         var logBox = new LogWindow();
-        Console.SetOut(logBox.GetWriter());
+        var writer = logBox.GetWriter();
         logBox.Show();
         using (var fs = File.OpenWrite(ofd.FileName))
         {
-          new PfsBuilder(PfsProperties.MakeInnerPFSProps(PkgProperties.FromGp4(proj, Path.GetDirectoryName(path))), Console.WriteLine).WriteImage(fs);
-          Console.WriteLine("Done! Saved to {0}", ofd.FileName);
+          try
+          { 
+            new PfsBuilder(PfsProperties.MakeInnerPFSProps(PkgProperties.FromGp4(proj, Path.GetDirectoryName(path))), writer.WriteLine).WriteImage(fs);
+            Console.WriteLine("Done! Saved to {0}", ofd.FileName);
+          }
+          catch (Exception ex)
+          {
+            writer.WriteLine("Error: " + ex);
+            writer.WriteLine(ex.StackTrace);
+          }
         }
       }
     }
 
     private void buildPkg_Click(object sender, EventArgs e)
     {
+      if(proj.files.Items.Where(f => f.TargetPath == "sce_sys/param.sfo").Count() == 0)
+      {
+        MessageBox.Show("You need to add a param.sfo to the sce_sys directory before building.");
+        return;
+      }
       var ofd = new SaveFileDialog();
       ofd.Filter = "PKG Image|*.pkg";
       ofd.Title = "Choose output path for PKG";
@@ -202,12 +215,20 @@ namespace PkgEditor.Views
       if (ofd.ShowDialog() == DialogResult.OK)
       {
         var logBox = new LogWindow();
-        Console.SetOut(logBox.GetWriter());
+        var writer = logBox.GetWriter();
         logBox.Show();
         using (var fs = File.Open(ofd.FileName, FileMode.Create))
         {
-          new PkgBuilder(PkgProperties.FromGp4(proj, Path.GetDirectoryName(path))).Write(fs);
-          Console.WriteLine("Done! Saved to {0}", ofd.FileName);
+          try
+          {
+            new PkgBuilder(PkgProperties.FromGp4(proj, Path.GetDirectoryName(path))).Write(fs, writer.WriteLine);
+            writer.WriteLine("Done! Saved to {0}", ofd.FileName);
+          }
+          catch(Exception ex)
+          {
+            writer.WriteLine("Error: " + ex);
+            writer.WriteLine(ex.StackTrace);
+          }
         }
       }
     }
