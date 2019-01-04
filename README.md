@@ -43,3 +43,4 @@ Use passcode "fake" to decrypt a FAKE PKG without knowing the actual passcode.
 Everyone who helped, either directly or indirectly, but especially the following:
 
 - flatz
+- idc
