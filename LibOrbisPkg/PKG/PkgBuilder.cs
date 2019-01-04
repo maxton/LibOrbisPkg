@@ -45,6 +45,12 @@ namespace LibOrbisPkg.PKG
       pkg.Header.mount_image_size = (ulong)s.Length;
       pkg.Header.pfs_image_size = (ulong)pfsStream.Length;
       pkg.Header.body_size = pkg.Header.pfs_image_offset - pkg.Header.body_offset;
+      
+      // GD pkgs set promote_size to the size of the PKG before the PFS image?
+      if (pkg.Header.content_type == ContentType.GD)
+      {
+        pkg.Header.promote_size = (uint)(pkg.Header.body_size + pkg.Header.body_offset);
+      }
 
       // Set PFS Image 1st block and full SHA256 hashes (mount image)
       pkg.Header.pfs_signed_digest = Crypto.Sha256(s, (long)pkg.Header.pfs_image_offset, 0x10000);
@@ -165,6 +171,7 @@ namespace LibOrbisPkg.PKG
           new SubStream(s, entry.meta.DataOffset, entry.meta.DataSize).CopyTo(ms);
         }
         pkg.Header.sc_entries1_hash = Crypto.Sha256(ms);
+        pkg.Header.main_ent_data_size = (uint)ms.Length;
 
         // SC Entries Hash 2: Hash of 4 SC entries
         ms.SetLength(0);
