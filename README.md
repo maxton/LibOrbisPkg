@@ -7,9 +7,6 @@ Without a proper open PKG tool, the PS4 homebrew scene cannot flourish.
 
 All code in this repository is licensed under the GNU LGPL version 3, which can be found in LICENSE.txt.
 
-# Note - Incomplete!
-This is still **unfinished** software and can only create valid AC (DLC) PKGs.
-
 ## Usage
 
 ### PkgEditor
