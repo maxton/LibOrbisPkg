@@ -315,9 +315,24 @@ namespace LibOrbisPkg.Util
     {
       var b = new List<byte>();
       var key = k.Replace(" ", "");
-      for (var x = 0; x < key.Length; x += 2)
+      for (var x = 0; x < key.Length - 1;)
       {
-        b.Add(Convert.ToByte(key.Substring(x, 2), 16));
+        byte result = 0;
+        int sub;
+        for(var i = 0; i < 2; i++, x++)
+        {
+          result <<= 4;
+          if (key[x] >= '0' && key[x] <= '9')
+            sub = '0';
+          else if (key[x] >= 'a' && key[x] <= 'f')
+            sub = 'a' - 10;
+          else if (key[x] >= 'A' && key[x] <= 'F')
+            sub = 'A' - 10;
+          else
+            continue;
+          result |= (byte)(key[x] - sub);
+        }
+        b.Add(result);
       }
       return b.ToArray();
     }

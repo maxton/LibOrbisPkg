@@ -265,10 +265,12 @@ namespace PkgEditor.Views
         e.CancelEdit = true;
     }
 
-
-    private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
+    /// <summary>
+    /// Deletes the currently selected files/folders in the fileview from the project and redraws the view.
+    /// </summary>
+    private void DeleteSelectedFiles()
     {
-      if(filesListView.SelectedItems.Count == 0)
+      if (filesListView.SelectedItems.Count == 0)
       {
         return;
       }
@@ -288,6 +290,11 @@ namespace PkgEditor.Views
       Modified = true;
       PopulateDirs();
       PopulateFiles();
+    }
+
+    private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      DeleteSelectedFiles();
     }
 
     private void renameToolStripMenuItem_Click(object sender, EventArgs e)
@@ -410,6 +417,14 @@ namespace PkgEditor.Views
       if (!loaded) return;
       proj.volume.TimeStamp = volumeTimestampPicker.Value;
       Modified = true;
+    }
+
+    private void filesListView_KeyUp(object sender, KeyEventArgs e)
+    {
+      if(e.KeyCode == Keys.Delete)
+      {
+        DeleteSelectedFiles();
+      }
     }
   }
 }

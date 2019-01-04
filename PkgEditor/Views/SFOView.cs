@@ -74,7 +74,7 @@ namespace PkgEditor.Views
       if (!CanSaveAs) return;
       using (var sfd = new SaveFileDialog() { Filter = "System File Object (*.sfo)|*.sfo", FileName = path ?? "param.sfo" })
       {
-        if(sfd.ShowDialog() == DialogResult.OK)
+        if (sfd.ShowDialog() == DialogResult.OK)
         {
           path = sfd.FileName;
           using (var f = File.Open(path, FileMode.Create))
@@ -104,7 +104,7 @@ namespace PkgEditor.Views
             });
             break;
           case Utf8SpecialValue v:
-            listView1.Items.Add(new ListViewItem(new[] { v.Name, "bytes", v.Value.Select(x => string.Format("{0:X2}", x)).Aggregate((s1, s2) => s1 + s2) })
+            listView1.Items.Add(new ListViewItem(new[] { v.Name, "bytes", v.Value.Select(x => string.Format("{0:X2}", x)).DefaultIfEmpty("").Aggregate((s1, s2) => s1 + s2) })
             {
               Tag = param
             });
@@ -120,26 +120,12 @@ namespace PkgEditor.Views
       loaded = true;
     }
 
-    private void loadACDefaultsToolStripMenuItem_Click(object sender, EventArgs e)
-    {
-      proj = new ParamSfo() { Values = ParamSfo.DefaultAC.Values.ToList() };
-      Reset();
-      Modified = true;
-    }
-
-    private void loadGPDefaultsToolStripMenuItem_Click(object sender, EventArgs e)
-    {
-      proj = new ParamSfo() { Values = ParamSfo.DefaultGD.Values.ToList() };
-      Reset();
-      Modified = true;
-    }
-
     Value selectedValue;
     private void PopulateInput(Value v, object sender = null)
     {
       loaded = false;
       selectedValue = v;
-      if(v == null)
+      if (v == null)
       {
         typeDropDown.Enabled = false;
         maxLengthInput.Enabled = false;
@@ -166,11 +152,17 @@ namespace PkgEditor.Views
         if (sender != maxLengthInput)
           maxLengthInput.Value = v.MaxLength;
 
-        if (maxLengthInput.Enabled)
-        {
-          valueTextBox.MaxLength = (int)maxLengthInput.Value - 1;
-        }
         sizeLabel.Text = "Size: " + v.Length;
+        if (v.Length > v.MaxLength)
+        {
+          sizeLabel.ForeColor = Color.DarkRed;
+          sizeLabel.Font = new Font(sizeLabel.Font, FontStyle.Bold);
+        }
+        else
+        {
+          sizeLabel.ForeColor = Color.Black;
+          sizeLabel.Font = new Font(sizeLabel.Font, 0);
+        }
       }
       loaded = true;
     }
@@ -180,15 +172,48 @@ namespace PkgEditor.Views
       PopulateInput(null);
     }
 
-    private void listView1_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
+    private void AddKey(SfoEntryType type)
     {
-      if(listView1.SelectedItems.Count == 1)
+      var name = "NEW_KEY";
+      while (proj.GetValueByName(name) != null)
       {
-        PopulateInput(listView1.SelectedItems[0].Tag as Value);
+        name += "_";
       }
-      else
+      Value val;
+      switch (type)
       {
-        ClearInput();
+        case SfoEntryType.Utf8Special:
+          val = new Utf8SpecialValue(name, new byte[] { 00 }, 1);
+          break;
+        case SfoEntryType.Utf8:
+          val = new Utf8Value(name, "", 1);
+          break;
+        case SfoEntryType.Integer:
+          val = new IntegerValue(name, 0);
+          break;
+        default:
+          return;
+      }
+      proj.Values.Add(val);
+      Reset();
+      PopulateInput(val);
+      Modified = true;
+    }
+
+    private void DeleteSelected()
+    {
+      if (listView1.SelectedItems.Count > 0)
+      {
+        foreach (var item in listView1.SelectedItems)
+        {
+          if ((item as ListViewItem).Tag is Value v)
+          {
+            proj.Values.Remove(v);
+          }
+        }
+        Reset();
+        PopulateInput(null);
+        Modified = true;
       }
     }
 
@@ -196,7 +221,7 @@ namespace PkgEditor.Views
     {
       if (!loaded) return;
       Value newValue = null;
-      switch(typeDropDown.SelectedIndex)
+      switch (typeDropDown.SelectedIndex)
       {
         case 0:
           newValue = new Utf8Value(nameTextBox.Text, valueTextBox.Text, (int)maxLengthInput.Value);
@@ -217,45 +242,49 @@ namespace PkgEditor.Views
           newValue = new Utf8SpecialValue(nameTextBox.Text, valueTextBox.Text.FromHexCompact(), (int)maxLengthInput.Value);
           break;
       }
-      if(newValue != null)
+      if (newValue != null)
         selectedValue = proj[selectedValue.Name] = newValue;
       Modified = true;
       Reset();
       PopulateInput(selectedValue, sender);
     }
 
-    private void addKeyValueButton_Click(object sender, EventArgs e)
+    private void loadACDefaultsToolStripMenuItem_Click(object sender, EventArgs e)
     {
-      var name = "NEW_KEY";
-      while(proj.GetValueByName(name) != null)
-      {
-        name += "_";
-      }
-      var val = new Utf8Value(name, "", 1);
-      proj.Values.Add(val);
+      proj = new ParamSfo() { Values = ParamSfo.DefaultAC.Values.ToList() };
       Reset();
-      PopulateInput(val);
       Modified = true;
+    }
+
+    private void loadGPDefaultsToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      proj = new ParamSfo() { Values = ParamSfo.DefaultGD.Values.ToList() };
+      Reset();
+      Modified = true;
+    }
+
+    private void listView1_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
+    {
+      if (listView1.SelectedItems.Count == 1)
+      {
+        PopulateInput(listView1.SelectedItems[0].Tag as Value);
+      }
+      else
+      {
+        ClearInput();
+      }
     }
 
     private void listView1_KeyUp(object sender, KeyEventArgs e)
     {
       if(e.KeyCode == System.Windows.Forms.Keys.Delete)
       {
-        if (listView1.SelectedItems.Count > 0)
-        {
-          foreach(var item in listView1.SelectedItems)
-          {
-            if((item as ListViewItem).Tag is Value v)
-            {
-              proj.Values.Remove(v);
-            }
-          }
-          Reset();
-          PopulateInput(null);
-          Modified = true;
-        }
+        DeleteSelected();
       }
     }
+
+    private void stringToolStripMenuItem_Click(object sender, EventArgs e) => AddKey(SfoEntryType.Utf8);
+    private void intToolStripMenuItem_Click(object sender, EventArgs e) => AddKey(SfoEntryType.Integer);
+    private void bytesUtf8SpecialToolStripMenuItem_Click(object sender, EventArgs e) => AddKey(SfoEntryType.Utf8Special);
   }
 }

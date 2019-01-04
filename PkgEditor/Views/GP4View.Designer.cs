@@ -109,6 +109,7 @@
       this.filesListView.DragDrop += new System.Windows.Forms.DragEventHandler(this.filesListView_DragDrop);
       this.filesListView.DragEnter += new System.Windows.Forms.DragEventHandler(this.filesListView_DragEnter);
       this.filesListView.DoubleClick += new System.EventHandler(this.filesListView_DoubleClick);
+      this.filesListView.KeyUp += new System.Windows.Forms.KeyEventHandler(this.filesListView_KeyUp);
       // 
       // columnHeader1
       // 
