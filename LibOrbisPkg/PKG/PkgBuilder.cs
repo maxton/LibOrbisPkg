@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Text;
 using LibOrbisPkg.Rif;
@@ -11,10 +12,39 @@ namespace LibOrbisPkg.PKG
   public class PkgBuilder
   {
     private PkgProperties project;
+    private byte[] EKPFS;
+    private Action<string> Logger;
+
+    private PFS.PfsBuilder innerPfs;
+    private PFS.PfsBuilder outerPfs;
+    private Pkg pkg;
 
     public PkgBuilder(PkgProperties proj)
     {
       project = proj;
+      EKPFS = Crypto.ComputeKeys(project.ContentId, project.Passcode, 1);
+    }
+
+    /// <summary>
+    /// Writes your PKG to the given file.
+    /// </summary>
+    /// <param name="filename">Output filename</param>
+    /// <param name="Logger">Log lines are written as calls to this function, if provided</param>
+    /// <returns>Completed Pkg structure</returns>
+    public Pkg Write(string filename, Action<string> logger = null)
+    {
+      Logger = logger ?? Console.WriteLine;
+      InitPkg();
+      
+      var pkgFile = MemoryMappedFile.CreateFromFile(filename, FileMode.Create, "pkgFile", (long)pkg.Header.package_size);
+      outerPfs.WriteImage(pkgFile, (long)pkg.Header.pfs_image_offset);
+
+      using (var pkgStream = pkgFile.CreateViewStream(0, (long)pkg.Header.package_size))
+        FinishPkg(pkgStream);
+
+      pkgFile.Dispose();
+      Logger("Done!");
+      return pkg;
     }
 
     /// <summary>
@@ -22,75 +52,66 @@ namespace LibOrbisPkg.PKG
     /// Assumes exclusive use of the stream (writes are absolute, relative to 0)
     /// </summary>
     /// <param name="s">Output PKG stream</param>
-    /// <param name="Logger">Log lines are written as calls to this function, if provided</param>
+    /// <param name="logger">Log lines are written as calls to this function, if provided</param>
     /// <returns>Completed Pkg structure</returns>
-    public Pkg Write(Stream s, Action<string> Logger = null)
+    public Pkg Write(Stream s, Action<string> logger = null)
     {
-      Logger = Logger ?? Console.WriteLine;
-      // Write PFS first, to get stream length
-      var EKPFS = Crypto.ComputeKeys(project.ContentId, project.Passcode, 1);
-      Logger("Preparing inner PFS...");
-      var innerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeInnerPFSProps(project), x => Logger($"[innerpfs] {x}"));
-      Logger("Preparing outer PFS...");
-      var outerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeOuterPFSProps(project, innerPfs, EKPFS), x => Logger($"[outerpfs] {x}"));
+      Logger = logger ?? Console.WriteLine;
+      InitPkg();
+      outerPfs.WriteImage(new OffsetStream(s, (long)pkg.Header.pfs_image_offset));
+      FinishPkg(s);
+      Logger("Done!");
+      return pkg;
+    }
 
-      var pkg = BuildPkg(outerPfs.CalculatePfsSize());
-      var writer = new PkgWriter(s);
-      s.Position = (long)pkg.Header.pfs_image_offset;
-      var pfsStream = new OffsetStream(s, s.Position);
-      outerPfs.WriteImage(pfsStream);
-      
-      // Update header sizes now that we know how big things are...
-      pkg.Header.package_size = (ulong)s.Length;
-      pkg.Header.mount_image_size = (ulong)s.Length;
-      pkg.Header.pfs_image_size = (ulong)pfsStream.Length;
-      pkg.Header.body_size = pkg.Header.pfs_image_offset - pkg.Header.body_offset;
-      
-      // GD pkgs set promote_size to the size of the PKG before the PFS image?
+    /// <summary>
+    /// Sets up the PKG header, body, and PFS images
+    /// </summary>
+    private void InitPkg()
+    {
+      // Write PFS first, to get stream length
+      Logger("Preparing inner PFS...");
+      innerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeInnerPFSProps(project), x => Logger($"[innerpfs] {x}"));
+      Logger("Preparing outer PFS...");
+      outerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeOuterPFSProps(project, innerPfs, EKPFS), x => Logger($"[outerpfs] {x}"));
+      Logger("Preparing PKG header and body...");
+      BuildPkg(outerPfs.CalculatePfsSize());
+    }
+
+    /// <summary>
+    /// Computes the final digests and writes them to the PKG
+    /// </summary>
+    /// <param name="pkgStream">PKG file stream</param>
+    private void FinishPkg(Stream pkgStream)
+    {
+      Logger("Calculating SHA256 of finished outer PFS...");
+      // Set PFS Image 1st block and full SHA256 hashes (mount image)
+      pkg.Header.pfs_signed_digest = Crypto.Sha256(pkgStream, (long)pkg.Header.pfs_image_offset, 0x10000);
+      pkg.Header.pfs_image_digest = Crypto.Sha256(pkgStream, (long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size);
+
+      CalcGeneralDigests(pkg);
       if (pkg.Header.content_type == ContentType.GD)
       {
-        pkg.Header.promote_size = (uint)(pkg.Header.body_size + pkg.Header.body_offset);
-      }
-
-      // Set PFS Image 1st block and full SHA256 hashes (mount image)
-      pkg.Header.pfs_signed_digest = Crypto.Sha256(s, (long)pkg.Header.pfs_image_offset, 0x10000);
-      pkg.Header.pfs_image_digest = Crypto.Sha256(s, (long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size);
-
-      if (pkg.ParamSfo.ParamSfo.GetValueByName("PUBTOOLINFO") is SFO.Utf8Value v)
-      {
-        v.Value += 
-          $",img0_l0_size={pfsStream.Length / (1000 * 1000)}" +
-          $",img0_l1_size=0" +
-          $",img0_sc_ksize=512" +
-          $",img0_pc_ksize=832";
-      }
-      CalcGeneralDigests(pkg);
-      pkg.ImageKey.FileData = Crypto.RSA2048EncryptKey(RSAKeyset.FakeKeyset.Modulus, EKPFS);
-      if(pkg.Header.content_type == ContentType.GD)
-      {
-        CalcPlaygoDigests(pkg, s);
-        pkg.ChunkDat.MchunkAttrs[0].size = (ulong)s.Length;
-        pkg.ChunkDat.InnerMChunkAttrs[0].size = (ulong)innerPfs.CalculatePfsSize();
+        CalcPlaygoDigests(pkg, pkgStream);
       }
 
       // Write body now because it will make calculating hashes easier.
+      var writer = new PkgWriter(pkgStream);
       writer.WriteBody(pkg, project.ContentId, project.Passcode);
 
-      CalcBodyDigests(pkg, s);
+      CalcBodyDigests(pkg, pkgStream);
 
       // Now write header
-      s.Position = 0;
+      pkgStream.Position = 0;
       writer.WriteHeader(pkg.Header);
 
       // Final Pkg digest and signature
-      pkg.HeaderDigest = Crypto.Sha256(s, 0, 0xFE0);
-      s.Position = 0xFE0;
-      s.Write(pkg.HeaderDigest, 0, pkg.HeaderDigest.Length);
-      byte[] header_sha256 = Crypto.Sha256(s, 0, 0x1000);
-      s.Position = 0x1000;
-      s.Write(pkg.HeaderSignature = Crypto.RSA2048EncryptKey(Keys.PkgSignKey, header_sha256), 0, 256);
-      Logger("Done!");
-      return pkg;
+      pkg.HeaderDigest = Crypto.Sha256(pkgStream, 0, 0xFE0);
+      pkgStream.Position = 0xFE0;
+      pkgStream.Write(pkg.HeaderDigest, 0, pkg.HeaderDigest.Length);
+      byte[] header_sha256 = Crypto.Sha256(pkgStream, 0, 0x1000);
+      pkgStream.Position = 0x1000;
+      pkgStream.Write(pkg.HeaderSignature = Crypto.RSA2048EncryptKey(Keys.PkgSignKey, header_sha256), 0, 256);
     }
 
     /// <summary>
@@ -198,11 +219,11 @@ namespace LibOrbisPkg.PKG
     }
 
     /// <summary>
-    /// Create the Pkg struct. Does not compute hashes or data sizes.
+    /// Creates the Pkg object. Initializes the header and body.
     /// </summary>
-    public Pkg BuildPkg(long pfsSize)
+    public void BuildPkg(long pfsSize)
     {
-      var pkg = new Pkg();
+      pkg = new Pkg();
       var volType = project.VolumeType;
       pkg.Header = new Header
       {
@@ -257,14 +278,14 @@ namespace LibOrbisPkg.PKG
         project.Passcode);
       pkg.ImageKey = new GenericEntry(EntryId.IMAGE_KEY)
       {
-        FileData = new byte[0x100]
+        FileData = Crypto.RSA2048EncryptKey(RSAKeyset.FakeKeyset.Modulus, EKPFS)
       };
       pkg.GeneralDigests = new GeneralDigestsEntry();
       pkg.Metas = new MetasEntry();
       pkg.Digests = new GenericEntry(EntryId.DIGESTS);
       pkg.EntryNames = new NameTableEntry();
-      pkg.LicenseDat = new GenericEntry(EntryId.LICENSE_DAT) { FileData = GenLicense(pkg) };
-      pkg.LicenseInfo = new GenericEntry(EntryId.LICENSE_INFO) { FileData = GenLicenseInfo(pkg) };
+      pkg.LicenseDat = new GenericEntry(EntryId.LICENSE_DAT) { FileData = GenLicense() };
+      pkg.LicenseInfo = new GenericEntry(EntryId.LICENSE_INFO) { FileData = GenLicenseInfo() };
       var paramSfoFile = project.RootDir.GetFile("sce_sys/param.sfo");
       if(paramSfoFile == null)
       {
@@ -293,9 +314,14 @@ namespace LibOrbisPkg.PKG
             date = "c_date=" + project.CreationDate.ToString("yyyyMMdd");
           }
         }
-        sfo.Values.Add(new SFO.Utf8Value("PUBTOOLINFO", date+time, 0x200));
+        var sizeInfo = $",img0_l0_size={pkg.Header.pfs_image_size / (1000 * 1000)}" +
+          $",img0_l1_size=0" +
+          $",img0_sc_ksize=512" +
+          $",img0_pc_ksize=832";
+        sfo.Values.Add(new SFO.Utf8Value("PUBTOOLINFO", date+time+sizeInfo, 0x200));
         sfo.Values.Add(new SFO.IntegerValue("PUBTOOLVER", 0x02890000));
       }
+      
       pkg.PsReservedDat = new GenericEntry(EntryId.PSRESERVED_DAT) { FileData = new byte[0x2000] };
       pkg.Entries = new List<Entry>
       {
@@ -405,11 +431,20 @@ namespace LibOrbisPkg.PKG
       pkg.Metas.Metas.Sort((e1, e2) => e1.id.CompareTo(e2.id));
       pkg.Header.entry_count = (uint)pkg.Entries.Count;
       pkg.Header.entry_count_2 = (ushort)pkg.Entries.Count;
-      pkg.Header.body_size = dataOffset;
-      return pkg;
+      pkg.Header.body_size = pkg.Header.pfs_image_offset - pkg.Header.body_offset;
+      pkg.Header.package_size = pkg.Header.mount_image_size = pkg.Header.pfs_image_offset + pkg.Header.pfs_image_size;
+      
+      if (pkg.Header.content_type == ContentType.GD)
+      {
+        // Important sizes for PlayGo ChunkDat
+        pkg.ChunkDat.MchunkAttrs[0].size = pkg.Header.package_size;
+        pkg.ChunkDat.InnerMChunkAttrs[0].size = (ulong)innerPfs.CalculatePfsSize();
+        // GD pkgs set promote_size to the size of the PKG before the PFS image?
+        pkg.Header.promote_size = (uint)(pkg.Header.body_size + pkg.Header.body_offset);
+      }
     }
 
-    private byte[] GenLicense(Pkg pkg)
+    private byte[] GenLicense()
     {
       var license = new LicenseDat(
         pkg.Header.content_id,
@@ -423,7 +458,7 @@ namespace LibOrbisPkg.PKG
       }
     }
 
-    private byte[] GenLicenseInfo(Pkg pkg)
+    private byte[] GenLicenseInfo()
     {
       var info = new LicenseInfo(
         pkg.Header.content_id,

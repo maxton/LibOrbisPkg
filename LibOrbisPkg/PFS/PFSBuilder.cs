@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Design.Serialization;
 using System.IO;
+using System.IO.MemoryMappedFiles;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Linq;
 
 namespace LibOrbisPkg.PFS
@@ -33,6 +36,7 @@ namespace LibOrbisPkg.PFS
     private PfsProperties properties;
 
     private int emptyBlock = 0x4;
+    const int xtsSectorSize = 0x1000;
 
     private struct BlockSigInfo
     {
@@ -104,7 +108,7 @@ namespace LibOrbisPkg.PFS
       CalculateDataBlockLayout();
     }
 
-    public void WriteImage(Stream stream)
+    private void WriteData(Stream stream)
     {
       Log("Writing header...");
       hdr.WriteToStream(stream);
@@ -124,7 +128,91 @@ namespace LibOrbisPkg.PFS
         stream.Position = f.ino.StartBlock * hdr.BlockSize;
         WriteFSNode(stream, f);
       }
-      stream.SetLength(hdr.Ndblock * hdr.BlockSize);
+    }
+
+    /// <summary>
+    /// Enumerates the sectors that should be encrypted with AES-XTS
+    /// </summary>
+    /// <returns>Sector indices</returns>
+    private IEnumerable<long> XtsSectorGen()
+    {
+      long totalSectors = (CalculatePfsSize() + 0xFFF) / xtsSectorSize;
+      long xtsSector = 16;
+      while (xtsSector < totalSectors)
+      {
+        if (xtsSector / 0x10 == emptyBlock)
+        {
+          xtsSector += 16;
+        }
+        yield return xtsSector;
+        xtsSector += 1;
+      }
+    }
+
+    /// <summary>
+    /// Writes the PFS image using a memory mapped file. This allows for parallelization of signing and encrypting.
+    /// </summary>
+    /// <param name="file">The memory mapped file</param>
+    /// <param name="offset">Start offset of the PFS image in the file</param>
+    public void WriteImage(MemoryMappedFile file, long offset)
+    {
+      using (var viewStream = file.CreateViewStream(offset, CalculatePfsSize()))
+      {
+        WriteData(viewStream);
+      }
+      using (var view = file.CreateViewAccessor(offset, CalculatePfsSize()))
+      {
+        if (hdr.Mode.HasFlag(PfsMode.Signed))
+        {
+          Log("Signing...");
+          var signKey = Crypto.PfsGenSignKey(properties.EKPFS, hdr.Seed);
+          foreach (var sig in sig_order)
+          {
+            var sig_buffer = new byte[sig.Size];
+            var position = sig.Block * properties.BlockSize;
+            view.ReadArray(position, sig_buffer, 0, sig_buffer.Length);
+            position = sig.SigOffset;
+            view.WriteArray(position, Crypto.HmacSha256(signKey, sig_buffer), 0, 32);
+            view.Write(position + 32, (int)sig.Block);
+          }
+        }
+
+        if (hdr.Mode.HasFlag(PfsMode.Encrypted))
+        {
+          Log("Encrypting in parallel");
+          var encKey = Crypto.PfsGenEncKey(properties.EKPFS, hdr.Seed);
+          var dataKey = new byte[16];
+          var tweakKey = new byte[16];
+          Buffer.BlockCopy(encKey, 0, tweakKey, 0, 16);
+          Buffer.BlockCopy(encKey, 16, dataKey, 0, 16);
+          
+          Parallel.ForEach(
+            // generates sector indices for each sector to be encrypted
+            XtsSectorGen(),
+            // generates thread-local data
+            () => (new XtsBlockTransform(dataKey, tweakKey), new byte[xtsSectorSize]),
+            // Loop body
+            (xtsSector, loopState, localData) =>
+            {
+              var (transformer, sectorBuffer) = localData;
+              var sectorOffset = xtsSector * xtsSectorSize;
+              view.ReadArray(sectorOffset, sectorBuffer, 0, xtsSectorSize);
+              transformer.EncryptSector(sectorBuffer, (ulong)xtsSector);
+              view.WriteArray(sectorOffset, sectorBuffer, 0, xtsSectorSize);
+              return localData;
+            },
+            // Finalizer
+            local => { });
+        }
+      }
+    }
+
+    /// <summary>
+    /// Writes the PFS image to the given stream
+    /// </summary>
+    public void WriteImage(Stream stream)
+    {
+      WriteData(stream);
 
       if (hdr.Mode.HasFlag(PfsMode.Signed))
       {
@@ -149,24 +237,15 @@ namespace LibOrbisPkg.PFS
         var tweakKey = new byte[16];
         Buffer.BlockCopy(encKey, 0, tweakKey, 0, 16);
         Buffer.BlockCopy(encKey, 16, dataKey, 0, 16);
-        stream.Position = hdr.BlockSize;
         var transformer = new XtsBlockTransform(dataKey, tweakKey);
-        const int sectorSize = 0x1000;
-        long xtsSector = 16;
-        long totalSectors = (stream.Length + 0xFFF) / sectorSize;
-        byte[] sectorBuffer = new byte[sectorSize];
-        while (xtsSector < totalSectors)
+        byte[] sectorBuffer = new byte[xtsSectorSize];
+        foreach (var xtsSector in XtsSectorGen())
         {
-          if(xtsSector / 0x10 == emptyBlock)
-          {
-            xtsSector += 16;
-          }
-          stream.Position = xtsSector * sectorSize;
-          stream.Read(sectorBuffer, 0, sectorSize);
+          stream.Position = xtsSector * xtsSectorSize;
+          stream.Read(sectorBuffer, 0, xtsSectorSize);
           transformer.EncryptSector(sectorBuffer, (ulong)xtsSector);
-          stream.Position = xtsSector * sectorSize;
-          stream.Write(sectorBuffer, 0, sectorSize);
-          xtsSector += 1;
+          stream.Position = xtsSector * xtsSectorSize;
+          stream.Write(sectorBuffer, 0, xtsSectorSize);
         }
       }
     }

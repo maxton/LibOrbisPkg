@@ -71,15 +71,9 @@ namespace PkgTool
           var project = Gp4Project.ReadFrom(File.OpenRead(proj));
           var props = PkgProperties.FromGp4(project, Path.GetDirectoryName(proj));
           var outputPath = args[2];
-
-          using (var outFile = File.Open(
-            Path.Combine(
-              outputPath,
-              $"{project.volume.Package.ContentId}.pkg"),
-              FileMode.Create))
-          {
-            new PkgBuilder(props).Write(outFile);
-          }
+          new PkgBuilder(props).Write(Path.Combine(
+            outputPath,
+            $"{project.volume.Package.ContentId}.pkg"));
         }),
       Verb.Create(
         "extractpkg",

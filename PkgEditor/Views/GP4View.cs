@@ -217,18 +217,15 @@ namespace PkgEditor.Views
         var logBox = new LogWindow();
         var writer = logBox.GetWriter();
         logBox.Show();
-        using (var fs = File.Open(ofd.FileName, FileMode.Create))
+        try
         {
-          try
-          {
-            new PkgBuilder(PkgProperties.FromGp4(proj, Path.GetDirectoryName(path))).Write(fs, writer.WriteLine);
-            writer.WriteLine("Done! Saved to {0}", ofd.FileName);
-          }
-          catch(Exception ex)
-          {
-            writer.WriteLine("Error: " + ex);
-            writer.WriteLine(ex.StackTrace);
-          }
+          new PkgBuilder(PkgProperties.FromGp4(proj, Path.GetDirectoryName(path))).Write(ofd.FileName, writer.WriteLine);
+          writer.WriteLine("Done! Saved to {0}", ofd.FileName);
+        }
+        catch(Exception ex)
+        {
+          writer.WriteLine("Error: " + ex);
+          writer.WriteLine(ex.StackTrace);
         }
       }
     }
