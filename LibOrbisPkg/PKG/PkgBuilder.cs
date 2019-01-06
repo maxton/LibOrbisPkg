@@ -328,18 +328,14 @@ namespace LibOrbisPkg.PKG
         if(project.CreationDate == default)
         {
           date = "c_date=" + DateTime.UtcNow.ToString("yyyyMMdd");
+          if (project.UseCreationTime)
+            time = ",c_time=" + DateTime.UtcNow.ToString("HHmmss");
         }
         else
         {
-          if(project.UseCreationTime)
-          {
-            date = "c_date=" + project.CreationDate.ToString("yyyyMMdd");
+          date = "c_date=" + project.CreationDate.ToString("yyyyMMdd");
+          if (project.UseCreationTime)
             time = ",c_time=" + project.CreationDate.ToString("HHmmss");
-          }
-          else //  just date is specified
-          {
-            date = "c_date=" + project.CreationDate.ToString("yyyyMMdd");
-          }
         }
         var sizeInfo = $",img0_l0_size={pkg.Header.pfs_image_size / (1000 * 1000)}" +
           $",img0_l1_size=0" +

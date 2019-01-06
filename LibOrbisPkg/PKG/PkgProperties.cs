@@ -58,6 +58,11 @@ namespace LibOrbisPkg.PKG
       {
         CreationDate = default;
       }
+      else if (project.volume.Package.CreationDate == "actual_datetime")
+      {
+        CreationDate = default;
+        UseCreationTime = true;
+      }
       else
       {
         var split = project.volume.Package.CreationDate.Split(' ');
