@@ -8,6 +8,7 @@ using System.IO.MemoryMappedFiles;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace LibOrbisPkg.PFS
 {
@@ -50,7 +51,8 @@ namespace LibOrbisPkg.PFS
         Size = size;
       }
     }
-    private Stack<BlockSigInfo> sig_order = new Stack<BlockSigInfo>();
+    private Stack<BlockSigInfo> final_sigs = new Stack<BlockSigInfo>();
+    private Stack<BlockSigInfo> data_sigs = new Stack<BlockSigInfo>();
 
     Action<string> logger;
     private void Log(string s) => logger?.Invoke(s);
@@ -75,7 +77,7 @@ namespace LibOrbisPkg.PFS
       // This doesn't seem to really matter when verifying a PKG so use all zeroes for now
       var seed = new byte[16];
       // Insert header digest to be calculated with the rest of the digests
-      sig_order.Push(new BlockSigInfo(0, 0x380, 0x5A0));
+      final_sigs.Push(new BlockSigInfo(0, 0x380, 0x5A0));
       hdr = new PfsHeader {
         BlockSize = properties.BlockSize,
         ReadOnly = 1,
@@ -158,9 +160,25 @@ namespace LibOrbisPkg.PFS
       {
         if (hdr.Mode.HasFlag(PfsMode.Signed))
         {
-          Log("Signing...");
+          Log("Signing in parallel...");
           var signKey = Crypto.PfsGenSignKey(properties.EKPFS, hdr.Seed);
-          foreach (var sig in sig_order)
+          // We can do the actual data blocks in parallel
+          Parallel.ForEach(
+            data_sigs,
+            () => (new byte[properties.BlockSize], new HMACSHA256(signKey)),
+            (sig, status, local) =>
+            {
+              var (sig_buffer, hmac) = local;
+              var position = sig.Block * sig_buffer.Length;
+              view.ReadArray(position, sig_buffer, 0, sig_buffer.Length);
+              position = sig.SigOffset;
+              view.WriteArray(position, Crypto.HmacSha256(signKey, sig_buffer), 0, 32);
+              view.Write(position + 32, (int)sig.Block);
+              return local;
+            },
+            local => local.Item2.Dispose());
+          // The indirect blocks must be done after, since they rely on data block signatures
+          foreach (var sig in final_sigs)
           {
             var sig_buffer = new byte[sig.Size];
             var position = sig.Block * properties.BlockSize;
@@ -212,7 +230,7 @@ namespace LibOrbisPkg.PFS
       {
         Log("Signing...");
         var signKey = Crypto.PfsGenSignKey(properties.EKPFS, hdr.Seed);
-        foreach (var sig in sig_order)
+        foreach (var sig in data_sigs.Concat(final_sigs))
         {
           var sig_buffer = new byte[sig.Size];
           stream.Position = sig.Block * properties.BlockSize;
@@ -338,11 +356,11 @@ namespace LibOrbisPkg.PFS
         for (var i = 0; i < hdr.DinodeBlockCount; i++)
         {
           hdr.InodeBlockSig.SetDirectBlock(i, 1 + i);
-          sig_order.Push(new BlockSigInfo(1 + i, 0xB8 + (36 * i)));
+          final_sigs.Push(new BlockSigInfo(1 + i, 0xB8 + (36 * i)));
         }
         hdr.Ndblock += hdr.DinodeBlockCount;
         super_root_ino.SetDirectBlock(0, (int)(hdr.DinodeBlockCount + 1));
-        sig_order.Push(new BlockSigInfo(super_root_ino.StartBlock, inoNumberToOffset(super_root_ino.Number)));
+        final_sigs.Push(new BlockSigInfo(super_root_ino.StartBlock, inoNumberToOffset(super_root_ino.Number)));
         hdr.Ndblock += super_root_ino.Blocks;
 
         // flat path table
@@ -350,12 +368,12 @@ namespace LibOrbisPkg.PFS
         fpt_ino.Size = fpt.Size;
         fpt_ino.SizeCompressed = fpt.Size;
         fpt_ino.Blocks = (uint)CeilDiv(fpt.Size, hdr.BlockSize);
-        sig_order.Push(new BlockSigInfo(fpt_ino.StartBlock, inoNumberToOffset(fpt_ino.Number)));
+        final_sigs.Push(new BlockSigInfo(fpt_ino.StartBlock, inoNumberToOffset(fpt_ino.Number)));
 
         for (int i = 1; i < fpt_ino.Blocks && i < 12; i++)
         {
           fpt_ino.SetDirectBlock(i, (int)hdr.Ndblock++);
-          sig_order.Push(new BlockSigInfo(fpt_ino.StartBlock, inoNumberToOffset(fpt_ino.Number, i)));
+          final_sigs.Push(new BlockSigInfo(fpt_ino.StartBlock, inoNumberToOffset(fpt_ino.Number, i)));
         }
 
         // DATs I've found include an empty block after the FPT
@@ -378,30 +396,30 @@ namespace LibOrbisPkg.PFS
           if (n.ino.SizeCompressed == 0)
             n.ino.SizeCompressed = n.ino.Size;
 
-            for (var i = 0; (blocks - i) > 0 && i < 12; i++)
+          for (var i = 0; (blocks - i) > 0 && i < 12; i++)
           {
-            sig_order.Push(new BlockSigInfo((int)hdr.Ndblock++, inoNumberToOffset(n.ino.Number, i)));
+            data_sigs.Push(new BlockSigInfo((int)hdr.Ndblock++, inoNumberToOffset(n.ino.Number, i)));
           }
           if(blocks > 12)
           {
             // More than 12 blocks -> use 1 indirect block
-            sig_order.Push(new BlockSigInfo(ibStartBlock, inoNumberToOffset(n.ino.Number, 12)));
+            final_sigs.Push(new BlockSigInfo(ibStartBlock, inoNumberToOffset(n.ino.Number, 12)));
             for(int i = 12, pointerOffset = 0; (blocks - i) > 0 && i < (12 + sigs_per_block); i++, pointerOffset += 36)
             {
-              sig_order.Push(new BlockSigInfo((int)hdr.Ndblock++, ibStartBlock * hdr.BlockSize + pointerOffset));
+              data_sigs.Push(new BlockSigInfo((int)hdr.Ndblock++, ibStartBlock * hdr.BlockSize + pointerOffset));
             }
             ibStartBlock++;
           }
           if(blocks > 12 + sigs_per_block)
           {
             // More than 12 + one block of pointers -> use 1 doubly-indirect block + any number of indirect blocks
-            sig_order.Push(new BlockSigInfo(ibStartBlock, inoNumberToOffset(n.ino.Number, 13)));
+            final_sigs.Push(new BlockSigInfo(ibStartBlock, inoNumberToOffset(n.ino.Number, 13)));
             for(var i = 12 + sigs_per_block; (blocks - i) > 0 && i < (12 + sigs_per_block + (sigs_per_block * sigs_per_block)); i += sigs_per_block)
             {
-              sig_order.Push(new BlockSigInfo(ibStartBlock, inoNumberToOffset(n.ino.Number, 12)));
+              final_sigs.Push(new BlockSigInfo(ibStartBlock, inoNumberToOffset(n.ino.Number, 12)));
               for (int j = 0, pointerOffset = 0; (blocks - i - j) > 0 && j < sigs_per_block; j++, pointerOffset += 36)
               {
-                sig_order.Push(new BlockSigInfo((int)hdr.Ndblock++, ibStartBlock * hdr.BlockSize + pointerOffset));
+                data_sigs.Push(new BlockSigInfo((int)hdr.Ndblock++, ibStartBlock * hdr.BlockSize + pointerOffset));
               }
               ibStartBlock++;
             }
