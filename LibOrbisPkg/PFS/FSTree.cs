@@ -66,7 +66,7 @@ namespace LibOrbisPkg.PFS
         return Files.Find(f => f.name == path);
       }
       var dir = Dirs.Find(d => d.name == breadcrumbs[0]);
-      return dir.GetFile(path.Substring(path.IndexOf('/') + 1));
+      return dir?.GetFile(path.Substring(path.IndexOf('/') + 1));
     }
   }
 

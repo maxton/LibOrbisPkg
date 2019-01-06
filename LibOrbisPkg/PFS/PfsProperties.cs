@@ -17,7 +17,8 @@ namespace LibOrbisPkg.PFS
 
     public static PfsProperties MakeInnerPFSProps(PKG.PkgProperties props)
     {
-      if(props.VolumeType == GP4.VolumeType.pkg_ps4_app)
+      // Generate keystone for GP PKGs if it is not already there
+      if(props.VolumeType == GP4.VolumeType.pkg_ps4_app && props.RootDir.GetFile("sce_sys/keystone") == null)
       {
         AddFile(props.RootDir, "sce_sys", "keystone", Util.Crypto.CreateKeystone(props.Passcode));
       }

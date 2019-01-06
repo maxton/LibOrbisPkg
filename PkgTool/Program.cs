@@ -38,7 +38,7 @@ namespace PkgTool
         {
           var proj = args[1];
           var output = args[2];
-          var outFile = File.OpenWrite(output);
+          var outFile = File.Create(output);
           var props = PfsProperties.MakeInnerPFSProps(PkgProperties.FromGp4(
               Gp4Project.ReadFrom(File.OpenRead(proj)),
               Path.GetDirectoryName(proj)));
@@ -126,7 +126,7 @@ namespace PkgTool
           var package = PackageReader.ReadPackageFromFile(pkgFile, keyString);
           var innerPfs = package.GetFile("/pfs_image.dat");
           using (var ipfs = innerPfs.GetStream())
-          using (var o = File.OpenWrite(outPath))
+          using (var o = File.Create(outPath))
           using (var ipfs_d = new GameArchives.PFS.PFSCDecompressStream(ipfs))
           {
             ipfs_d.CopyTo(o);
@@ -145,7 +145,7 @@ namespace PkgTool
           {
             pkg = new PkgReader(s).ReadPkg();
             var outer_pfs = new OffsetStream(s, (long)pkg.Header.pfs_image_offset);
-            using (var o = File.OpenWrite(outPath))
+            using (var o = File.Create(outPath))
             {
               outer_pfs.Position = 0;
               outer_pfs.CopyTo(o);
@@ -176,7 +176,7 @@ namespace PkgTool
             Buffer.BlockCopy(enc_key, 0, tweak_key, 0, 16);
             Buffer.BlockCopy(enc_key, 16, data_key, 0, 16);
             var decrypt_stream = new GameArchives.PFS.XtsCryptStream(outer_pfs, data_key, tweak_key, 16, 0x1000);
-            using (var o = File.OpenWrite(outPath))
+            using (var o = File.Create(outPath))
             {
               decrypt_stream.CopyTo(o);
               // Unset "encrypted" flag
@@ -220,7 +220,7 @@ namespace PkgTool
               Console.WriteLine("Error: entry number out of range");
               return;
             }
-            using (var outFile = File.OpenWrite(outPath))
+            using (var outFile = File.Create(outPath))
             {
               var meta = pkg.Metas.Metas[idx];
               var entry = new SubStream(pkgFile, meta.DataOffset, meta.DataSize);
