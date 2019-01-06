@@ -341,8 +341,8 @@ namespace LibOrbisPkg.PKG
           $",img0_l1_size=0" +
           $",img0_sc_ksize=512" +
           $",img0_pc_ksize=832";
-        sfo.Values.Add(new SFO.Utf8Value("PUBTOOLINFO", date+time+sizeInfo, 0x200));
-        sfo.Values.Add(new SFO.IntegerValue("PUBTOOLVER", 0x02890000));
+        sfo["PUBTOOLINFO"] = new SFO.Utf8Value("PUBTOOLINFO", date+time+sizeInfo, 0x200);
+        sfo["PUBTOOLVER"] = new SFO.IntegerValue("PUBTOOLVER", 0x02890000);
       }
       
       pkg.PsReservedDat = new GenericEntry(EntryId.PSRESERVED_DAT) { FileData = new byte[0x2000] };

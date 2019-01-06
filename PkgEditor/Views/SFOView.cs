@@ -202,6 +202,7 @@ namespace PkgEditor.Views
 
     private void DeleteSelected()
     {
+      if (@readonly) return;
       if (listView1.SelectedItems.Count > 0)
       {
         foreach (var item in listView1.SelectedItems)
