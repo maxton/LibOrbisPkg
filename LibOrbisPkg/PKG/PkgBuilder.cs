@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using LibOrbisPkg.Rif;
 using LibOrbisPkg.Util;
+using System.Threading.Tasks;
+using System.Security.Cryptography;
 
 namespace LibOrbisPkg.PKG
 {
@@ -38,7 +40,10 @@ namespace LibOrbisPkg.PKG
       
       var pkgFile = MemoryMappedFile.CreateFromFile(filename, FileMode.Create, "pkgFile", (long)pkg.Header.package_size);
       outerPfs.WriteImage(pkgFile, (long)pkg.Header.pfs_image_offset);
-
+      if (pkg.Header.content_type == ContentType.GD)
+      {
+        CalcPlaygoDigests(pkg, pkgFile);
+      }
       using (var pkgStream = pkgFile.CreateViewStream(0, (long)pkg.Header.package_size))
         FinishPkg(pkgStream);
 
@@ -59,6 +64,10 @@ namespace LibOrbisPkg.PKG
       Logger = logger ?? Console.WriteLine;
       InitPkg();
       outerPfs.WriteImage(new OffsetStream(s, (long)pkg.Header.pfs_image_offset));
+      if (pkg.Header.content_type == ContentType.GD)
+      {
+        CalcPlaygoDigests(pkg, s);
+      }
       FinishPkg(s);
       Logger("Done!");
       return pkg;
@@ -90,10 +99,6 @@ namespace LibOrbisPkg.PKG
       pkg.Header.pfs_image_digest = Crypto.Sha256(pkgStream, (long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size);
 
       CalcGeneralDigests(pkg);
-      if (pkg.Header.content_type == ContentType.GD)
-      {
-        CalcPlaygoDigests(pkg, pkgStream);
-      }
 
       // Write body now because it will make calculating hashes easier.
       var writer = new PkgWriter(pkgStream);
@@ -218,6 +223,28 @@ namespace LibOrbisPkg.PKG
       }
     }
 
+    private static void CalcPlaygoDigests(Pkg pkg, MemoryMappedFile file)
+    {
+      const int CHUNK_SIZE = 0x10000;
+      int totalChunks = (int)(pkg.Header.pfs_image_size / CHUNK_SIZE);
+      int chunkOffset = (int)(pkg.Header.pfs_image_offset / CHUNK_SIZE);
+      var FileData = pkg.ChunkSha.FileData;
+      using (var view = file.CreateViewAccessor(0, (long)pkg.Header.package_size))
+      {
+        Parallel.ForEach(
+          Enumerable.Range(chunkOffset, totalChunks),
+          () => (SHA256.Create(), new byte[CHUNK_SIZE]),
+          (chunk, _, local) =>
+          {
+            var (sha, buffer) = local;
+            view.ReadArray(chunk * CHUNK_SIZE, buffer, 0, CHUNK_SIZE);
+            Buffer.BlockCopy(sha.ComputeHash(buffer), 0, FileData, chunk * 4, 4);
+            return local;
+          },
+          buffer => { buffer.Item1.Dispose(); });
+      }
+    }
+
     /// <summary>
     /// Creates the Pkg object. Initializes the header and body.
     /// </summary>
@@ -300,7 +327,7 @@ namespace LibOrbisPkg.PKG
         string date = "", time = "";
         if(project.CreationDate == default)
         {
-          date = "c_date=" + DateTime.UtcNow.ToString("yyyyMMdd");
+          date = "c_date=" + DateTime.UtcNow.Subtract(TimeSpan.FromDays(2)).ToString("yyyyMMdd");
         }
         else
         {
