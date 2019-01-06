@@ -10,6 +10,7 @@ using LibOrbisPkg.PFS;
 using LibOrbisPkg.PKG;
 using System.IO;
 using System.Windows.Forms;
+using System.Threading.Tasks;
 
 namespace PkgEditor.Views
 {
@@ -223,7 +224,7 @@ namespace PkgEditor.Views
       }
     }
 
-    private void buildPkg_Click(object sender, EventArgs e)
+    private async void buildPkg_Click(object sender, EventArgs e)
     {
       if(proj.files.Items.Where(f => f.TargetPath == "sce_sys/param.sfo").Count() == 0)
       {
@@ -239,10 +240,13 @@ namespace PkgEditor.Views
         var logBox = new LogWindow();
         var writer = logBox.GetWriter();
         logBox.Show();
+        Action<string> LogLine = x => logBox.BeginInvoke(new Action(() => writer.WriteLine(x)));
         try
         {
-          new PkgBuilder(PkgProperties.FromGp4(proj, Path.GetDirectoryName(path))).Write(ofd.FileName, writer.WriteLine);
-          writer.WriteLine("Done! Saved to {0}", ofd.FileName);
+          await Task.Run(() => {
+            new PkgBuilder(PkgProperties.FromGp4(proj, Path.GetDirectoryName(path))).Write(ofd.FileName, LogLine);
+            LogLine($"Saved to {ofd.FileName}");
+          });
         }
         catch(Exception ex)
         {
