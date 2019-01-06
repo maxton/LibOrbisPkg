@@ -233,7 +233,7 @@ namespace LibOrbisPkg.PKG
       {
         Parallel.ForEach(
           Enumerable.Range(chunkOffset, totalChunks),
-          () => (SHA256.Create(), new byte[CHUNK_SIZE]),
+          () => Tuple.Create(SHA256.Create(), new byte[CHUNK_SIZE]),
           (chunk, _, local) =>
           {
             var (sha, buffer) = local;

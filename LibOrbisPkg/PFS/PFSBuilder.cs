@@ -165,7 +165,7 @@ namespace LibOrbisPkg.PFS
           // We can do the actual data blocks in parallel
           Parallel.ForEach(
             data_sigs,
-            () => (new byte[properties.BlockSize], new HMACSHA256(signKey)),
+            () => Tuple.Create(new byte[properties.BlockSize], new HMACSHA256(signKey)),
             (sig, status, local) =>
             {
               var (sig_buffer, hmac) = local;
@@ -202,7 +202,7 @@ namespace LibOrbisPkg.PFS
             // generates sector indices for each sector to be encrypted
             XtsSectorGen(),
             // generates thread-local data
-            () => (new XtsBlockTransform(dataKey, tweakKey), new byte[xtsSectorSize]),
+            () => Tuple.Create(new XtsBlockTransform(dataKey, tweakKey), new byte[xtsSectorSize]),
             // Loop body
             (xtsSector, loopState, localData) =>
             {
