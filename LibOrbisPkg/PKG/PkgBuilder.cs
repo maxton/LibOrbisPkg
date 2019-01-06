@@ -327,7 +327,7 @@ namespace LibOrbisPkg.PKG
         string date = "", time = "";
         if(project.CreationDate == default)
         {
-          date = "c_date=" + DateTime.UtcNow.Subtract(TimeSpan.FromDays(2)).ToString("yyyyMMdd");
+          date = "c_date=" + DateTime.UtcNow.ToString("yyyyMMdd");
         }
         else
         {
