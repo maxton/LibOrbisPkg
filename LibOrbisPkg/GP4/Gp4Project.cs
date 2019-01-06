@@ -297,6 +297,11 @@ namespace LibOrbisPkg.GP4
     public string AppType;
     [XmlAttribute("c_date")]
     public string CreationDate;
+    [XmlIgnore]
+    public DateTime CreationTimeStamp
+    {
+      get => DateTime.Parse(CreationDate).ToUniversalTime();
+    }
   }
 
   public class Files

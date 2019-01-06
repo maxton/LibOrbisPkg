@@ -52,6 +52,10 @@
       this.label4 = new System.Windows.Forms.Label();
       this.label5 = new System.Windows.Forms.Label();
       this.volumeTimestampPicker = new System.Windows.Forms.DateTimePicker();
+      this.label6 = new System.Windows.Forms.Label();
+      this.creationTimePicker = new System.Windows.Forms.DateTimePicker();
+      this.useTimeOfBuildCheckBox = new System.Windows.Forms.CheckBox();
+      this.includeTimeCheckBox = new System.Windows.Forms.CheckBox();
       ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
       this.splitContainer1.Panel1.SuspendLayout();
       this.splitContainer1.Panel2.SuspendLayout();
@@ -74,8 +78,8 @@
       // splitContainer1.Panel2
       // 
       this.splitContainer1.Panel2.Controls.Add(this.filesListView);
-      this.splitContainer1.Size = new System.Drawing.Size(697, 290);
-      this.splitContainer1.SplitterDistance = 232;
+      this.splitContainer1.Size = new System.Drawing.Size(694, 272);
+      this.splitContainer1.SplitterDistance = 230;
       this.splitContainer1.TabIndex = 0;
       // 
       // dirsTreeView
@@ -84,7 +88,7 @@
       this.dirsTreeView.HideSelection = false;
       this.dirsTreeView.Location = new System.Drawing.Point(0, 0);
       this.dirsTreeView.Name = "dirsTreeView";
-      this.dirsTreeView.Size = new System.Drawing.Size(232, 290);
+      this.dirsTreeView.Size = new System.Drawing.Size(230, 272);
       this.dirsTreeView.TabIndex = 0;
       this.dirsTreeView.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.dirsTreeView_AfterSelect);
       // 
@@ -100,7 +104,7 @@
       this.filesListView.LabelEdit = true;
       this.filesListView.Location = new System.Drawing.Point(0, 0);
       this.filesListView.Name = "filesListView";
-      this.filesListView.Size = new System.Drawing.Size(461, 290);
+      this.filesListView.Size = new System.Drawing.Size(460, 272);
       this.filesListView.SmallImageList = this.folderFileIcons;
       this.filesListView.TabIndex = 0;
       this.filesListView.UseCompatibleStateImageBehavior = false;
@@ -198,7 +202,7 @@
       // buildPfsButton
       // 
       this.buildPfsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-      this.buildPfsButton.Location = new System.Drawing.Point(625, 55);
+      this.buildPfsButton.Location = new System.Drawing.Point(622, 55);
       this.buildPfsButton.Name = "buildPfsButton";
       this.buildPfsButton.Size = new System.Drawing.Size(75, 21);
       this.buildPfsButton.TabIndex = 5;
@@ -209,7 +213,7 @@
       // buildPkgButton
       // 
       this.buildPkgButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-      this.buildPkgButton.Location = new System.Drawing.Point(625, 3);
+      this.buildPkgButton.Location = new System.Drawing.Point(622, 3);
       this.buildPkgButton.Name = "buildPkgButton";
       this.buildPkgButton.Size = new System.Drawing.Size(75, 49);
       this.buildPkgButton.TabIndex = 6;
@@ -277,10 +281,56 @@
       this.volumeTimestampPicker.Value = new System.DateTime(2018, 12, 25, 0, 0, 0, 0);
       this.volumeTimestampPicker.ValueChanged += new System.EventHandler(this.volumeTimestampPicker_ValueChanged);
       // 
+      // label6
+      // 
+      this.label6.AutoSize = true;
+      this.label6.Location = new System.Drawing.Point(281, 78);
+      this.label6.Name = "label6";
+      this.label6.Size = new System.Drawing.Size(72, 13);
+      this.label6.TabIndex = 13;
+      this.label6.Text = "Creation Date";
+      // 
+      // creationTimePicker
+      // 
+      this.creationTimePicker.CustomFormat = "yyyy-MM-dd HH:mm:ss";
+      this.creationTimePicker.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+      this.creationTimePicker.Location = new System.Drawing.Point(284, 91);
+      this.creationTimePicker.Name = "creationTimePicker";
+      this.creationTimePicker.Size = new System.Drawing.Size(186, 20);
+      this.creationTimePicker.TabIndex = 14;
+      this.creationTimePicker.Value = new System.DateTime(2018, 12, 25, 0, 0, 0, 0);
+      this.creationTimePicker.ValueChanged += new System.EventHandler(this.creationTimePicker_ValueChanged);
+      // 
+      // useTimeOfBuildCheckBox
+      // 
+      this.useTimeOfBuildCheckBox.AutoSize = true;
+      this.useTimeOfBuildCheckBox.Location = new System.Drawing.Point(476, 91);
+      this.useTimeOfBuildCheckBox.Name = "useTimeOfBuildCheckBox";
+      this.useTimeOfBuildCheckBox.Size = new System.Drawing.Size(110, 17);
+      this.useTimeOfBuildCheckBox.TabIndex = 16;
+      this.useTimeOfBuildCheckBox.Text = "Use time of build?";
+      this.useTimeOfBuildCheckBox.UseVisualStyleBackColor = true;
+      this.useTimeOfBuildCheckBox.CheckedChanged += new System.EventHandler(this.creationDateCheckBox_CheckedChanged);
+      // 
+      // includeTimeCheckBox
+      // 
+      this.includeTimeCheckBox.AutoSize = true;
+      this.includeTimeCheckBox.Location = new System.Drawing.Point(476, 106);
+      this.includeTimeCheckBox.Name = "includeTimeCheckBox";
+      this.includeTimeCheckBox.Size = new System.Drawing.Size(89, 17);
+      this.includeTimeCheckBox.TabIndex = 17;
+      this.includeTimeCheckBox.Text = "Include time?";
+      this.includeTimeCheckBox.UseVisualStyleBackColor = true;
+      this.includeTimeCheckBox.CheckedChanged += new System.EventHandler(this.includeTimeCheckBox_CheckedChanged);
+      // 
       // GP4View
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+      this.Controls.Add(this.includeTimeCheckBox);
+      this.Controls.Add(this.useTimeOfBuildCheckBox);
+      this.Controls.Add(this.creationTimePicker);
+      this.Controls.Add(this.label6);
       this.Controls.Add(this.volumeTimestampPicker);
       this.Controls.Add(this.label5);
       this.Controls.Add(this.label4);
@@ -294,8 +344,9 @@
       this.Controls.Add(this.label1);
       this.Controls.Add(this.passcodeTextBox);
       this.Controls.Add(this.splitContainer1);
+      this.MinimumSize = new System.Drawing.Size(700, 400);
       this.Name = "GP4View";
-      this.Size = new System.Drawing.Size(703, 418);
+      this.Size = new System.Drawing.Size(700, 400);
       this.splitContainer1.Panel1.ResumeLayout(false);
       this.splitContainer1.Panel2.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
@@ -330,5 +381,9 @@
     private System.Windows.Forms.Label label4;
     private System.Windows.Forms.Label label5;
     private System.Windows.Forms.DateTimePicker volumeTimestampPicker;
+    private System.Windows.Forms.Label label6;
+    private System.Windows.Forms.DateTimePicker creationTimePicker;
+    private System.Windows.Forms.CheckBox useTimeOfBuildCheckBox;
+    private System.Windows.Forms.CheckBox includeTimeCheckBox;
   }
 }

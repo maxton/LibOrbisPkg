@@ -71,7 +71,25 @@ namespace PkgEditor.Views
         default:
           break;
       }
-      volumeTimestampPicker.Value = proj.volume.TimeStamp;
+      volumeTimestampPicker.Value = proj.volume.TimeStamp.ToLocalTime();
+      if (proj.volume.Package.CreationDate != null && proj.volume.Package.CreationDate != "actual_datetime")
+      {
+        creationTimePicker.Value = proj.volume.Package.CreationTimeStamp.ToLocalTime();
+        includeTimeCheckBox.Checked = proj.volume.Package.CreationDate.Contains(" ");
+        creationTimePicker.Enabled = true;
+        useTimeOfBuildCheckBox.Checked = false;
+      }
+      else
+      {
+        creationTimePicker.Value = proj.volume.TimeStamp.ToLocalTime();
+        creationTimePicker.Enabled = false;
+        useTimeOfBuildCheckBox.Checked = true;
+        includeTimeCheckBox.Checked = proj.volume.Package.CreationDate == "actual_datetime";
+      }
+      if (includeTimeCheckBox.Checked)
+        creationTimePicker.CustomFormat = "yyyy-MM-dd HH:mm:ss";
+      else
+        creationTimePicker.CustomFormat = "yyyy-MM-dd";
       contentIdTextBox.Text = proj.volume.Package.ContentId;
       passcodeTextBox.Text = proj.volume.Package.Passcode;
       entitlementKeyTextbox.Text = proj.volume.Package.EntitlementKey;
@@ -172,6 +190,10 @@ namespace PkgEditor.Views
         proj.volume.Package.ContentId = contentIdTextBox.Text;
         proj.volume.Package.Passcode = passcodeTextBox.Text;
         proj.volume.Package.EntitlementKey = entitlementKeyTextbox.Text;
+        if(entitlementKeyTextbox.Text == "")
+        {
+          proj.volume.Package.EntitlementKey = null;
+        }
       }
     }
 
@@ -412,7 +434,8 @@ namespace PkgEditor.Views
     private void volumeTimestampPicker_ValueChanged(object sender, EventArgs e)
     {
       if (!loaded) return;
-      proj.volume.TimeStamp = volumeTimestampPicker.Value;
+      proj.volume.TimeStamp = volumeTimestampPicker.Value.ToUniversalTime();
+      UpdateCreationDate();
       Modified = true;
     }
 
@@ -422,6 +445,43 @@ namespace PkgEditor.Views
       {
         DeleteSelectedFiles();
       }
+    }
+
+    private void UpdateCreationDate()
+    {
+      Modified = true;
+      if(useTimeOfBuildCheckBox.Checked)
+      {
+        proj.volume.Package.CreationDate = includeTimeCheckBox.Checked ? "actual_datetime" : null;
+      }
+      else
+      {
+        var str = creationTimePicker.Value.ToUniversalTime().ToString("s");
+        if (includeTimeCheckBox.Checked)
+          proj.volume.Package.CreationDate = str.Replace('T', ' ');
+        else
+          proj.volume.Package.CreationDate = str.Substring(0, 10);
+      }
+    }
+
+    private void creationDateCheckBox_CheckedChanged(object sender, EventArgs e)
+    {
+      if (!loaded) return;
+      UpdateCreationDate();
+      ReloadView();
+    }
+
+    private void includeTimeCheckBox_CheckedChanged(object sender, EventArgs e)
+    {
+      if (!loaded) return;
+      UpdateCreationDate();
+      ReloadView();
+    }
+
+    private void creationTimePicker_ValueChanged(object sender, EventArgs e)
+    {
+      if (!loaded) return;
+      UpdateCreationDate();
     }
   }
 }
