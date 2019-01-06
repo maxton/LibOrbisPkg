@@ -90,7 +90,7 @@ namespace PkgEditor.Views
     private void Reset()
     {
       if (proj == null) return;
-      valueTextBox.ReadOnly = nameTextBox.ReadOnly = @readonly;
+      maxLengthInput.ReadOnly = valueTextBox.ReadOnly = nameTextBox.ReadOnly = @readonly;
       typeDropDown.Enabled = toolStrip1.Enabled = maxLengthInput.Enabled = !@readonly;
       listView1.Items.Clear();
       foreach (var param in proj.Values)
@@ -137,7 +137,7 @@ namespace PkgEditor.Views
       }
       else
       {
-        typeDropDown.Enabled = true;
+        typeDropDown.Enabled = !@readonly;
         typeDropDown.SelectedIndex = v.Type == SfoEntryType.Integer ? 1 : v.Type == SfoEntryType.Utf8 ? 0 : 2;
 
         nameTextBox.Enabled = true;
@@ -148,7 +148,7 @@ namespace PkgEditor.Views
         if (sender != valueTextBox)
           valueTextBox.Text = v.ToString();
 
-        maxLengthInput.Enabled = v.Type != SfoEntryType.Integer;
+        maxLengthInput.Enabled = !@readonly && v.Type != SfoEntryType.Integer;
         if (sender != maxLengthInput)
           maxLengthInput.Value = v.MaxLength;
 
