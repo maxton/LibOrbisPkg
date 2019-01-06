@@ -87,20 +87,17 @@ namespace LibOrbisPkg.PFS
       };
       inodes = new List<inode>();
 
-      Log("Setting up root structure...");
+      Log("Setting up filesystem structure...");
       SetupRootStructure();
       allDirs = root.GetAllChildrenDirs();
       allFiles = root.GetAllChildrenFiles().Where(f => f.Parent?.name != "sce_sys" || !PKG.EntryNames.NameToId.ContainsKey(f.name)).ToList();
       allNodes = new List<FSNode>(allDirs);
       allNodes.AddRange(allFiles);
 
-      Log(string.Format("Creating directory inodes ({0})...", allDirs.Count));
+      Log($"Creating inodes ({allDirs.Count} dirs and {allFiles.Count} files)...");
       addDirInodes();
-
-      Log(string.Format("Creating file inodes ({0})...", allFiles.Count));
       addFileInodes();
-
-      Log("Creating flat_path_table...");
+      
       fpt = new FlatPathTable(allNodes);
 
       Log("Calculating data block layout...");
@@ -110,18 +107,15 @@ namespace LibOrbisPkg.PFS
 
     private void WriteData(Stream stream)
     {
-      Log("Writing header...");
+      Log("Writing data...");
       hdr.WriteToStream(stream);
-      Log("Writing inodes...");
       WriteInodes(stream);
-      Log("Writing superroot dirents");
       WriteSuperrootDirents(stream);
 
       var fpt_file = new FSFile(s => fpt.WriteToStream(s), "flat_path_table", fpt.Size);
       fpt_file.ino = fpt_ino;
       allNodes.Insert(0, fpt_file);
-
-      Log("Writing data blocks...");
+      
       for (var x = 0; x < allNodes.Count; x++)
       {
         var f = allNodes[x];
@@ -179,7 +173,7 @@ namespace LibOrbisPkg.PFS
 
         if (hdr.Mode.HasFlag(PfsMode.Encrypted))
         {
-          Log("Encrypting in parallel");
+          Log("Encrypting in parallel...");
           var encKey = Crypto.PfsGenEncKey(properties.EKPFS, hdr.Seed);
           var dataKey = new byte[16];
           var tweakKey = new byte[16];

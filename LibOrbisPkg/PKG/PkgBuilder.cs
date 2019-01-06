@@ -42,13 +42,13 @@ namespace LibOrbisPkg.PKG
       outerPfs.WriteImage(pkgFile, (long)pkg.Header.pfs_image_offset);
       if (pkg.Header.content_type == ContentType.GD)
       {
+        Logger("Calculating PlayGo digests in parallel...");
         CalcPlaygoDigests(pkg, pkgFile);
       }
       using (var pkgStream = pkgFile.CreateViewStream(0, (long)pkg.Header.package_size))
         FinishPkg(pkgStream);
 
       pkgFile.Dispose();
-      Logger("Done!");
       return pkg;
     }
 
@@ -66,10 +66,10 @@ namespace LibOrbisPkg.PKG
       outerPfs.WriteImage(new OffsetStream(s, (long)pkg.Header.pfs_image_offset));
       if (pkg.Header.content_type == ContentType.GD)
       {
+        Logger("Calculating PlayGo digests...");
         CalcPlaygoDigests(pkg, s);
       }
       FinishPkg(s);
-      Logger("Done!");
       return pkg;
     }
 
@@ -80,9 +80,9 @@ namespace LibOrbisPkg.PKG
     {
       // Write PFS first, to get stream length
       Logger("Preparing inner PFS...");
-      innerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeInnerPFSProps(project), x => Logger($"[innerpfs] {x}"));
+      innerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeInnerPFSProps(project), x => Logger($" [innerpfs] {x}"));
       Logger("Preparing outer PFS...");
-      outerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeOuterPFSProps(project, innerPfs, EKPFS), x => Logger($"[outerpfs] {x}"));
+      outerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeOuterPFSProps(project, innerPfs, EKPFS), x => Logger($" [outerpfs] {x}"));
       Logger("Preparing PKG header and body...");
       BuildPkg(outerPfs.CalculatePfsSize());
     }

@@ -38,14 +38,14 @@
       this.logBox.Multiline = true;
       this.logBox.Name = "logBox";
       this.logBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-      this.logBox.Size = new System.Drawing.Size(692, 215);
+      this.logBox.Size = new System.Drawing.Size(575, 257);
       this.logBox.TabIndex = 0;
       // 
       // LogWindow
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(692, 215);
+      this.ClientSize = new System.Drawing.Size(575, 257);
       this.Controls.Add(this.logBox);
       this.Name = "LogWindow";
       this.ShowIcon = false;
