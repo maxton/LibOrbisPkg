@@ -33,6 +33,10 @@ namespace LibOrbisPkg.GP4
     {
       XmlSerializer mySerializer = new XmlSerializer(typeof(Gp4Project));
       var proj = (Gp4Project)mySerializer.Deserialize(s);
+      if(proj.volume.chunk_info?.ScenariosInfo?.Count() == 0)
+      {
+        proj.volume.chunk_info.ScenariosInfo = null;
+      }
       // Fixup dir tree
       void setParent(List<Dir> dirs, Dir parent)
       {
