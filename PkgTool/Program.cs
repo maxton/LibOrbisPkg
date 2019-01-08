@@ -15,15 +15,8 @@ namespace PkgTool
   {
     static void Main(string[] args)
     {
-      if(!Verb.Run(Verbs, args, "PkgTool.exe"))
+      if(!Verb.Run(Verbs, args, AppDomain.CurrentDomain.FriendlyName))
       {
-        Console.WriteLine("PkgTool.exe <verb> [options ...]");
-        Console.WriteLine("");
-        Console.WriteLine("Verbs:");
-        foreach (var verb in Verbs)
-        {
-          Console.WriteLine($"  {verb}");
-        }
         Console.WriteLine();
         Console.WriteLine("Use passcode \"fake\" to decrypt a FAKE PKG without knowing the actual passcode.");
       }
@@ -310,6 +303,13 @@ namespace PkgTool
           Console.WriteLine($"Usage: {name} {v}");
         }
         return true;
+      }
+      Console.WriteLine($"Usage: {name} <verb> [options ...]");
+      Console.WriteLine("");
+      Console.WriteLine("Verbs:");
+      foreach (var verb in verbs)
+      {
+        Console.WriteLine($"  {verb}");
       }
       return false;
     }
