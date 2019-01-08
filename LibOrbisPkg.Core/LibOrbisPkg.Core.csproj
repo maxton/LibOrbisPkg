@@ -1,0 +1,63 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <RootNamespace>LibOrbisPkg</RootNamespace>
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>false</Optimize>
+    <DefineConstants>TRACE;DEBUG;CORE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <Optimize>true</Optimize>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>TRACE;CORE</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\LibOrbisPkg\GP4\Gp4Project.cs" Link="GP4\Gp4Project.cs" />
+    <Compile Include="..\LibOrbisPkg\PFS\FlatPathTable.cs" Link="PFS\FlatPathTable.cs" />
+    <Compile Include="..\LibOrbisPkg\PFS\FSTree.cs" Link="PFS\FSTree.cs" />
+    <Compile Include="..\LibOrbisPkg\PFS\PFSBuilder.cs" Link="PFS\PFSBuilder.cs" />
+    <Compile Include="..\LibOrbisPkg\PFS\PFSCWriter.cs" Link="PFS\PFSCWriter.cs" />
+    <Compile Include="..\LibOrbisPkg\PFS\PfsProperties.cs" Link="PFS\PfsProperties.cs" />
+    <Compile Include="..\LibOrbisPkg\PFS\PfsStructs.cs" Link="PFS\PfsStructs.cs" />
+    <Compile Include="..\LibOrbisPkg\PKG\Entry.cs" Link="PKG\Entry.cs" />
+    <Compile Include="..\LibOrbisPkg\PKG\Enums.cs" Link="PKG\Enums.cs" />
+    <Compile Include="..\LibOrbisPkg\PKG\Pkg.cs" Link="PKG\Pkg.cs" />
+    <Compile Include="..\LibOrbisPkg\PKG\PkgBuilder.cs" Link="PKG\PkgBuilder.cs" />
+    <Compile Include="..\LibOrbisPkg\PKG\PkgProperties.cs" Link="PKG\PkgProperties.cs" />
+    <Compile Include="..\LibOrbisPkg\PKG\PkgReader.cs" Link="PKG\PkgReader.cs" />
+    <Compile Include="..\LibOrbisPkg\PKG\PkgWriter.cs" Link="PKG\PkgWriter.cs" />
+    <Compile Include="..\LibOrbisPkg\PlayGo\ChunkDat.cs" Link="PlayGo\ChunkDat.cs" />
+    <Compile Include="..\LibOrbisPkg\PlayGo\Manifest.cs" Link="PlayGo\Manifest.cs" />
+    <Compile Include="..\LibOrbisPkg\Rif\LicenseDat.cs" Link="Rif\LicenseDat.cs" />
+    <Compile Include="..\LibOrbisPkg\Rif\LicenseInfo.cs" Link="Rif\LicenseInfo.cs" />
+    <Compile Include="..\LibOrbisPkg\SFO\ParamSfo.cs" Link="SFO\ParamSfo.cs" />
+    <Compile Include="..\LibOrbisPkg\Util\Crypto.cs" Link="Util\Crypto.cs" />
+    <Compile Include="..\LibOrbisPkg\Util\Extensions.cs" Link="Util\Extensions.cs" />
+    <Compile Include="..\LibOrbisPkg\Util\Keys.cs" Link="Util\Keys.cs" />
+    <Compile Include="..\LibOrbisPkg\Util\MersenneTwister.cs" Link="Util\MersenneTwister.cs" />
+    <Compile Include="..\LibOrbisPkg\Util\OffsetStream.cs" Link="Util\OffsetStream.cs" />
+    <Compile Include="..\LibOrbisPkg\Util\ReaderBase.cs" Link="Util\ReaderBase.cs" />
+    <Compile Include="..\LibOrbisPkg\Util\StreamExtensions.cs" Link="Util\StreamExtensions.cs" />
+    <Compile Include="..\LibOrbisPkg\Util\SubStream.cs" Link="Util\SubStream.cs" />
+    <Compile Include="..\LibOrbisPkg\Util\WriterBase.cs" Link="Util\WriterBase.cs" />
+    <Compile Include="..\LibOrbisPkg\Util\XtsBlockTransform.cs" Link="Util\XtsBlockTransform.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="GP4\" />
+    <Folder Include="PlayGo\" />
+    <Folder Include="Util\" />
+    <Folder Include="Rif\" />
+    <Folder Include="SFO\" />
+    <Folder Include="PFS\" />
+    <Folder Include="PKG\" />
+  </ItemGroup>
+
+</Project>

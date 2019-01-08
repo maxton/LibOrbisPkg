@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibArchiveExplorer", "GameA
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibOrbisPkgTests", "LibOrbisPkgTests\LibOrbisPkgTests.csproj", "{4BA1AA8A-A964-4E3D-9DDE-DC9F7749D3BE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibOrbisPkg.Core", "LibOrbisPkg.Core\LibOrbisPkg.Core.csproj", "{42CB09DF-61D0-4B0F-8462-10974FA356C7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,12 @@ Global
 		{4BA1AA8A-A964-4E3D-9DDE-DC9F7749D3BE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4BA1AA8A-A964-4E3D-9DDE-DC9F7749D3BE}.Release-minimal|Any CPU.ActiveCfg = Release|Any CPU
 		{4BA1AA8A-A964-4E3D-9DDE-DC9F7749D3BE}.Release-minimal|Any CPU.Build.0 = Release|Any CPU
+		{42CB09DF-61D0-4B0F-8462-10974FA356C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42CB09DF-61D0-4B0F-8462-10974FA356C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42CB09DF-61D0-4B0F-8462-10974FA356C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42CB09DF-61D0-4B0F-8462-10974FA356C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42CB09DF-61D0-4B0F-8462-10974FA356C7}.Release-minimal|Any CPU.ActiveCfg = Release|Any CPU
+		{42CB09DF-61D0-4B0F-8462-10974FA356C7}.Release-minimal|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
