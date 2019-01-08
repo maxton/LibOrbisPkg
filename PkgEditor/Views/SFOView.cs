@@ -53,7 +53,7 @@ namespace PkgEditor.Views
     }
 
     public override bool CanSave => Modified && !@readonly;
-    public override bool CanSaveAs => true && !@readonly;
+    public override bool CanSaveAs => true;
     public override void Save()
     {
       if (!CanSave) return;
@@ -81,6 +81,7 @@ namespace PkgEditor.Views
           {
             var sfoBytes = proj.Serialize();
             f.Write(sfoBytes, 0, sfoBytes.Length);
+            @readonly = false;
             Modified = false;
           }
         }
