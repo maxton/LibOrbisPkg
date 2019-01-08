@@ -28,6 +28,7 @@
     /// </summary>
     private void InitializeComponent()
     {
+      System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWin));
       this.tabs = new System.Windows.Forms.TabControl();
       this.menuStrip = new System.Windows.Forms.MenuStrip();
       this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -148,10 +149,10 @@
       this.ClientSize = new System.Drawing.Size(800, 450);
       this.Controls.Add(this.tabs);
       this.Controls.Add(this.menuStrip);
+      this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
       this.KeyPreview = true;
       this.MainMenuStrip = this.menuStrip;
       this.Name = "MainWin";
-      this.ShowIcon = false;
       this.Text = "PkgEditor";
       this.menuStrip.ResumeLayout(false);
       this.menuStrip.PerformLayout();
