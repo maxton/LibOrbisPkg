@@ -193,7 +193,7 @@ namespace LibOrbisPkg.Util
       var tmp = new byte[size];
       using (var pt_stream = new MemoryStream(@in))
       using (var ct_stream = new MemoryStream(tmp))
-      using (var dec = cipher.CreateEncryptor())
+      using (var dec = cipher.CreateEncryptor(key, iv))
       using (var s = new CryptoStream(ct_stream, dec, CryptoStreamMode.Write))
       {
         pt_stream.CopyTo(s);
@@ -215,7 +215,7 @@ namespace LibOrbisPkg.Util
       var tmp = new byte[size];
       using (var ct_stream = new MemoryStream(@in))
       using (var pt_stream = new MemoryStream(tmp))
-      using (var dec = cipher.CreateDecryptor())
+      using (var dec = cipher.CreateDecryptor(key, iv))
       using (var s = new CryptoStream(ct_stream, dec, CryptoStreamMode.Read))
       {
         s.CopyTo(pt_stream);
