@@ -1,3 +1,4 @@
+LittleEndian();
 char Magic[4];
 int unk; // zero
 int unk; // 2 or 6

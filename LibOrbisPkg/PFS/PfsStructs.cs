@@ -496,7 +496,7 @@ namespace LibOrbisPkg.PFS
       s.Write(new byte[remaining], 0, remaining);
     }
 
-    public PfsDirent ReadFromStream(Stream s)
+    public static PfsDirent ReadFromStream(Stream s)
     {
       var pos = s.Position;
       var d = new PfsDirent
@@ -505,8 +505,8 @@ namespace LibOrbisPkg.PFS
         Type = (DirentType)s.ReadInt32LE(),
         NameLength = s.ReadInt32LE(),
         EntSize = s.ReadInt32LE(),
-        name = s.ReadASCIINullTerminated(NameLength)
       };
+      d.name = s.ReadASCIINullTerminated(d.NameLength);
       s.Position = pos + d.EntSize;
       return d;
     }

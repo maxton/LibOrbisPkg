@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using GameArchives;
 using LibOrbisPkg.GP4;
 using LibOrbisPkg.PFS;
@@ -76,30 +78,47 @@ namespace PkgTool
           var pkgPath = args[1];
           var passcode = args[2];
           var outPath = args[3];
-          var pkgFile = Util.LocalFile(pkgPath);
           Pkg pkg;
-          using (var s = pkgFile.GetStream())
+
+          var mmf = MemoryMappedFile.CreateFromFile(pkgPath);
+          using (var s = mmf.CreateViewStream())
           {
             pkg = new PkgReader(s).ReadPkg();
           }
-          var keyString = new string(EkPfsFromPasscode(pkg, passcode).Select(b => (char)b).ToArray());
-          var package = PackageReader.ReadPackageFromFile(pkgFile, keyString);
-          var innerPfs = PackageReader.ReadPackageFromFile(package.GetFile("/pfs_image.dat"));
-          void ExtractDir(IDirectory dir, string path)
+          var ekpfs = EkPfsFromPasscode(pkg, passcode);
+          var outerPfsOffset = (long)pkg.Header.pfs_image_offset;
+          using(var acc = mmf.CreateViewAccessor(outerPfsOffset, (long)pkg.Header.pfs_image_size))
           {
-            foreach (IFile f in dir.Files)
-            {
-              Console.WriteLine(f.Name);
-              f.ExtractTo(Path.Combine(path, SafeName(f.Name)));
-            }
-            foreach (IDirectory d in dir.Dirs)
-            {
-              string newPath = Path.Combine(path, SafeName(d.Name));
-              Directory.CreateDirectory(newPath);
-              ExtractDir(d, newPath);
-            }
+            var outerPfs = new PfsReader(acc, ekpfs);
+            var inner = new PfsReader(new PFSCReader(outerPfs.GetFile("pfs_image.dat").GetView()));
+            Console.WriteLine("Extracting in parallel...");
+            Parallel.ForEach(
+              inner.GetAllFiles(),
+              () => new byte[0x10000],
+              (f,_,buf) =>
+              {
+                var size = f.size;
+                var pos = 0;
+                var view = f.GetView();
+                var path = Path.Combine(outPath, f.FullName.Replace('/','\\').Substring(1));
+                var dir = path.Substring(0, path.LastIndexOf('\\'));
+                Directory.CreateDirectory(dir);
+                using(var file = File.OpenWrite(path))
+                {
+                  file.SetLength(size);
+                  while(size > 0)
+                  {
+                    var toRead = (int)Math.Min(size, buf.Length);
+                    view.Read(pos, buf, 0, toRead);
+                    file.Write(buf, 0, toRead);
+                    pos += toRead;
+                    size -= toRead;
+                  }
+                }
+                return buf;
+              },
+              x => { });
           }
-          ExtractDir(innerPfs.RootDirectory, outPath);
         }),
       Verb.Create(
         "extractinnerpfs",
@@ -163,11 +182,7 @@ namespace PkgTool
             var pfs_seed = new byte[16];
             outer_pfs.Position = 0x370;
             outer_pfs.Read(pfs_seed, 0, 16);
-            var enc_key = Crypto.PfsGenEncKey(ekpfs, pfs_seed);
-            var data_key = new byte[16];
-            var tweak_key = new byte[16];
-            Buffer.BlockCopy(enc_key, 0, tweak_key, 0, 16);
-            Buffer.BlockCopy(enc_key, 16, data_key, 0, 16);
+            var (tweak_key, data_key) = Crypto.PfsGenEncKey(ekpfs, pfs_seed);
             var decrypt_stream = new GameArchives.PFS.XtsCryptStream(outer_pfs, data_key, tweak_key, 16, 0x1000);
             using (var o = File.Create(outPath))
             {

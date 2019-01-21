@@ -49,7 +49,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GP4\Gp4Project.cs" />
+    <Compile Include="PFS\PFSCReader.cs" />
     <Compile Include="PFS\PFSCWriter.cs" />
+    <Compile Include="PFS\PfsReader.cs" />
+    <Compile Include="PFS\XtsDecryptReader.cs" />
     <Compile Include="PKG\Entry.cs" />
     <Compile Include="PKG\Enums.cs" />
     <Compile Include="PKG\PkgBuilder.cs" />
@@ -71,6 +74,7 @@
     <Compile Include="Util\Crypto.cs" />
     <Compile Include="Util\Extensions.cs" />
     <Compile Include="Util\Keys.cs" />
+    <Compile Include="Util\MemoryMapped.cs" />
     <Compile Include="Util\MersenneTwister.cs" />
     <Compile Include="Util\OffsetStream.cs" />
     <Compile Include="Util\ReaderBase.cs" />

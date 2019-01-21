@@ -23,9 +23,12 @@
     <Compile Include="..\LibOrbisPkg\PFS\FlatPathTable.cs" Link="PFS\FlatPathTable.cs" />
     <Compile Include="..\LibOrbisPkg\PFS\FSTree.cs" Link="PFS\FSTree.cs" />
     <Compile Include="..\LibOrbisPkg\PFS\PFSBuilder.cs" Link="PFS\PFSBuilder.cs" />
+    <Compile Include="..\LibOrbisPkg\PFS\PFSCReader.cs" Link="PFS\PFSCReader.cs" />
     <Compile Include="..\LibOrbisPkg\PFS\PFSCWriter.cs" Link="PFS\PFSCWriter.cs" />
     <Compile Include="..\LibOrbisPkg\PFS\PfsProperties.cs" Link="PFS\PfsProperties.cs" />
+    <Compile Include="..\LibOrbisPkg\PFS\PfsReader.cs" Link="PFS\PfsReader.cs" />
     <Compile Include="..\LibOrbisPkg\PFS\PfsStructs.cs" Link="PFS\PfsStructs.cs" />
+    <Compile Include="..\LibOrbisPkg\PFS\XtsDecryptReader.cs" Link="PFS\XtsDecryptReader.cs" />
     <Compile Include="..\LibOrbisPkg\PKG\Entry.cs" Link="PKG\Entry.cs" />
     <Compile Include="..\LibOrbisPkg\PKG\Enums.cs" Link="PKG\Enums.cs" />
     <Compile Include="..\LibOrbisPkg\PKG\Pkg.cs" Link="PKG\Pkg.cs" />
@@ -41,6 +44,7 @@
     <Compile Include="..\LibOrbisPkg\Util\Crypto.cs" Link="Util\Crypto.cs" />
     <Compile Include="..\LibOrbisPkg\Util\Extensions.cs" Link="Util\Extensions.cs" />
     <Compile Include="..\LibOrbisPkg\Util\Keys.cs" Link="Util\Keys.cs" />
+    <Compile Include="..\LibOrbisPkg\Util\MemoryMapped.cs" Link="Util\MemoryMapped.cs" />
     <Compile Include="..\LibOrbisPkg\Util\MersenneTwister.cs" Link="Util\MersenneTwister.cs" />
     <Compile Include="..\LibOrbisPkg\Util\OffsetStream.cs" Link="Util\OffsetStream.cs" />
     <Compile Include="..\LibOrbisPkg\Util\ReaderBase.cs" Link="Util\ReaderBase.cs" />

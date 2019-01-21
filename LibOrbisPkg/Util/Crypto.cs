@@ -26,12 +26,16 @@ namespace LibOrbisPkg.Util
     }
 
     /// <summary>
-    /// From FPKG code:
-    /// an encryption key generator based on EKPFS and PFS header seed
+    /// Generates a (tweak, data) key pair for XTS
     /// </summary>
-    public static byte[] PfsGenEncKey(byte[] ekpfs, byte[] seed)
+    public static Tuple<byte[], byte[]> PfsGenEncKey(byte[] ekpfs, byte[] seed)
     {
-      return PfsGenCryptoKey(ekpfs, seed, 1);
+      var encKey = PfsGenCryptoKey(ekpfs, seed, 1);
+      var dataKey = new byte[16];
+      var tweakKey = new byte[16];
+      Buffer.BlockCopy(encKey, 0, tweakKey, 0, 16);
+      Buffer.BlockCopy(encKey, 16, dataKey, 0, 16);
+      return Tuple.Create(tweakKey, dataKey);
     }
 
     /// <summary>

@@ -192,12 +192,7 @@ namespace LibOrbisPkg.PFS
         if (hdr.Mode.HasFlag(PfsMode.Encrypted))
         {
           Log("Encrypting in parallel...");
-          var encKey = Crypto.PfsGenEncKey(properties.EKPFS, hdr.Seed);
-          var dataKey = new byte[16];
-          var tweakKey = new byte[16];
-          Buffer.BlockCopy(encKey, 0, tweakKey, 0, 16);
-          Buffer.BlockCopy(encKey, 16, dataKey, 0, 16);
-          
+          var (tweakKey, dataKey) = Crypto.PfsGenEncKey(properties.EKPFS, hdr.Seed);
           Parallel.ForEach(
             // generates sector indices for each sector to be encrypted
             XtsSectorGen(),
@@ -244,11 +239,7 @@ namespace LibOrbisPkg.PFS
       if (hdr.Mode.HasFlag(PfsMode.Encrypted))
       {
         Log("Encrypting...");
-        var encKey = Crypto.PfsGenEncKey(properties.EKPFS, hdr.Seed);
-        var dataKey = new byte[16];
-        var tweakKey = new byte[16];
-        Buffer.BlockCopy(encKey, 0, tweakKey, 0, 16);
-        Buffer.BlockCopy(encKey, 16, dataKey, 0, 16);
+        var (tweakKey,dataKey) = Crypto.PfsGenEncKey(properties.EKPFS, hdr.Seed);
         var transformer = new XtsBlockTransform(dataKey, tweakKey);
         byte[] sectorBuffer = new byte[xtsSectorSize];
         foreach (var xtsSector in XtsSectorGen())
