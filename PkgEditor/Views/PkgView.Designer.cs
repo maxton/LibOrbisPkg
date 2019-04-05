@@ -43,10 +43,14 @@
       this.passcodeTextBox = new System.Windows.Forms.TextBox();
       this.button1 = new System.Windows.Forms.Button();
       this.tabPage1 = new System.Windows.Forms.TabPage();
+      this.tabPage2 = new System.Windows.Forms.TabPage();
+      this.checkDigestsButton = new System.Windows.Forms.Button();
+      this.validateResult = new System.Windows.Forms.TextBox();
       this.tabControl1.SuspendLayout();
       this.headerTab.SuspendLayout();
       this.entriesTab.SuspendLayout();
       this.filesTab.SuspendLayout();
+      this.tabPage2.SuspendLayout();
       this.SuspendLayout();
       // 
       // tabControl1
@@ -55,6 +59,7 @@
       this.tabControl1.Controls.Add(this.entriesTab);
       this.tabControl1.Controls.Add(this.filesTab);
       this.tabControl1.Controls.Add(this.tabPage1);
+      this.tabControl1.Controls.Add(this.tabPage2);
       this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
       this.tabControl1.Location = new System.Drawing.Point(0, 0);
       this.tabControl1.Name = "tabControl1";
@@ -185,6 +190,39 @@
       this.tabPage1.Text = "SFO";
       this.tabPage1.UseVisualStyleBackColor = true;
       // 
+      // tabPage2
+      // 
+      this.tabPage2.Controls.Add(this.checkDigestsButton);
+      this.tabPage2.Controls.Add(this.validateResult);
+      this.tabPage2.Location = new System.Drawing.Point(4, 22);
+      this.tabPage2.Name = "tabPage2";
+      this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
+      this.tabPage2.Size = new System.Drawing.Size(535, 370);
+      this.tabPage2.TabIndex = 4;
+      this.tabPage2.Text = "Validate";
+      this.tabPage2.UseVisualStyleBackColor = true;
+      // 
+      // checkDigestsButton
+      // 
+      this.checkDigestsButton.Location = new System.Drawing.Point(6, 6);
+      this.checkDigestsButton.Name = "checkDigestsButton";
+      this.checkDigestsButton.Size = new System.Drawing.Size(126, 23);
+      this.checkDigestsButton.TabIndex = 1;
+      this.checkDigestsButton.Text = "Check PKG Digests";
+      this.checkDigestsButton.UseVisualStyleBackColor = true;
+      this.checkDigestsButton.Click += new System.EventHandler(this.checkDigests_Click);
+      // 
+      // validateResult
+      // 
+      this.validateResult.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.validateResult.Location = new System.Drawing.Point(6, 35);
+      this.validateResult.Multiline = true;
+      this.validateResult.Name = "validateResult";
+      this.validateResult.Size = new System.Drawing.Size(523, 329);
+      this.validateResult.TabIndex = 0;
+      // 
       // PkgView
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -197,6 +235,8 @@
       this.entriesTab.ResumeLayout(false);
       this.filesTab.ResumeLayout(false);
       this.filesTab.PerformLayout();
+      this.tabPage2.ResumeLayout(false);
+      this.tabPage2.PerformLayout();
       this.ResumeLayout(false);
 
     }
@@ -218,5 +258,8 @@
     private System.Windows.Forms.TextBox passcodeTextBox;
     private System.Windows.Forms.Button button1;
     private System.Windows.Forms.TabPage tabPage1;
+    private System.Windows.Forms.TabPage tabPage2;
+    private System.Windows.Forms.Button checkDigestsButton;
+    private System.Windows.Forms.TextBox validateResult;
   }
 }

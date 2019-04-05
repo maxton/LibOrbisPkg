@@ -203,6 +203,27 @@ namespace PkgEditor.Views
       }
     }
 
+    private void checkDigests_Click(object sender, EventArgs _)
+    {
+      validateResult.Text = "Checking PKG digests...";
+      Action<string> errorHandler = e => validateResult.Text += Environment.NewLine + $"Digest mismatch: {e}";
+      var validator = new PkgValidator(pkg, errorHandler);
+      CloseFileView();
+      using (var s = pkgFile.GetStream())
+      {
+        var errors = validator.Validate(s);
+        if (errors.Count == 0)
+        {
+          validateResult.Text += Environment.NewLine + "PKG Successfully validated";
+        }
+        else
+        {
+          validateResult.Text += Environment.NewLine + $"PKG Validation Failed: {errors.Count} hashes did not match";
+        }
+      }
+      ReopenFileView();
+    }
+
     private void button2_Click(object sender, EventArgs e)
     {
       using (var sfd = new SaveFileDialog())
