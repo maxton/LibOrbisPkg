@@ -1,9 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <RootNamespace>LibOrbisPkg</RootNamespace>
     <LangVersion>7.3</LangVersion>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -16,6 +17,8 @@
     <Optimize>true</Optimize>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>TRACE;CORE</DefineConstants>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,6 +38,7 @@
     <Compile Include="..\LibOrbisPkg\PKG\PkgBuilder.cs" Link="PKG\PkgBuilder.cs" />
     <Compile Include="..\LibOrbisPkg\PKG\PkgProperties.cs" Link="PKG\PkgProperties.cs" />
     <Compile Include="..\LibOrbisPkg\PKG\PkgReader.cs" Link="PKG\PkgReader.cs" />
+    <Compile Include="..\LibOrbisPkg\PKG\PkgValidator.cs" Link="PKG\PkgValidator.cs" />
     <Compile Include="..\LibOrbisPkg\PKG\PkgWriter.cs" Link="PKG\PkgWriter.cs" />
     <Compile Include="..\LibOrbisPkg\PlayGo\ChunkDat.cs" Link="PlayGo\ChunkDat.cs" />
     <Compile Include="..\LibOrbisPkg\PlayGo\Manifest.cs" Link="PlayGo\Manifest.cs" />

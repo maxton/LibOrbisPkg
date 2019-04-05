@@ -64,6 +64,7 @@
     <Compile Include="PKG\Pkg.cs" />
     <Compile Include="PKG\PkgProperties.cs" />
     <Compile Include="PKG\PkgReader.cs" />
+    <Compile Include="PKG\PkgValidator.cs" />
     <Compile Include="PKG\PkgWriter.cs" />
     <Compile Include="PlayGo\ChunkDat.cs" />
     <Compile Include="PlayGo\Manifest.cs" />

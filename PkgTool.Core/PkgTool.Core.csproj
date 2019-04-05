@@ -1,12 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
+    <RuntimeFrameworkVersion>2.2.0</RuntimeFrameworkVersion>
     <AssemblyName>PkgTool</AssemblyName>
     <RootNamespace>PkgTool</RootNamespace>
+    <StartupObject>PkgTool.Program</StartupObject>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
+  
   <ItemGroup>
     <Compile Include="..\PkgTool\Program.cs" Link="Program.cs" />
   </ItemGroup>
