@@ -20,6 +20,11 @@ namespace PkgEditor.Views
     public override bool CanSave => false;
     public override bool CanSaveAs => false;
 
+    public override void Close()
+    {
+      CloseFileView();
+    }
+
     private Pkg pkg;
     private IFile pkgFile;
 

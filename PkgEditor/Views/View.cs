@@ -15,5 +15,6 @@ namespace PkgEditor.Views
     public virtual bool CanSaveAs { get; }
     public virtual void Save() { }
     public virtual void SaveAs() { }
+    public virtual void Close() { }
   }
 }

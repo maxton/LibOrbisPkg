@@ -94,6 +94,7 @@ namespace PkgEditor
 
     private void closeToolStripMenuItem_Click(object sender, EventArgs e)
     {
+      CurrentView?.Close();
       tabs.TabPages.Remove(tabs.SelectedTab);
       UpdateSaveButtons();
       if (tabs.TabPages.Count == 0)
