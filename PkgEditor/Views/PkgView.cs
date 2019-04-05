@@ -26,6 +26,7 @@ namespace PkgEditor.Views
     public PkgView(IFile pkgFile)
     {
       InitializeComponent();
+      if (pkgFile == null) return;
       this.pkgFile = pkgFile;
       using (var s = pkgFile.GetStream())
         ObjectPreview(new PkgReader(s).ReadHeader());
@@ -34,29 +35,9 @@ namespace PkgEditor.Views
       var sfoEditor = new SFOView(pkg.ParamSfo.ParamSfo, true);
       sfoEditor.Dock = DockStyle.Fill;
       tabPage1.Controls.Add(sfoEditor);
-      try
-      {
-        var dk3 = Crypto.RSA2048Decrypt(pkg.EntryKeys.Keys[3].key, RSAKeyset.PkgDerivedKey3Keyset);
-        var iv_key = Crypto.Sha256(
-          pkg.ImageKey.meta.GetBytes()
-          .Concat(dk3)
-          .ToArray());
-        var imageKeyDecrypted = pkg.ImageKey.FileData.Clone() as byte[];
-        Crypto.AesCbcCfb128Decrypt(
-          imageKeyDecrypted,
-          imageKeyDecrypted,
-          imageKeyDecrypted.Length,
-          iv_key.Skip(16).Take(16).ToArray(),
-          iv_key.Take(16).ToArray());
-        var ekpfs = Crypto.RSA2048Decrypt(imageKeyDecrypted, RSAKeyset.FakeKeyset);
-        var package = PackageReader.ReadPackageFromFile(pkgFile, new string(ekpfs.Select(b => (char)b).ToArray()));
-        var innerPfs = PackageReader.ReadPackageFromFile(package.GetFile("/pfs_image.dat"));
-        var view = new PackageView(innerPfs, PackageManager.GetInstance());
-        view.Dock = DockStyle.Fill;
-        filesTab.Controls.Clear();
-        filesTab.Controls.Add(view);
-      } catch (Exception) {
-      }
+
+      ekpfs = pkg.GetEkpfs();
+      ReopenFileView();
 
       foreach(var e in pkg.Metas.Metas)
       {
@@ -173,34 +154,37 @@ namespace PkgEditor.Views
       nodes.Add(node);
     }
 
-    private string passcode;
-    AbstractPackage package, innerPfs;
-    private bool pkg_loaded;
+    private byte[] ekpfs;
+    Action closePkg;
     private void CloseFileView()
     {
-
+      closePkg?.Invoke();
+      closePkg = null;
     }
 
     private void ReopenFileView()
     {
+      if (!pkg.CheckEkpfs(ekpfs))
+        return;
 
+      var package = PackageReader.ReadPackageFromFile(pkgFile, new string(ekpfs.Select(b => (char)b).ToArray()));
+      closePkg = () => package.Dispose();
+      var innerPfs = PackageReader.ReadPackageFromFile(package.GetFile("/pfs_image.dat"));
+      closePkg = () => { innerPfs.Dispose(); package.Dispose(); };
+      var view = new PackageView(innerPfs, PackageManager.GetInstance());
+      view.Dock = DockStyle.Fill;
+      filesTab.Controls.Clear();
+      filesTab.Controls.Add(view);
     }
 
     private void button1_Click(object sender, EventArgs e)
     {
-      try
+      if(pkg.CheckPasscode(passcodeTextBox.Text))
       {
-        var ekpfs = new string(Crypto.ComputeKeys(pkg.Header.content_id, passcodeTextBox.Text, 1)
-          .Select(b => (char)b).ToArray());
-        package = PackageReader.ReadPackageFromFile(pkgFile, ekpfs);
-        innerPfs = PackageReader.ReadPackageFromFile(package.GetFile("/pfs_image.dat"));
-        var view = new PackageView(innerPfs, PackageManager.GetInstance());
-        view.Dock = DockStyle.Fill;
-        filesTab.Controls.Clear();
-        filesTab.Controls.Add(view);
-        passcode = passcodeTextBox.Text;
+        ekpfs = Crypto.ComputeKeys(pkg.Header.content_id, passcodeTextBox.Text, 1);
+        ReopenFileView();
       }
-      catch (Exception)
+      else
       {
         MessageBox.Show("Invalid passcode!");
       }

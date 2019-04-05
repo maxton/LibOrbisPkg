@@ -254,27 +254,10 @@ namespace PkgTool
     private static byte[] EkPfsFromPasscode(Pkg pkg, string passcode)
     {
       if (passcode == "fake")
-      {
-        var dk3 = Crypto.RSA2048Decrypt(pkg.EntryKeys.Keys[3].key, RSAKeyset.PkgDerivedKey3Keyset);
-        var iv_key = Crypto.Sha256(
-          pkg.ImageKey.meta.GetBytes()
-          .Concat(dk3)
-          .ToArray());
-        var imageKeyDecrypted = pkg.ImageKey.FileData.Clone() as byte[];
-        Crypto.AesCbcCfb128Decrypt(
-          imageKeyDecrypted,
-          imageKeyDecrypted,
-          imageKeyDecrypted.Length,
-          iv_key.Skip(16).Take(16).ToArray(),
-          iv_key.Take(16).ToArray());
-        return Crypto.RSA2048Decrypt(imageKeyDecrypted, RSAKeyset.FakeKeyset);
-      }
+        return pkg.GetEkpfs();
       else
-      {
         return Crypto.ComputeKeys(pkg.Header.content_id, passcode, 1);
-      }
     }
-
   }
 
   public class Verb

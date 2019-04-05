@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using LibOrbisPkg.Util;
 
 namespace LibOrbisPkg.PKG
 {
@@ -66,6 +69,52 @@ namespace LibOrbisPkg.PKG
     public const int PKG_CONTENT_ID_SIZE = 0x30;
     public const int PKG_HEADER_SIZE = 0x5A0;
     public const int PKG_ENTRY_KEYSET_ENC_SIZE = 0x100;
+
+    /// <summary>
+    /// Decrypts the EKPFS for a fake PKG. Will not work on non-fake PKGs.
+    /// </summary>
+    /// <param name="pkg"></param>
+    /// <param name="passcode"></param>
+    /// <returns></returns>
+    public byte[] GetEkpfs()
+    {
+      try
+      {
+        var dk3 = Crypto.RSA2048Decrypt(EntryKeys.Keys[3].key, RSAKeyset.PkgDerivedKey3Keyset);
+        var iv_key = Crypto.Sha256(ImageKey.meta.GetBytes().Concat(dk3).ToArray());
+        var imageKeyDecrypted = ImageKey.FileData.Clone() as byte[];
+        Crypto.AesCbcCfb128Decrypt(
+          imageKeyDecrypted,
+          imageKeyDecrypted,
+          imageKeyDecrypted.Length,
+          iv_key.Skip(16).Take(16).ToArray(),
+          iv_key.Take(16).ToArray());
+        return Crypto.RSA2048Decrypt(imageKeyDecrypted, RSAKeyset.FakeKeyset);
+      }
+      catch
+      {
+        return new byte[32];
+      }
+    }
+
+    /// <summary>
+    /// Checks if the given passcode is valid for this pkg
+    /// </summary>
+    /// <param name="passcode"></param>
+    /// <returns>True if the passcode is correct</returns>
+    public bool CheckPasscode(string passcode)
+    {
+      var dk0 = Crypto.ComputeKeys(Header.content_id, passcode, 0);
+      var digest0 = Crypto.Sha256(dk0).Xor(dk0);
+      return digest0.SequenceEqual(EntryKeys.Keys[0].digest);
+    }
+
+    public bool CheckEkpfs(byte[] dk1)
+    {
+      var digest = Crypto.Sha256(dk1).Xor(dk1);
+      return digest.SequenceEqual(EntryKeys.Keys[1].digest);
+    }
+
   }
 
 
