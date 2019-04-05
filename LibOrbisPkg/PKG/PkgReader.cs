@@ -50,6 +50,10 @@ namespace LibOrbisPkg.PKG
               meta = entry
             };
             break;
+          case EntryId.GENERAL_DIGESTS:
+            s.Position = entry.DataOffset;
+            pkg.GeneralDigests = GeneralDigestsEntry.Read(s);
+            break;
         }
       }
       return pkg;

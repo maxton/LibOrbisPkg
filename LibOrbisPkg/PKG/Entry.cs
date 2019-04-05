@@ -326,6 +326,20 @@ namespace LibOrbisPkg.PKG
         s.Position += 0xA0;
       }
     }
+
+    public static GeneralDigestsEntry Read(Stream s)
+    {
+      var ret = new GeneralDigestsEntry();
+      ret.unk1 = s.ReadUInt16BE();
+      ret.type = s.ReadUInt16BE();
+      s.Position += 24;
+      ret.set_digests = (GeneralDigest)s.ReadUInt32BE();
+      for(var d = GeneralDigest.ContentDigest; (int)d < 1 << 15; d = (GeneralDigest)((int)d << 1))
+      {
+        s.Read(ret.Digests[d], 0, 32);
+      }
+      return ret;
+    }
   }
 
   public class MetasEntry : Entry
