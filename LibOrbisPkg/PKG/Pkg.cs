@@ -115,6 +115,66 @@ namespace LibOrbisPkg.PKG
       return digest.SequenceEqual(EntryKeys.Keys[1].digest);
     }
 
+    /// <summary>
+    /// Calculates the digests for the GeneralDigests entry.
+    /// Preconditions: the following are set
+    ///   - ParamSfo
+    ///   - Content ID
+    ///   - drm_type
+    ///   - content_type
+    ///   - pfs_image_digest (if there is a pfs image)
+    ///   - all header values from 0x0 to 0x40
+    ///   - all header values from 0x400 to 0x480
+    /// </summary>
+    public Dictionary<GeneralDigest, byte[]> CalcGeneralDigests()
+    {
+      var sfo = ParamSfo.ParamSfo;
+      var majorParamString = "ATTRIBUTE" + sfo["ATTRIBUTE"];
+      if (sfo["ATTRIBUTE2"] is SFO.Value v)
+        majorParamString += "ATTRIBUTE2" + v;
+      majorParamString += "CATEGORY" + sfo["CATEGORY"];
+      majorParamString += "FORMAT" + sfo["FORMAT"];
+      majorParamString += "PUBTOOLVER" + sfo["PUBTOOLVER"];
+      var majorParamDigest = Crypto.Sha256(Encoding.ASCII.GetBytes(majorParamString));
+      byte[] ContentDigest;
+      using (var ms = new MemoryStream())
+      {
+        ms.Write(Encoding.ASCII.GetBytes(Header.content_id), 0, 36);
+        ms.Write(new byte[12], 0, 12);
+        ms.WriteInt32BE((int)Header.drm_type);
+        ms.WriteInt32BE((int)Header.content_type);
+
+        if (Header.content_type == ContentType.AC
+          || Header.content_type == ContentType.GD
+          || Header.content_flags.HasFlag(ContentFlags.GD_AC))
+        {
+          ms.Write(Header.pfs_image_digest, 0, 32);
+        }
+        ms.Write(majorParamDigest, 0, 32);
+        ContentDigest = Crypto.Sha256(ms);
+      }
+      byte[] headerDigest;
+      using (var ms = new MemoryStream())
+      {
+        new PkgWriter(ms).WriteHeader(Header);
+        using (var hash = SHA256.Create())
+        {
+          ms.Position = 0;
+          hash.TransformBlock(ms.ReadBytes(64), 0, 64, null, 0);
+          ms.Position = 0x400;
+          hash.TransformFinalBlock(ms.ReadBytes(128), 0, 128);
+          headerDigest = hash.Hash;
+        }
+      }
+      return new Dictionary<GeneralDigest, byte[]>
+      {
+        { GeneralDigest.HeaderDigest, headerDigest },
+        { GeneralDigest.GameDigest, Header.pfs_image_digest },
+        { GeneralDigest.ContentDigest, ContentDigest },
+        { GeneralDigest.MajorParamDigest, majorParamDigest },
+        { GeneralDigest.ParamDigest, Crypto.Sha256(ParamSfo.ParamSfo.Serialize()) },
+      };
+    }
   }
 
 

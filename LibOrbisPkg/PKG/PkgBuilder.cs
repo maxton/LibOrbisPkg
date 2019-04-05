@@ -98,7 +98,8 @@ namespace LibOrbisPkg.PKG
       pkg.Header.pfs_signed_digest = Crypto.Sha256(pkgStream, (long)pkg.Header.pfs_image_offset, 0x10000);
       pkg.Header.pfs_image_digest = Crypto.Sha256(pkgStream, (long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size);
 
-      CalcGeneralDigests(pkg);
+      foreach(var a in pkg.CalcGeneralDigests())
+        pkg.GeneralDigests.Set(a.Key, a.Value);
 
       // Write body now because it will make calculating hashes easier.
       var writer = new PkgWriter(pkgStream);
@@ -117,52 +118,6 @@ namespace LibOrbisPkg.PKG
       byte[] header_sha256 = Crypto.Sha256(pkgStream, 0, 0x1000);
       pkgStream.Position = 0x1000;
       pkgStream.Write(pkg.HeaderSignature = Crypto.RSA2048EncryptKey(Keys.PkgSignKey, header_sha256), 0, 256);
-    }
-
-    /// <summary>
-    /// Calculates the digests for the GeneralDigests entry
-    /// </summary>
-    /// <param name="pkg"></param>
-    private static void CalcGeneralDigests(Pkg pkg)
-    {
-      var sfo = pkg.ParamSfo.ParamSfo;
-      var majorParamString =
-        "ATTRIBUTE" + sfo["ATTRIBUTE"] +
-        "CATEGORY" + sfo["CATEGORY"] +
-        "FORMAT" + sfo["FORMAT"] +
-        "PUBTOOLVER" + sfo["PUBTOOLVER"];
-      pkg.GeneralDigests.Set(GeneralDigest.MajorParamDigest,
-        Crypto.Sha256(Encoding.ASCII.GetBytes(majorParamString)));
-      using (var ms = new MemoryStream())
-      {
-        ms.Write(Encoding.ASCII.GetBytes(pkg.Header.content_id), 0, 36);
-        ms.Write(new byte[12], 0, 12);
-        ms.WriteInt32BE((int)pkg.Header.drm_type);
-        ms.WriteInt32BE((int)pkg.Header.content_type);
-
-        if (pkg.Header.content_type == ContentType.AC
-          || pkg.Header.content_type == ContentType.GD
-          || pkg.Header.content_flags.HasFlag(ContentFlags.GD_AC))
-        {
-          ms.Write(pkg.Header.pfs_image_digest, 0, 32);
-        }
-        ms.Write(pkg.GeneralDigests.Digests[GeneralDigest.MajorParamDigest], 0, 32);
-        pkg.GeneralDigests.Set(GeneralDigest.ContentDigest, Crypto.Sha256(ms));
-      }
-      pkg.GeneralDigests.Set(GeneralDigest.GameDigest, pkg.Header.pfs_image_digest);
-      using (var ms = new MemoryStream())
-      {
-        new PkgWriter(ms).WriteHeader(pkg.Header);
-        using (var hash = System.Security.Cryptography.SHA256.Create())
-        {
-          ms.Position = 0;
-          hash.TransformBlock(ms.ReadBytes(64), 0, 64, null, 0);
-          ms.Position = 0x400;
-          hash.TransformFinalBlock(ms.ReadBytes(128), 0, 128);
-          pkg.GeneralDigests.Set(GeneralDigest.HeaderDigest, hash.Hash);
-        }
-      }
-      pkg.GeneralDigests.Set(GeneralDigest.ParamDigest, Crypto.Sha256(pkg.ParamSfo.ParamSfo.Serialize()));
     }
 
     /// <summary>
