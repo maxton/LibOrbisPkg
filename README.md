@@ -11,15 +11,20 @@ All code in this repository is licensed under the GNU LGPL version 3, which can 
 
 ### PkgEditor
 PkgEditor is a GUI tool with which you can edit GP4 projects, create and edit SFO files, and build PKG and PFS archives.
-
-![SFO Screenshot](https://i.imgur.com/iWmkQVi.png)
-
-![GP4 Screenshot](https://i.imgur.com/CTFpZXW.png)
-
 The tool also supports opening PKGs directly. You can see the header, entries, and if the package is a fake PKG or
 you enter a passcode, you can browse files as well.
 
-![PKG Screenshot](https://i.imgur.com/EItFUff.png)
+#### [Screenshots](https://imgur.com/a/n0cP5Ox)
+
+![SFO Screenshot](https://i.imgur.com/jad4qWZ.png)
+
+![GP4 Screenshot](https://i.imgur.com/cjEzB6T.png)
+
+![PKG Header](https://i.imgur.com/X5zRkRt.png)
+
+![PKG Files](https://i.imgur.com/1rvFgqC.png)
+
+![PKG Digest Check](https://i.imgur.com/pFIVRNh.png)
 
 ### PkgTool
 ```
