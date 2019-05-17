@@ -10,14 +10,16 @@
     <Platforms>AnyCPU</Platforms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  
-  <ItemGroup Condition="'$(Configuration)|$(Platform)'!='Release|AnyCPU'">
-    <!-- This is an alpha release of the ILCompiler that allows us to make a single binary -->
+
+  <!-- This is an alpha release of the ILCompiler that allows us to make a single binary -->
+  <!--
+  <ItemGroup>
     <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="1.0.0-*" />
     <Compile Include="..\PkgTool\Program.cs" Link="Program.cs" />
   </ItemGroup>
-
-  <ItemGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+  -->
+  
+  <ItemGroup>
     <Compile Include="..\PkgTool\Program.cs" Link="Program.cs" />
   </ItemGroup>
 
