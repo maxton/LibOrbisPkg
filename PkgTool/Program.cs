@@ -260,8 +260,8 @@ namespace PkgTool
           var size = f.size;
           var pos = 0;
           var view = f.GetView();
-          var path = Path.Combine(outPath, f.FullName.Replace('/', '\\').Substring(1));
-          var dir = path.Substring(0, path.LastIndexOf('\\'));
+          var path = Path.Combine(outPath, f.FullName.Replace('/', Path.DirectorySeparatorChar).Substring(1));
+          var dir = path.Substring(0, path.LastIndexOf(Path.DirectorySeparatorChar));
           Directory.CreateDirectory(dir);
           using (var file = File.OpenWrite(path))
           {
