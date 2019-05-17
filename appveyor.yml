@@ -30,8 +30,7 @@ build:
 
 after_build:
  - >
-   7z a LibOrbisPkg-%APPVEYOR_BUILD_VERSION%.zip 
-   %APPVEYOR_BUILD_FOLDER%\PkgTool\bin\Release\PkgTool.exe
+   7z a PkgEditor-%APPVEYOR_BUILD_VERSION%.zip 
    %APPVEYOR_BUILD_FOLDER%\PkgEditor\bin\Release\PkgEditor.exe
    %APPVEYOR_BUILD_FOLDER%\PkgEditor\bin\Release\GameArchives.dll
    %APPVEYOR_BUILD_FOLDER%\PkgEditor\bin\Release\LibArchiveExplorer.dll
@@ -39,11 +38,37 @@ after_build:
    %APPVEYOR_BUILD_FOLDER%\README.md
    %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
  - >
-   7z a LibOrbisPkg-NetCore-%APPVEYOR_BUILD_VERSION%.zip 
-   %APPVEYOR_BUILD_FOLDER%\LibOrbisPkg.Core\bin\Release\netcoreapp2.2\LibOrbisPkg.Core.dll
-   %APPVEYOR_BUILD_FOLDER%\PkgTool.Core\bin\Release\netcoreapp2.2\PkgTool.dll
+   7z a PkgTool-%APPVEYOR_BUILD_VERSION%.zip 
+   %APPVEYOR_BUILD_FOLDER%\PkgTool\bin\Release\PkgTool.exe
+   %APPVEYOR_BUILD_FOLDER%\LibOrbisPkg\bin\Release\LibOrbisPkg.dll
+   %APPVEYOR_BUILD_FOLDER%\README.md
+   %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
+ - >
+   7z a LibOrbisPkg-%APPVEYOR_BUILD_VERSION%.zip 
+   %APPVEYOR_BUILD_FOLDER%\LibOrbisPkg\bin\Release\LibOrbisPkg.dll
    %APPVEYOR_BUILD_FOLDER%\README.md
    %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
 artifacts:
+- path: PkgEditor-%APPVEYOR_BUILD_VERSION%.zip
+- path: PkgTool-%APPVEYOR_BUILD_VERSION%.zip
 - path: LibOrbisPkg-%APPVEYOR_BUILD_VERSION%.zip
-- path: LibOrbisPkg-NetCore-%APPVEYOR_BUILD_VERSION%.zip
+
+deploy:
+  release: LibOrbisPkg-v$(appveyor_build_version)
+  description: |
+    This is an automated release from AppVeyor.
+
+    Download PkgEditor-$(appveyor_build_version).zip for the GUI,
+    PkgTool-$(appveyor_build_version).zip for the command line tool,
+    or LibOrbisPkg-$(appveyor_build_version).zip for just the library.
+
+    These require .NET Framework 4.
+  provider: GitHub
+  auth_token:
+    secure: z9kvAXqpBrX9O9Rx3u2gnIsitemVB0lFy54njPk2DUY+gK6F6S4Z10kh/mrFP+xD
+  artifact: /.*\.zip/
+  draft: false
+  prerelease: false
+  on:
+    branch: master
+#   APPVEYOR_REPO_TAG: true
