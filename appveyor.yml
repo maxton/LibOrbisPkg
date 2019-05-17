@@ -71,4 +71,4 @@ deploy:
   prerelease: false
   on:
     branch: master
-#   APPVEYOR_REPO_TAG: true
+    APPVEYOR_REPO_TAG: true
