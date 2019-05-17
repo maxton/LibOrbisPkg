@@ -8,15 +8,20 @@
     <RootNamespace>PkgTool</RootNamespace>
     <StartupObject>PkgTool.Program</StartupObject>
     <Platforms>AnyCPU</Platforms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-
   
-  <ItemGroup>
+  <ItemGroup Condition="'$(Configuration)|$(Platform)'!='Release|AnyCPU'">
+    <!-- This is an alpha release of the ILCompiler that allows us to make a single binary -->
+    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="1.0.0-*" />
+    <Compile Include="..\PkgTool\Program.cs" Link="Program.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <Compile Include="..\PkgTool\Program.cs" Link="Program.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GameArchives\Library\GameArchives.csproj" />
     <ProjectReference Include="..\LibOrbisPkg.Core\LibOrbisPkg.Core.csproj" />
   </ItemGroup>
 

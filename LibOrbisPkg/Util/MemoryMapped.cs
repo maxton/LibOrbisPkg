@@ -77,7 +77,7 @@ namespace LibOrbisPkg.Util
       reader.ReadArray(pos + this.offset, value, offset, count);
     }
   }
-  class MemoryMappedViewAccessor_ : IMemoryAccessor
+  public class MemoryMappedViewAccessor_ : IMemoryAccessor
   {
     private MemoryMappedViewAccessor _va;
     private bool shouldDispose;

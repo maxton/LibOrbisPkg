@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using GameArchives;
 using LibOrbisPkg.GP4;
 using LibOrbisPkg.PFS;
 using LibOrbisPkg.PKG;
@@ -27,7 +25,7 @@ namespace PkgTool
     public static Verb[] Verbs = new[]
     {
       Verb.Create(
-        "makepfs", 
+        "makepfs",
         ArgDef.List("input_project.gp4", "output_pfs.dat"),
         args =>
         {
@@ -91,33 +89,21 @@ namespace PkgTool
           {
             var outerPfs = new PfsReader(acc, ekpfs);
             var inner = new PfsReader(new PFSCReader(outerPfs.GetFile("pfs_image.dat").GetView()));
-            Console.WriteLine("Extracting in parallel...");
-            Parallel.ForEach(
-              inner.GetAllFiles(),
-              () => new byte[0x10000],
-              (f,_,buf) =>
-              {
-                var size = f.size;
-                var pos = 0;
-                var view = f.GetView();
-                var path = Path.Combine(outPath, f.FullName.Replace('/','\\').Substring(1));
-                var dir = path.Substring(0, path.LastIndexOf('\\'));
-                Directory.CreateDirectory(dir);
-                using(var file = File.OpenWrite(path))
-                {
-                  file.SetLength(size);
-                  while(size > 0)
-                  {
-                    var toRead = (int)Math.Min(size, buf.Length);
-                    view.Read(pos, buf, 0, toRead);
-                    file.Write(buf, 0, toRead);
-                    pos += toRead;
-                    size -= toRead;
-                  }
-                }
-                return buf;
-              },
-              x => { });
+            ExtractInParallel(inner, outPath);
+          }
+        }),
+      Verb.Create(
+        "extractpfs",
+        ArgDef.List("input.dat", "output_directory"),
+        args =>
+        {
+          var pfsPath = args[1];
+          var outPath = args[2];
+          using(var mmf = MemoryMappedFile.CreateFromFile(pfsPath))
+          using(var acc = mmf.CreateViewAccessor())
+          {
+            var pfs = new PfsReader(acc);
+            ExtractInParallel(pfs, outPath);
           }
         }),
       Verb.Create(
@@ -128,20 +114,33 @@ namespace PkgTool
           var pkgPath = args[1];
           var passcode = args[2];
           var outPath = args[3];
-          var pkgFile = Util.LocalFile(pkgPath);
+
           Pkg pkg;
-          using (var s = pkgFile.GetStream())
+          var mmf = MemoryMappedFile.CreateFromFile(pkgPath);
+          using (var s = mmf.CreateViewStream())
           {
             pkg = new PkgReader(s).ReadPkg();
           }
-          var keyString = new string(EkPfsFromPasscode(pkg, passcode).Select(b => (char)b).ToArray());
-          var package = PackageReader.ReadPackageFromFile(pkgFile, keyString);
-          var innerPfs = package.GetFile("/pfs_image.dat");
-          using (var ipfs = innerPfs.GetStream())
-          using (var o = File.Create(outPath))
-          using (var ipfs_d = new GameArchives.PFS.PFSCDecompressStream(ipfs))
+          var ekpfs = EkPfsFromPasscode(pkg, passcode);
+          var outerPfsOffset = (long)pkg.Header.pfs_image_offset;
+          using(var acc = mmf.CreateViewAccessor(outerPfsOffset, (long)pkg.Header.pfs_image_size))
           {
-            ipfs_d.CopyTo(o);
+            var outerPfs = new PfsReader(acc, ekpfs);
+            var inner = outerPfs.GetFile("pfs_image.dat");
+            using(var v = inner.GetView())
+            using(var f = File.OpenWrite(outPath))
+            {
+              var buf = new byte[1024 * 1024];
+              long wrote = 0;
+              while(wrote < inner.size)
+              {
+                int toWrite = (int)Math.Min(inner.size - wrote, buf.Length);
+                if(toWrite <= 0) break;
+                v.Read(wrote, buf, 0, toWrite);
+                f.Write(buf, 0, toWrite);
+                wrote += toWrite;
+              }
+            }
           }
         }),
       Verb.Create(
@@ -151,9 +150,8 @@ namespace PkgTool
         {
           var pkgPath = args[1];
           var outPath = args[2];
-          var pkgFile = Util.LocalFile(pkgPath);
           Pkg pkg;
-          using (var s = pkgFile.GetStream())
+          using (var s = File.OpenRead(pkgPath))
           {
             pkg = new PkgReader(s).ReadPkg();
             var outer_pfs = new OffsetStream(s, (long)pkg.Header.pfs_image_offset);
@@ -172,9 +170,8 @@ namespace PkgTool
           var pkgPath = args[1];
           var passcode = args[2];
           var outPath = args[3];
-          var pkgFile = Util.LocalFile(pkgPath);
           Pkg pkg;
-          using (var s = pkgFile.GetStream())
+          using (var s = File.OpenRead(pkgPath))
           {
             pkg = new PkgReader(s).ReadPkg();
             var outer_pfs = new OffsetStream(s, (long)pkg.Header.pfs_image_offset);
@@ -182,16 +179,28 @@ namespace PkgTool
             var pfs_seed = new byte[16];
             outer_pfs.Position = 0x370;
             outer_pfs.Read(pfs_seed, 0, 16);
-            var (tweak_key, data_key) = Crypto.PfsGenEncKey(ekpfs, pfs_seed);
-            var decrypt_stream = new GameArchives.PFS.XtsCryptStream(outer_pfs, data_key, tweak_key, 16, 0x1000);
-            using (var o = File.Create(outPath))
+            var outerpfs_size = outer_pfs.Length;
+            var (tweakKey, dataKey) = Crypto.PfsGenEncKey(ekpfs, pfs_seed);
+            s.Close();
+            using (var pkgMM = MemoryMappedFile.CreateFromFile(pkgPath, FileMode.Open))
+            using (var o = MemoryMappedFile.CreateFromFile(outPath, capacity: outerpfs_size, mapName: "output_outerpfs", mode: FileMode.Create))
+            using (var outputView = o.CreateViewAccessor())
+            using (var outerPfs = new MemoryMappedViewAccessor_(
+                pkgMM.CreateViewAccessor((long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size),
+                true))
             {
-              decrypt_stream.CopyTo(o);
+              var transform = new XtsDecryptReader(outerPfs, dataKey, tweakKey);
+              long length = (long)pkg.Header.pfs_image_size;
+              const int copySize = 1024 * 1024;
+              var buf = new byte[copySize];
+              for(long i = 0; i < length; i += copySize)
+              {
+                int count = (int)Math.Min(copySize, length - i);
+                transform.Read(i, buf, 0, count);
+                outputView.WriteArray(i, buf, 0, count);
+              }
               // Unset "encrypted" flag
-              o.Position = decrypt_stream.Position = 0x1C;
-              var b = (byte)decrypt_stream.ReadByte();
-              b = (byte)(b & ~4);
-              o.WriteByte(b);
+              outputView.Write(0x1C, outputView.ReadByte(0x1C) & ~4);
             }
           }
         }),
@@ -239,6 +248,37 @@ namespace PkgTool
           return;
         }),
     };
+
+    private static void ExtractInParallel(PfsReader inner, string outPath)
+    {
+      Console.WriteLine("Extracting in parallel...");
+      Parallel.ForEach(
+        inner.GetAllFiles(),
+        () => new byte[0x10000],
+        (f, _, buf) =>
+        {
+          var size = f.size;
+          var pos = 0;
+          var view = f.GetView();
+          var path = Path.Combine(outPath, f.FullName.Replace('/', '\\').Substring(1));
+          var dir = path.Substring(0, path.LastIndexOf('\\'));
+          Directory.CreateDirectory(dir);
+          using (var file = File.OpenWrite(path))
+          {
+            file.SetLength(size);
+            while (size > 0)
+            {
+              var toRead = (int)Math.Min(size, buf.Length);
+              view.Read(pos, buf, 0, toRead);
+              file.Write(buf, 0, toRead);
+              pos += toRead;
+              size -= toRead;
+            }
+          }
+          return buf;
+        },
+        x => { });
+    }
     
     private static string SafeName(string name)
     {

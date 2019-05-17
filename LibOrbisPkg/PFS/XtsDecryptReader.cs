@@ -7,7 +7,7 @@ using LibOrbisPkg.Util;
 
 namespace LibOrbisPkg.PFS
 {
-  class XtsDecryptReader : IMemoryReader
+  public class XtsDecryptReader : IMemoryReader
   {
     private byte[] dataKey;
     private byte[] tweakKey;
