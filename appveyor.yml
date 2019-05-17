@@ -42,7 +42,6 @@ after_build:
    7z a LibOrbisPkg-NetCore-%APPVEYOR_BUILD_VERSION%.zip 
    %APPVEYOR_BUILD_FOLDER%\LibOrbisPkg.Core\bin\Release\netcoreapp2.2\LibOrbisPkg.Core.dll
    %APPVEYOR_BUILD_FOLDER%\PkgTool.Core\bin\Release\netcoreapp2.2\PkgTool.dll
-   %APPVEYOR_BUILD_FOLDER%\PkgTool.Core\bin\Release\netcoreapp2.2\GameArchives.dll
    %APPVEYOR_BUILD_FOLDER%\README.md
    %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
 artifacts:
