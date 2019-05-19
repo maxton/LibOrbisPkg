@@ -27,21 +27,21 @@ you enter a passcode, you can browse files as well.
 ![PKG Digest Check](https://i.imgur.com/pFIVRNh.png)
 
 ### PkgTool
+PkgTool is a command line tool for common PKG/PFS tasks. Integrate it into your build scripts!
+
 ```
-PkgTool.exe <verb> <input> <output>
+Usage: PkgTool.exe <verb> [options ...]
 
 Verbs:
   makepfs <input_project.gp4> <output_pfs.dat>
   makeouterpfs [--encrypt] <input_project.gp4> <output_pfs.dat>
   makepkg <input_project.gp4> <output_directory>
-  extractpkg <input.pkg> <passcode> <output_directory>
-  extractinnerpfs <input.pkg> <passcode> <output_pfs.dat>
-  extractouterpfs_e <input.pkg> <output_pfs_encrypted.dat>
-  extractouterpfs <input.pkg> <passcode> <pfs_image.dat>
+  extractpkg [--verbose] [--passcode <...>] <input.pkg> <output_directory>
+  extractpfs [--verbose] <input.dat> <output_directory>
+  extractinnerpfs [--passcode <...>] <input.pkg> <output_pfs.dat>
+  extractouterpfs [--encrypted] [--passcode <...>] <input.pkg> <pfs_image.dat>
   listentries <input.pkg>
-  extractentry <input.pkg> <entry_id> <output.bin>
-
-Use passcode "fake" to decrypt a FAKE PKG without knowing the actual passcode.
+  extractentry [--decrypt] [--passcode <...>] <input.pkg> <entry_id> <output.bin>
  ```
 
 ## Thanks
