@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
-using System.Text;
 using LibOrbisPkg.Rif;
 using LibOrbisPkg.Util;
 using System.Threading.Tasks;

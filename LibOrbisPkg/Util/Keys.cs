@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace LibOrbisPkg.Util
+﻿namespace LibOrbisPkg.Util
 {
   /// <summary>
   /// Contains keys in big-endian format
