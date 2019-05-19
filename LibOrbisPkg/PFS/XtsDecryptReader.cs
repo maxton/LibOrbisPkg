@@ -4,6 +4,9 @@ using LibOrbisPkg.Util;
 
 namespace LibOrbisPkg.PFS
 {
+  /// <summary>
+  /// Provides XTS decryption on an IMemoryReader
+  /// </summary>
   public class XtsDecryptReader : IMemoryReader
   {
     private byte[] dataKey;

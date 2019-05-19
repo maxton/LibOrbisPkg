@@ -54,6 +54,11 @@ namespace LibOrbisPkg.PFS
     Action<string> logger;
     private void Log(string s) => logger?.Invoke(s);
 
+    /// <summary>
+    /// Constructs a PfsBuilder with the given properties and logger.
+    /// </summary>
+    /// <param name="p">Properties for the image to be built</param>
+    /// <param name="logger">Function that is called to report realtime PFS build status.</param>
     public PfsBuilder(PfsProperties p, Action<string> logger = null)
     {
       this.logger = logger;
@@ -61,11 +66,18 @@ namespace LibOrbisPkg.PFS
       Setup();
     }
 
+    /// <summary>
+    /// Computes the final size of this image as it will be written to disk.
+    /// </summary>
+    /// <returns>PFS Image size</returns>
     public long CalculatePfsSize()
     {
       return hdr.Ndblock * hdr.BlockSize;
     }
 
+    /// <summary>
+    /// This gets called by the constructor.
+    /// </summary>
     void Setup()
     {
       // TODO: Combine the superroot-specific stuff with the rest of the data block writing.

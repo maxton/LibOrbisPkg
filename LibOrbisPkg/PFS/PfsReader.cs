@@ -7,9 +7,14 @@ using LibOrbisPkg.Util;
 
 namespace LibOrbisPkg.PFS
 {
-  // Class allowing parallel readonly access to a PFS archive
+  /// <summary>
+  /// Class allowing parallel readonly access to a PFS archive
+  /// </summary>
   public class PfsReader
   {
+    /// <summary>
+    /// Represents a file or directory in a PFS image.
+    /// </summary>
     public abstract class Node
     {
       public Node parent;
@@ -19,6 +24,9 @@ namespace LibOrbisPkg.PFS
       public uint ino;
       public string FullName => parent != null ? parent.FullName + "/" + name : name;
     }
+    /// <summary>
+    /// Represents a directory in a PFS image.
+    /// </summary>
     public class Dir : Node
     {
       public List<Node> children = new List<Node>();
@@ -51,6 +59,9 @@ namespace LibOrbisPkg.PFS
         }
       }
     }
+    /// <summary>
+    /// Represents a file in a PFS image.
+    /// </summary>
     public class File : Node
     {
       private IMemoryReader reader;
@@ -60,6 +71,8 @@ namespace LibOrbisPkg.PFS
         return new MemoryAccessor(reader, offset);
       }
     }
+
+    // Private state for the PfsReader class
     private IMemoryReader reader;
     private PfsHeader hdr;
     private inode[] dinodes;

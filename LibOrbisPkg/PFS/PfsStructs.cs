@@ -7,6 +7,9 @@ using LibOrbisPkg.Util;
 
 namespace LibOrbisPkg.PFS
 {
+  /// <summary>
+  /// PFS mode flags.
+  /// </summary>
   [Flags]
   public enum PfsMode : ushort
   {
@@ -16,6 +19,9 @@ namespace LibOrbisPkg.PFS
     Encrypted = 0x4,
     UnknownFlagAlwaysSet = 0x8,
   }
+  /// <summary>
+  /// Represents a PFS image suberblock.
+  /// </summary>
   public class PfsHeader
   {
     public long Version = 1; // 1
@@ -109,6 +115,9 @@ namespace LibOrbisPkg.PFS
     }
   }
 
+  /// <summary>
+  /// Inode mode flags including user/group/other permissions.
+  /// </summary>
   [Flags]
   public enum InodeMode : ushort
   {
@@ -127,6 +136,9 @@ namespace LibOrbisPkg.PFS
     rwx = 0x1FF
   }
 
+  /// <summary>
+  /// Inode flags for special PFS features
+  /// </summary>
   [Flags]
   public enum InodeFlags : uint
   {
@@ -150,12 +162,18 @@ namespace LibOrbisPkg.PFS
     @internal = 0x20000
   }
 
+  /// <summary>
+  /// Base class for inodes. Inodes can be signed or unsigned, and 32 or 64 bit.
+  /// </summary>
   public abstract class inode
   {
     public inode()
     {
       SetTime((long)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds);
     }
+    /// <summary>
+    /// The index of this inode in the block of inodes.
+    /// </summary>
     public uint Number;
     /// <summary>
     /// Default is 555 octal.
@@ -197,6 +215,10 @@ namespace LibOrbisPkg.PFS
       return this;
     }
   };
+
+  /// <summary>
+  /// 32-bit unsigned inodes
+  /// </summary>
   public class DinodeD32 : inode
   {
     public const long SizeOf = 0xA8;
@@ -263,16 +285,25 @@ namespace LibOrbisPkg.PFS
       return di;
     }
   };
+  /// <summary>
+  /// Data structure used in signed 32 bit PFS images
+  /// </summary>
   public struct block_sig
   {
     public byte[] sig;
     public int block;
   }
+  /// <summary>
+  /// Data structure used in signed 64 bit PFS images, and in any signed PFS header.
+  /// </summary>
   public struct block_sig64
   {
     public byte[] sig;
     public long block;
   }
+  /// <summary>
+  /// Signed 32-bit inode
+  /// </summary>
   public class DinodeS32 : inode
   {
     public const long SizeOf = 0x2C8;
@@ -365,6 +396,9 @@ namespace LibOrbisPkg.PFS
     }
   };
 
+  /// <summary>
+  /// Signed 64-bit inode
+  /// </summary>
   public class DinodeS64 : inode
   {
     public const long SizeOf = 0x310;
@@ -459,6 +493,9 @@ namespace LibOrbisPkg.PFS
     }
   };
 
+  /// <summary>
+  /// Represents a PFS dirent. Directories are stored ondisk as blocks of dirents.
+  /// </summary>
   public class PfsDirent
   {
     public static int MaxSize = 280;
@@ -510,11 +547,26 @@ namespace LibOrbisPkg.PFS
       return d;
     }
   }
+  /// <summary>
+  /// Describes the nature of the dirent
+  /// </summary>
   public enum DirentType : int
   {
+    /// <summary>
+    /// A regular file
+    /// </summary>
     File = 2,
+    /// <summary>
+    /// A directory
+    /// </summary>
     Directory = 3,
+    /// <summary>
+    /// The special "." file that points to the current dir
+    /// </summary>
     Dot = 4,
+    /// <summary>
+    /// The special ".." file that points to the parent dir
+    /// </summary>
     DotDot = 5
   }
 }

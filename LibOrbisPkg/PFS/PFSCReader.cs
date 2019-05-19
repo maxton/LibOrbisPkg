@@ -7,6 +7,10 @@ using LibOrbisPkg.Util;
 
 namespace LibOrbisPkg.PFS
 {
+  /// <summary>
+  /// This wraps a Memory mapped file view of a PFSC file so that you can access it
+  /// as though it were uncompressed.
+  /// </summary>
   public class PFSCReader : IMemoryReader
   {
     private IMemoryAccessor _accessor;
@@ -54,6 +58,12 @@ namespace LibOrbisPkg.PFS
     { }
 
     public int SectorSize => hdr.BlockSz;
+    
+    /// <summary>
+    /// Reads the sector at the given index into the given byte array.
+    /// </summary>
+    /// <param name="idx">sector index (multiply by SectorSize to get the byte offset)</param>
+    /// <param name="output">byte array where sector will be written</param>
     public void ReadSector(int idx, byte[] output)
     {
       if (idx < 0 || idx > sectorMap.Length - 1)

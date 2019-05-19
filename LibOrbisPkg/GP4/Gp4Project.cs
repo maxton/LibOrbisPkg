@@ -5,7 +5,10 @@ using System.Xml.Serialization;
 
 namespace LibOrbisPkg.GP4
 {
-
+  /// <summary>
+  /// Represents a project file in the GP4 format. This is an XML format used by
+  /// the "official" package tool to describe PKG images. Many samples can be found on GitHub.
+  /// </summary>
   [XmlRoot(ElementName = "psproject")]
   public class Gp4Project
   {
@@ -21,12 +24,23 @@ namespace LibOrbisPkg.GP4
     [XmlArray(ElementName = "rootdir")]
     public List<Dir> RootDir = new List<Dir>();
 
+    /// <summary>
+    /// Writes the GP4 project xml to the given stream at the stream's current position.
+    /// </summary>
+    /// <param name="proj">The project to write</param>
+    /// <param name="s">The stream to write the project to</param>
     public static void WriteTo(Gp4Project proj, System.IO.Stream s)
     {
       XmlSerializer mySerializer = new XmlSerializer(typeof(Gp4Project));
       mySerializer.Serialize(s, proj);
     }
 
+    /// <summary>
+    /// Reads a GP4 project from the given stream at the stream's current position.
+    /// Probably throws an exception if you don't give a valid GP4?
+    /// </summary>
+    /// <param name="s">The stream to read from</param>
+    /// <returns>A deserialized GP4 project</returns>
     public static Gp4Project ReadFrom(System.IO.Stream s)
     {
       XmlSerializer mySerializer = new XmlSerializer(typeof(Gp4Project));
@@ -35,7 +49,8 @@ namespace LibOrbisPkg.GP4
       {
         proj.volume.chunk_info.ScenariosInfo = null;
       }
-      // Fixup dir tree
+
+      // Fixup dir tree. For convenience we make our directory tree "doubly linked" in memory
       void setParent(List<Dir> dirs, Dir parent)
       {
         foreach(var dir in dirs)
@@ -45,6 +60,8 @@ namespace LibOrbisPkg.GP4
         }
       }
       setParent(proj.RootDir, null);
+
+      // We want each file entry to have an explicit path to simplify later code.
       foreach(var file in proj.files.Items)
       {
         if(file.OrigPath == null)
@@ -52,6 +69,8 @@ namespace LibOrbisPkg.GP4
           file.OrigPath = file.TargetPath.Replace('/','\\');
         }
       }
+
+      // An entitlement key is required for AC PKGs. So here we ensure that one exists.
       if(proj.volume.Package.EntitlementKey == null
         && (proj.volume.Type == VolumeType.pkg_ps4_ac_data
         || proj.volume.Type == VolumeType.pkg_ps4_ac_nodata))
@@ -61,6 +80,11 @@ namespace LibOrbisPkg.GP4
       return proj;
     }
 
+    /// <summary>
+    /// Creates a new, empty GP4 project with the given VolumeType.
+    /// </summary>
+    /// <param name="type">The type of project to make</param>
+    /// <returns>A new blank project with defaults for the given VolumeType</returns>
     public static Gp4Project Create(VolumeType type)
     {
       var proj = new Gp4Project
@@ -85,11 +109,21 @@ namespace LibOrbisPkg.GP4
 
     #region Modification Functions
 
+    /// <summary>
+    /// Sets the target name of the given file to the given name.
+    /// </summary>
+    /// <param name="f">The file to rename</param>
+    /// <param name="newName">The new filename</param>
     public void RenameFile(Gp4File f, string newName)
     {
       f.TargetPath = f.DirName + newName;
     }
 
+    /// <summary>
+    /// Renames the given directory and fixes up path names for all subfolders and files.
+    /// </summary>
+    /// <param name="d">Directory to rename</param>
+    /// <param name="newName">New name for the directory.</param>
     public void RenameDir(Dir d, string newName)
     {
       var origPath = d.Path;
@@ -133,6 +167,12 @@ namespace LibOrbisPkg.GP4
       DeleteDirs(d);
     }
 
+    /// <summary>
+    /// Creates a new directory under the given parent directory with the given name.
+    /// </summary>
+    /// <param name="parent">Parent directory for the new directory</param>
+    /// <param name="name">The new directory's name</param>
+    /// <returns>The new directory</returns>
     public Dir AddDir(Dir parent, string name)
     {
       var newDir = new Dir
@@ -159,6 +199,14 @@ namespace LibOrbisPkg.GP4
       dir.Children = null;
     }
 
+    /// <summary>
+    /// Sets the type of this project to the given type and modifies the project's data
+    /// accordingly to ensure the project is valid.
+    /// 
+    /// For example, changing the type to a pkg_ps4_app will create PlayGo data;
+    /// changing the type to an AC pkg will create an Entitlement key.
+    /// </summary>
+    /// <param name="type">The new volume type for the project</param>
     public void SetType(VolumeType type)
     {
       if (volume.volume_type != null && type == volume.Type) return;
@@ -212,6 +260,9 @@ namespace LibOrbisPkg.GP4
     #endregion
   }
 
+  /// <summary>
+  /// This is an element of the GP4 project that defines certain metadata for the PKG.
+  /// </summary>
   public class Volume
   {
     [XmlElement(ElementName = "volume_type")]
@@ -285,6 +336,9 @@ namespace LibOrbisPkg.GP4
     }
   }
 
+  /// <summary>
+  /// This is the &lt;package&gt; element within the &lt;volume&gt; element.
+  /// </summary>
   public class PackageInfo
   {
     [XmlAttribute("content_id")]
@@ -306,6 +360,9 @@ namespace LibOrbisPkg.GP4
     }
   }
 
+  /// <summary>
+  /// A list of files; a child of the psproject element.
+  /// </summary>
   public class Files
   {
     [XmlAttribute("img_no")]
@@ -314,6 +371,9 @@ namespace LibOrbisPkg.GP4
     public List<Gp4File> Items = new List<Gp4File>();
   }
 
+  /// <summary>
+  /// Represents a file in the GP4 project.
+  /// </summary>
   public class Gp4File
   {
     [XmlAttribute("targ_path")]
@@ -324,6 +384,9 @@ namespace LibOrbisPkg.GP4
     public string DirName => TargetPath.Substring(0, TargetPath.LastIndexOf('/') + 1);
   }
 
+  /// <summary>
+  /// Represents a directory in the GP4 project.
+  /// </summary>
   public class Dir
   {
     [XmlAttribute("targ_name")]
@@ -348,6 +411,10 @@ namespace LibOrbisPkg.GP4
     }
   }
 
+  /// <summary>
+  /// This element is part of the GP4 project only for game/app packages.
+  /// It is for PlayGo.
+  /// </summary>
   public class ChunkInfo
   {
     [XmlAttribute(AttributeName = "chunk_count")]
@@ -367,6 +434,10 @@ namespace LibOrbisPkg.GP4
     [XmlArray(ElementName = "scenarios_info")]
     public List<ScenarioInfo> ScenariosInfo;
   }
+
+  /// <summary>
+  /// This element is a child of ChunkInfo
+  /// </summary>
   public class Chunk
   {
     [XmlAttribute(AttributeName = "id")]
@@ -376,6 +447,10 @@ namespace LibOrbisPkg.GP4
     [XmlAttribute(AttributeName = "label")]
     public string label;
   }
+
+  /// <summary>
+  /// This element is a child of ChunkInfo
+  /// </summary>
   public class Scenarios
   {
     [XmlAttribute(AttributeName = "default_id")]
@@ -384,6 +459,10 @@ namespace LibOrbisPkg.GP4
     [XmlElement(Type = typeof(Scenario), ElementName = "scenario")]
     public List<Scenario> scenarios = new List<Scenario>();
   }
+
+  /// <summary>
+  /// This element is a child of ChunkInfo
+  /// </summary>
   public class Scenario
   {
     [XmlAttribute(AttributeName = "id")]
@@ -397,6 +476,10 @@ namespace LibOrbisPkg.GP4
     [XmlText]
     public string chunks;
   }
+
+  /// <summary>
+  /// This element is a child of ChunkInfo
+  /// </summary>
   public class ScenarioInfo
   {
     [XmlAttribute("id")]
@@ -407,6 +490,10 @@ namespace LibOrbisPkg.GP4
     [XmlElement(ElementName = "lang")]
     public List<ScenarioLang> Langs;
   }
+
+  /// <summary>
+  /// This element is a child of ScenarioInfo
+  /// </summary>
   public class ScenarioLang
   {
     [XmlAttribute("type")]

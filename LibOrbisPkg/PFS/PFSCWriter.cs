@@ -3,6 +3,9 @@ using LibOrbisPkg.Util;
 
 namespace LibOrbisPkg.PFS
 {
+  /// <summary>
+  /// Writes a PFSC header to to a stream. Doesn't actually do compression or anything interesting.
+  /// </summary>
   class PFSCWriter
   {
     const int BlockSize = 0x10000;

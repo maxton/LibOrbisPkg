@@ -5,6 +5,10 @@ using System.Linq;
 
 namespace LibOrbisPkg.PFS
 {
+  /// <summary>
+  /// A data structure representing everything configurable in a PFS image.
+  /// Gets fed to a PfsBuilder.
+  /// </summary>
   public class PfsProperties
   {
     public FSDir root;
@@ -15,6 +19,11 @@ namespace LibOrbisPkg.PFS
     public byte[] EKPFS;
     public byte[] Seed;
 
+    /// <summary>
+    /// Generates a PfsProperties object for the inner PFS image of a PKG with the given properties.
+    /// </summary>
+    /// <param name="props"></param>
+    /// <returns></returns>
     public static PfsProperties MakeInnerPFSProps(PKG.PkgProperties props)
     {
       // Generate keystone for GP PKGs if it is not already there
@@ -33,6 +42,14 @@ namespace LibOrbisPkg.PFS
       };
     }
 
+    /// <summary>
+    /// Generates a PfsProperties object for the outer PFS image of a PKG with the given properties.
+    /// </summary>
+    /// <param name="props">PKG properties to convert from</param>
+    /// <param name="innerPFS">Inner pfs image to use, presumably from MakeInnerPFSProps</param>
+    /// <param name="EKPFS">Encryption key for PFS</param>
+    /// <param name="encrypt">Set to false to make a non-encrypted PFS</param>
+    /// <returns></returns>
     public static PfsProperties MakeOuterPFSProps(PKG.PkgProperties props, PfsBuilder innerPFS, byte[] EKPFS, bool encrypt = true)
     {
       var root = new FSDir();

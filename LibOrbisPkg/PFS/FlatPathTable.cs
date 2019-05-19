@@ -5,7 +5,10 @@ using LibOrbisPkg.Util;
 
 namespace LibOrbisPkg.PFS
 {
-
+  /// <summary>
+  /// Represents the flat_path_table file, which is a mapping of filename hash to inode number
+  /// that the Orbis OS can use to speed up lookups.
+  /// </summary>
   class FlatPathTable
   {
     private SortedDictionary<uint, uint> hashMap;
