@@ -201,22 +201,24 @@ namespace PkgTool
           using(var file = File.OpenRead(pkgPath))
           {
             var pkg = new PkgReader(file).ReadPkg();
-            Console.WriteLine("Offset\tSize\tFlags\t\t#\tName");
+            Console.WriteLine("Offset\tSize\tFlags\t\tIndex\tEnc?\tName");
             var i = 0;
             foreach(var meta in pkg.Metas.Metas)
             {
-              Console.WriteLine($"0x{meta.DataOffset:X2}\t0x{meta.DataSize:X}\t{meta.Flags1:X8}\t{i++}\t{meta.id}");
+              Console.WriteLine($"0x{meta.DataOffset:X2}\t0x{meta.DataSize:X}\t{meta.Flags1:X8}\t{i++}\t{(meta.Encrypted ? "Enc" : "")}\t{meta.id}");
             }
           }
         }),
       Verb.Create(
         "extractentry",
-        ArgDef.Required("input.pkg", "entry_id", "output.bin"),
-        args =>
+        ArgDef.Multi(ArgDef.Option("passcode"), "input.pkg", "entry_id", "output.bin"),
+        (flags, optionals, args) =>
         {
           var pkgPath = args[1];
           var idx = int.Parse(args[2]);
           var outPath = args[3];
+          var passcode = optionals["passcode"];
+
           using (var pkgFile = File.OpenRead(pkgPath))
           {
             var pkg = new PkgReader(pkgFile).ReadPkg();
@@ -230,6 +232,21 @@ namespace PkgTool
               var meta = pkg.Metas.Metas[idx];
               var entry = new SubStream(pkgFile, meta.DataOffset, meta.DataSize);
               outFile.SetLength(entry.Length);
+              if(meta.Encrypted)
+              {
+                if(passcode == null)
+                {
+                  Console.WriteLine("Warning: Entry is encrypted but no passcode was provided! Saving encrypted bytes.");
+                }
+                else
+                {
+                  var tmp = new byte[entry.Length];
+                  entry.Read(tmp, 0, tmp.Length);
+                  tmp = Entry.Decrypt(tmp, pkg.Header.content_id, passcode, meta);
+                  outFile.Write(tmp, 0, tmp.Length);
+                  return;
+                }
+              }
               entry.CopyTo(outFile);
             }
           }
