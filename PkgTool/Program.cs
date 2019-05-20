@@ -124,15 +124,16 @@ namespace PkgTool
             var outerPfs = new PfsReader(acc, ekpfs);
             var inner = outerPfs.GetFile("pfs_image.dat");
             using(var v = inner.GetView())
+            using(var d = new PFSCReader(v))
             using(var f = File.OpenWrite(outPath))
             {
               var buf = new byte[1024 * 1024];
               long wrote = 0;
-              while(wrote < inner.size)
+              while(wrote < inner.compressed_size)
               {
-                int toWrite = (int)Math.Min(inner.size - wrote, buf.Length);
+                int toWrite = (int)Math.Min(inner.compressed_size - wrote, buf.Length);
                 if(toWrite <= 0) break;
-                v.Read(wrote, buf, 0, toWrite);
+                d.Read(wrote, buf, 0, toWrite);
                 f.Write(buf, 0, toWrite);
                 wrote += toWrite;
               }
@@ -261,7 +262,7 @@ namespace PkgTool
         inner.GetAllFiles(),
         () => new byte[0x10000],
         (f, _, buf) =>
-        {         
+        {
           var size = f.size;
           var pos = 0;
           var view = f.GetView();
