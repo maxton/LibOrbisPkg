@@ -21,6 +21,7 @@ namespace LibOrbisPkg.PFS
       public string name;
       public long offset;
       public long size;
+      public long compressed_size;
       public uint ino;
       public string FullName => parent != null ? parent.FullName + "/" + name : name;
     }
@@ -198,6 +199,7 @@ namespace LibOrbisPkg.PFS
         parent = parent,
         offset = dinodes[dinode].StartBlock * hdr.BlockSize,
         size = dinodes[dinode].Size,
+        compressed_size = dinodes[dinode].SizeCompressed,
         ino = dinode
       };
     }
