@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using LibOrbisPkg.Util;
 
 namespace LibOrbisPkg.PKG
 {
-  // Represents the data of an entry
+  /// <summary>
+  /// Represents the data of an entry
+  /// </summary>
   public abstract class Entry
   {
     public abstract EntryId Id { get; }
@@ -14,6 +17,38 @@ namespace LibOrbisPkg.PKG
     public abstract string Name { get; }
     public abstract void Write(Stream s);
     public MetaEntry meta;
+
+    /// <summary>
+    /// Writes the entry in an encrypted form to the given stream.
+    /// </summary>
+    public void WriteEncrypted(Stream s, string contentId, string passcode)
+    {
+      var iv_key = Crypto.Sha256(
+            meta.GetBytes()
+            .Concat(Crypto.ComputeKeys(contentId, passcode, meta.KeyIndex))
+            .ToArray());
+      var tmp = new byte[Length];
+      using (var ms = new MemoryStream(tmp))
+      {
+        Write(ms);
+      }
+      Crypto.AesCbcCfb128Encrypt(tmp, tmp, tmp.Length, iv_key.Skip(16).Take(16).ToArray(), iv_key.Take(16).ToArray());
+      s.Write(tmp, 0, tmp.Length);
+    }
+
+    /// <summary>
+    /// Decrypts the given bytes using the entry encryption.
+    /// </summary>
+    public static byte[] Decrypt(byte[] entryBytes, string contentId, string passcode, MetaEntry meta)
+    {
+      var iv_key = Crypto.Sha256(
+             meta.GetBytes()
+             .Concat(Crypto.ComputeKeys(contentId, passcode, meta.KeyIndex))
+             .ToArray());
+      var tmp = new byte[entryBytes.Length];
+      Crypto.AesCbcCfb128Decrypt(tmp, entryBytes, tmp.Length, iv_key.Skip(16).Take(16).ToArray(), iv_key.Take(16).ToArray());
+      return tmp;
+    }
   }
 
   /// <summary>
@@ -64,7 +99,10 @@ namespace LibOrbisPkg.PKG
       return buf;
     }
   }
-
+  
+  /// <summary>
+  /// param.sfo file entry
+  /// </summary>
   public class SfoEntry : Entry
   {
     public readonly SFO.ParamSfo ParamSfo;
@@ -82,6 +120,9 @@ namespace LibOrbisPkg.PKG
     }
   }
 
+  /// <summary>
+  /// Generic entry, for when all you need is a bunch o' bytes
+  /// </summary>
   public class GenericEntry : Entry
   {
     public GenericEntry(EntryId id, string name = null)
@@ -99,6 +140,10 @@ namespace LibOrbisPkg.PKG
       s.Write(FileData, 0, FileData.Length);
     }
   }
+
+  /// <summary>
+  /// FileEntry, which lets you use a thunk to write the entry's data when it's needed.
+  /// </summary>
   public class FileEntry : Entry
   {
     /// <summary>
@@ -128,12 +173,19 @@ namespace LibOrbisPkg.PKG
     public override uint Length { get; }
     public override void Write(Stream s) => Writer(s);
   }
+
+  /// <summary>
+  /// A single RSA-encrypted key and its digest.
+  /// </summary>
   public class PkgEntryKey
   {
     public byte[] digest = new byte[32];
     public byte[] key = new byte[256];
   }
 
+  /// <summary>
+  /// The ENTRY_KEYS entry.
+  /// </summary>
   public class KeysEntry : Entry
   {
     public KeysEntry(byte[] digest, PkgEntryKey[] keys)
@@ -195,6 +247,9 @@ namespace LibOrbisPkg.PKG
     }
   }
 
+  /// <summary>
+  /// The table of names for entries that have filenames.
+  /// </summary>
   public class NameTableEntry : Entry
   {
     /// <summary>
@@ -265,6 +320,9 @@ namespace LibOrbisPkg.PKG
     OriginGameDigest = 1 << 13,
     TargetGameDigest = 1 << 14,
   }
+  /// <summary>
+  /// The GENERAL_DIGESTS entry.
+  /// </summary>
   public class GeneralDigestsEntry : Entry
   {
     public ushort unk1 = 0xD256;
@@ -341,6 +399,9 @@ namespace LibOrbisPkg.PKG
     }
   }
 
+  /// <summary>
+  /// The table of meta entries that points to the rest of the entries.
+  /// </summary>
   public class MetasEntry : Entry
   {
     public List<MetaEntry> Metas = new List<MetaEntry>();

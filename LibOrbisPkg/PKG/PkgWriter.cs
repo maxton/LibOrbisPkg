@@ -16,17 +16,7 @@ namespace LibOrbisPkg.PKG
         s.Position = entry.meta.DataOffset;
         if (entry.meta.Encrypted)
         {
-          var iv_key = Crypto.Sha256(
-            entry.meta.GetBytes()
-            .Concat(Crypto.ComputeKeys(contentId, passcode, entry.meta.KeyIndex))
-            .ToArray());
-          var tmp = new byte[entry.Length];
-          using(var ms = new MemoryStream(tmp))
-          {
-            entry.Write(ms);
-          }
-          Crypto.AesCbcCfb128Encrypt(tmp, tmp, tmp.Length, iv_key.Skip(16).Take(16).ToArray(), iv_key.Take(16).ToArray());
-          Write(tmp);
+          entry.WriteEncrypted(s, contentId, passcode);
         }
         else
         {
