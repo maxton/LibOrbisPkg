@@ -27,7 +27,7 @@ you enter a passcode, you can browse files as well.
 ![PKG Digest Check](https://i.imgur.com/pFIVRNh.png)
 
 ### PkgTool
-PkgTool is a command line tool for common PKG/PFS tasks. Integrate it into your build scripts!
+PkgTool is a command line tool for common PKG/PFS/SFO tasks. Integrate it into your build scripts!
 
 ```
 Usage: PkgTool.exe <verb> [options ...]
