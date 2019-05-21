@@ -34,14 +34,43 @@ Usage: PkgTool.exe <verb> [options ...]
 
 Verbs:
   makepfs <input_project.gp4> <output_pfs.dat>
+    Builds an inner PFS image from the given GP4 project.
+
   makeouterpfs [--encrypt] <input_project.gp4> <output_pfs.dat>
+    Builds an outer PFS image, optionally encrypted, from the given GP4 project.
+
   makepkg <input_project.gp4> <output_directory>
+    Builds a fake PKG from the given GP4 project in the given output directory.
+
   extractpkg [--verbose] [--passcode <...>] <input.pkg> <output_directory>
+    Extracts all the files from a PKG to the given output directory. Use the verbose flag to print filenames as they are extracted.
+
   extractpfs [--verbose] <input.dat> <output_directory>
+    Extracts all the files from a PFS image to the given output directory. Use the verbose flag to print filenames as they are extracted.
+
   extractinnerpfs [--passcode <...>] <input.pkg> <output_pfs.dat>
+    Extracts the inner PFS image from a PKG file.
+
   extractouterpfs [--encrypted] [--passcode <...>] <input.pkg> <pfs_image.dat>
+    Extracts and decrypts the outer PFS image from a PKG file. Use the --encrypted flag to leave the image encrypted.
+
   listentries <input.pkg>
-  extractentry [--decrypt] [--passcode <...>] <input.pkg> <entry_id> <output.bin>
+    Lists the entries in a PKG file.
+
+  extractentry [--passcode <...>] <input.pkg> <entry_id> <output.bin>
+    Extracts the selected entry from the given PKG file.
+
+  sfo_listentries <param.sfo>
+    Lists the entries in an SFO file.
+
+  sfo_deleteentry <param.sfo> <entry_name>
+    Deletes the named entry from the SFO file.
+
+  sfo_setentry [--value <...>] [--type <...>] [--maxsize <...>] [--name <...>] <param.sfo> <entry_name>
+    Creates or modifies the named entry in the given SFO file.
+
+  sfo_new <param.sfo>
+    Creates a new empty SFO file at the given path.
  ```
 
 ## Thanks
