@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using LibOrbisPkg.GP4;
 using LibOrbisPkg.PFS;
 using LibOrbisPkg.PKG;
+using LibOrbisPkg.SFO;
 using LibOrbisPkg.Util;
 
 namespace PkgTool
@@ -22,6 +24,7 @@ namespace PkgTool
     {
       Verb.Create(
         "makepfs",
+        "Builds an inner PFS image from the given GP4 project.",
         ArgDef.Required("input_project.gp4", "output_pfs.dat"),
         args =>
         {
@@ -35,6 +38,7 @@ namespace PkgTool
         }),
       Verb.Create(
         "makeouterpfs",
+        "Builds an outer PFS image, optionally encrypted, from the given GP4 project.",
         ArgDef.Multi(ArgDef.Bool("encrypt"), "input_project.gp4", "output_pfs.dat"),
         (switches, args) =>
         {
@@ -53,6 +57,7 @@ namespace PkgTool
         }),
       Verb.Create(
         "makepkg",
+        "Builds a fake PKG from the given GP4 project in the given output directory.",
         ArgDef.Required("input_project.gp4", "output_directory"),
         args =>
         {
@@ -66,6 +71,7 @@ namespace PkgTool
         }),
       Verb.Create(
         "extractpkg",
+        "Extracts all the files from a PKG to the given output directory. Use the verbose flag to print filenames as they are extracted.",
         ArgDef.Multi(ArgDef.Bool("verbose"), ArgDef.Option("passcode"), "input.pkg", "output_directory"),
         (flags, optionals, args) =>
         {
@@ -90,6 +96,7 @@ namespace PkgTool
         }),
       Verb.Create(
         "extractpfs",
+        "Extracts all the files from a PFS image to the given output directory. Use the verbose flag to print filenames as they are extracted.",
         ArgDef.Multi(ArgDef.Bool("verbose"), "input.dat", "output_directory"),
         (flags, args) =>
         {
@@ -104,6 +111,7 @@ namespace PkgTool
         }),
       Verb.Create(
         "extractinnerpfs",
+        "Extracts the inner PFS image from a PKG file.",
         ArgDef.Multi(ArgDef.Option("passcode"), "input.pkg", "output_pfs.dat"),
         (switches, optionals, args) =>
         {
@@ -142,6 +150,7 @@ namespace PkgTool
         }),
       Verb.Create(
         "extractouterpfs",
+        "Extracts and decrypts the outer PFS image from a PKG file. Use the --encrypted flag to leave the image encrypted.",
         ArgDef.Multi(ArgDef.Bool("encrypted"), ArgDef.Option("passcode"), "input.pkg", "pfs_image.dat"),
         (switches, optionals, args) =>
         {
@@ -195,6 +204,7 @@ namespace PkgTool
         }),
       Verb.Create(
         "listentries",
+        "Lists the entries in a PKG file.",
         ArgDef.Required("input.pkg"),
         args =>
         {
@@ -212,6 +222,7 @@ namespace PkgTool
         }),
       Verb.Create(
         "extractentry",
+        "Extracts the selected entry from the given PKG file.",
         ArgDef.Multi(ArgDef.Option("passcode"), "input.pkg", "entry_id", "output.bin"),
         (flags, optionals, args) =>
         {
@@ -252,6 +263,153 @@ namespace PkgTool
             }
           }
           return;
+        }),
+      Verb.Create(
+        "sfo_listentries",
+        "Lists the entries in an SFO file.",
+        ArgDef.Required("param.sfo"),
+        args =>
+        {
+          var sfoFilename = args[1];
+          using(var f = File.OpenRead(sfoFilename))
+          {
+            var sfo = ParamSfo.FromStream(f);
+            Console.WriteLine($"Entry Name : Entry Type(Size / Max Size) = Entry Value");
+            foreach(var x in sfo.Values)
+            {
+              Console.WriteLine($"{x.Name} : {x.Type}({x.Length}/{x.MaxLength}) = {x.ToString()}");
+            }
+          }
+        }),
+      Verb.Create(
+        "sfo_deleteentry",
+        "Deletes the named entry from the SFO file.",
+        ArgDef.Required("param.sfo", "entry_name"),
+        args =>
+        {
+          var sfoFilename = args[1];
+          var entryName = args[2];
+          using(var f = File.Open(sfoFilename, FileMode.Open))
+          {
+            var sfo = ParamSfo.FromStream(f);
+            if(sfo.Values.Exists(x => x.Name == entryName))
+            {
+              f.SetLength(0);
+              sfo.Values.RemoveAt(sfo.Values.FindIndex(x => x.Name == entryName));
+              f.Position = 0;
+              sfo.Write(f);
+            }
+            else
+            {
+              Console.WriteLine($"Error: No entry with the name {entryName} exists in {sfoFilename}");
+            }
+          }
+        }),
+      Verb.Create(
+        "sfo_setentry",
+        "Creates or modifies the named entry in the given SFO file.",
+        ArgDef.Multi(ArgDef.Option("value", "type", "maxsize", "name"), "param.sfo", "entry_name"),
+        (flags, optionals, args) =>
+        {
+          var newValue = optionals["value"];
+          var newType = optionals["type"];
+          var newMaxSize = int.Parse(optionals["maxsize"] ?? "-1");
+          var newName = optionals["name"] ?? args[2];
+          var sfoFilename = args[1];
+          var entryName = args[2];
+          using(var f = File.Open(sfoFilename, FileMode.Open))
+          {
+            var sfo = ParamSfo.FromStream(f);
+            var value = sfo[entryName];
+            if(value != null)
+            {
+              sfo.Values.Remove(value);
+              SfoEntryType type = value.Type;
+              newValue = newValue ?? value.ToString();
+              switch (newType?.ToLowerInvariant())
+              {
+                case null:
+                  if(newMaxSize == -1)
+                  {
+                    newMaxSize = value.MaxLength;
+                  }
+                  break;
+                case "integer":
+                case "int":
+                case "int32":
+                  type = SfoEntryType.Integer;
+                  newMaxSize = 4;
+                  break;
+                case "string":
+                case "utf8":
+                  type = SfoEntryType.Utf8;
+                  if(newMaxSize == -1)
+                  {
+                    newMaxSize = value.MaxLength;
+                  }
+                  if(newMaxSize <= Encoding.UTF8.GetByteCount(newValue))
+                  {
+                    Console.WriteLine($"Error: value \"{newValue}\" does not fit in the maximum size given ({newMaxSize})");
+                    return;
+                  }
+                  break;
+                default:
+                  Console.WriteLine("Error: unknown entry type. Supported types are: integer, utf8");
+                  return;
+              }
+              sfo[newName] = Value.Create(newName, type, newValue, newMaxSize);
+            }
+            else
+            {
+              if(newValue == null)
+              {
+                Console.WriteLine("Error: no value specified for new SFO entry");
+                return;
+              }
+              switch (newType?.ToLowerInvariant())
+              {
+                case "integer":
+                case "int":
+                case "int32":
+                  sfo[newName] = Value.Create(newName, SfoEntryType.Integer, newValue);
+                  break;
+                case "string":
+                case "utf8":
+                  if(newMaxSize == -1)
+                  {
+                    Console.WriteLine("Error: no maximum size specified for string");
+                    return;
+                  }
+                  if(newMaxSize <= Encoding.UTF8.GetByteCount(newValue))
+                  {
+                    Console.WriteLine("Error: value does not fit in the maximum size given");
+                    return;
+                  }
+                  sfo[newName] = Value.Create(newName, SfoEntryType.Utf8, newValue, newMaxSize);
+                  break;
+                case null:
+                default:
+                  Console.WriteLine("Error: invalid type specified for new SFO entry. Available types: integer, utf8");
+                  return;
+              }
+            }
+            f.SetLength(0);
+            f.Position = 0;
+            sfo.Write(f);
+            var x = sfo[newName];
+            Console.WriteLine($"{x.Name} : {x.Type}({x.Length}/{x.MaxLength}) = {x.ToString()}");
+          }
+        }),
+      Verb.Create(
+        "sfo_new",
+        "Creates a new empty SFO file at the given path.",
+        ArgDef.Required("param.sfo"),
+        args =>
+        {
+          using(var f = File.Open(args[1], FileMode.Create))
+          {
+            new ParamSfo().Write(f);
+          }
         }),
     };
 
@@ -314,6 +472,7 @@ namespace PkgTool
   public class Verb
   {
     public string Name;
+    public string HelpText;
     public List<ArgDef> Args;
 
     /// <summary>
@@ -330,9 +489,9 @@ namespace PkgTool
     /// <param name="args"></param>
     /// <param name="action"></param>
     /// <returns></returns>
-    public static Verb Create(string name, List<ArgDef> args, Action<string[]> action)
+    public static Verb Create(string name, string helpText, List<ArgDef> args, Action<string[]> action)
     {
-      return new Verb { Name = name, Args = args, Body = (_, _2, a) => action(a) };
+      return new Verb { Name = name, HelpText = helpText, Args = args, Body = (_, _2, a) => action(a) };
     }
 
     /// <summary>
@@ -342,9 +501,9 @@ namespace PkgTool
     /// <param name="args"></param>
     /// <param name="action"></param>
     /// <returns></returns>
-    public static Verb Create(string name, List<ArgDef> args, Action<Dictionary<string, bool>, string[]> action)
+    public static Verb Create(string name, string helpText, List<ArgDef> args, Action<Dictionary<string, bool>, string[]> action)
     {
-      return new Verb { Name = name, Args = args, Body = (b, _, n) => action(b, n) };
+      return new Verb { Name = name, HelpText = helpText, Args = args, Body = (b, _, n) => action(b, n) };
     }
 
 
@@ -355,9 +514,9 @@ namespace PkgTool
     /// <param name="args"></param>
     /// <param name="action"></param>
     /// <returns></returns>
-    public static Verb Create(string name, List<ArgDef> args, Action<Dictionary<string,bool>, Dictionary<string,string>, string[]> action)
+    public static Verb Create(string name, string helpText, List<ArgDef> args, Action<Dictionary<string,bool>, Dictionary<string,string>, string[]> action)
     {
-      return new Verb { Name = name, Args = args, Body = action };
+      return new Verb { Name = name, HelpText = helpText, Args = args, Body = action };
     }
     public override string ToString()
     {
@@ -456,6 +615,8 @@ namespace PkgTool
       foreach (var verb in verbs)
       {
         Console.WriteLine($"  {verb}");
+        Console.WriteLine($"    {verb.HelpText}");
+        Console.WriteLine();
       }
       return false;
     }

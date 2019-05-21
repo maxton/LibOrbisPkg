@@ -226,19 +226,10 @@ namespace PkgEditor.Views
       switch (typeDropDown.SelectedIndex)
       {
         case 0:
-          newValue = new Utf8Value(nameTextBox.Text, valueTextBox.Text, (int)maxLengthInput.Value);
+          newValue = Value.Create(nameTextBox.Text, SfoEntryType.Utf8, valueTextBox.Text, (int)maxLengthInput.Value);
           break;
         case 1:
-          int newNumber;
-          if (valueTextBox.Text.StartsWith("0x"))
-          {
-            int.TryParse(valueTextBox.Text.Substring(2), System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out newNumber);
-          }
-          else
-          {
-            int.TryParse(valueTextBox.Text, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out newNumber);
-          }
-          newValue = new IntegerValue(nameTextBox.Text, newNumber);
+          newValue = Value.Create(nameTextBox.Text, SfoEntryType.Integer, valueTextBox.Text);
           break;
         case 2:
           newValue = new Utf8SpecialValue(nameTextBox.Text, valueTextBox.Text.FromHexCompact(), (int)maxLengthInput.Value);

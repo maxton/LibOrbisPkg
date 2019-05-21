@@ -177,6 +177,27 @@ namespace LibOrbisPkg.SFO
     public abstract int Length { get; }
     public abstract int MaxLength { get; }
     public abstract byte[] ToByteArray();
+
+    public static Value Create(string name, SfoEntryType type, string value, int maxLength = 4)
+    {
+      switch (type)
+      {
+        case SfoEntryType.Utf8Special:
+          return new Utf8SpecialValue(name, new byte[0], 0);
+        case SfoEntryType.Utf8:
+          return new Utf8Value(name, value, maxLength);
+        case SfoEntryType.Integer:
+          int newNumber = 0;
+          if (value.StartsWith("0x"))
+            int.TryParse(value.Substring(2), System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out newNumber);
+          else
+            int.TryParse(value, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out newNumber);
+          return new IntegerValue(name, newNumber);
+        default:
+          return null;
+      }
+      
+    }
   }
   public class Utf8SpecialValue : Value
   {
