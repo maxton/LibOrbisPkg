@@ -99,19 +99,19 @@ namespace PkgEditor.Views
         switch (param)
         {
           case Utf8Value v:
-            listView1.Items.Add(new ListViewItem(new[] { v.Name, "string", v.Value })
+            listView1.Items.Add(new ListViewItem(new[] { v.Name, "utf8", v.Length.ToString(), v.MaxLength.ToString(), v.Value })
             {
               Tag = param
             });
             break;
           case Utf8SpecialValue v:
-            listView1.Items.Add(new ListViewItem(new[] { v.Name, "bytes", v.Value.Select(x => string.Format("{0:X2}", x)).DefaultIfEmpty("").Aggregate((s1, s2) => s1 + s2) })
+            listView1.Items.Add(new ListViewItem(new[] { v.Name, "utf8_special", v.Length.ToString(), v.MaxLength.ToString(), v.Value.Select(x => string.Format("{0:X2}", x)).DefaultIfEmpty("").Aggregate((s1, s2) => s1 + s2) })
             {
               Tag = param
             });
             break;
           case IntegerValue v:
-            listView1.Items.Add(new ListViewItem(new[] { v.Name, "integer", v.Value.ToString("X8") })
+            listView1.Items.Add(new ListViewItem(new[] { v.Name, "integer", "4", "4", v.Value.ToString("X8") })
             {
               Tag = param
             });
@@ -184,7 +184,7 @@ namespace PkgEditor.Views
       switch (type)
       {
         case SfoEntryType.Utf8Special:
-          val = new Utf8SpecialValue(name, new byte[] { 00 }, 1);
+          val = new Utf8SpecialValue(name, "", 0);
           break;
         case SfoEntryType.Utf8:
           val = new Utf8Value(name, "", 1);
@@ -232,7 +232,7 @@ namespace PkgEditor.Views
           newValue = Value.Create(nameTextBox.Text, SfoEntryType.Integer, valueTextBox.Text);
           break;
         case 2:
-          newValue = new Utf8SpecialValue(nameTextBox.Text, valueTextBox.Text.FromHexCompact(), (int)maxLengthInput.Value);
+          newValue = new Utf8SpecialValue(nameTextBox.Text, valueTextBox.Text, (int)maxLengthInput.Value);
           break;
       }
       if (newValue != null)

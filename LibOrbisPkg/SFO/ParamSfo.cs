@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using LibOrbisPkg.Util;
@@ -8,6 +9,14 @@ namespace LibOrbisPkg.SFO
 {
   public class ParamSfo
   {
+    /// <summary>
+    /// Array index access to the SFO file.
+    /// Setting a value to null removes it from the SFO.
+    /// When getting a value, if a value with the given key doesn't exist, null is returned.
+    /// If the name of the value doesn't match the name given to the indexer, the value's name is updated.
+    /// </summary>
+    /// <param name="name">The key of the entry to get/set</param>
+    /// <returns>The value or null if it doesn't exist</returns>
     public Value this[string name]
     {
       get { return GetValueByName(name); }
@@ -17,10 +26,28 @@ namespace LibOrbisPkg.SFO
         {
           Values.Remove(v);
         }
-        Values.Add(value);
-        Values.Sort((v1, v2) => v1.Name.CompareTo(v2.Name));
+        if(value != null)
+        {
+          if(value.Name != name)
+          {
+            value.Name = name;
+          }
+          Values.Add(value);
+          Values.Sort((v1, v2) => v1.Name.CompareTo(v2.Name));
+        }
       }
     }
+
+    /// <summary>
+    /// Sets or updates an entry with the given key name.
+    /// </summary>
+    public Value SetValue(string key, SfoEntryType type, string @value, int maxLength = 4)
+    {
+      var v = Value.Create(key, type, @value, maxLength);
+      this[key] = v;
+      return v;
+    }
+
     public List<Value> Values;
     public ParamSfo()
     {
@@ -63,7 +90,7 @@ namespace LibOrbisPkg.SFO
             ret.Values.Add(new Utf8Value(name, Encoding.UTF8.GetString(s.ReadBytes(len > 0 ? len - 1 : len)), maxLen));
             break;
           case SfoEntryType.Utf8Special:
-            ret.Values.Add(new IntegerValue(name, s.ReadInt32LE()));
+            ret.Values.Add(new Utf8Value(name, Encoding.UTF8.GetString(s.ReadBytes(len)), maxLen));
             break;
           default:
             throw new Exception($"Unknown SFO type: {(ushort)format:X4}");
@@ -183,15 +210,15 @@ namespace LibOrbisPkg.SFO
       switch (type)
       {
         case SfoEntryType.Utf8Special:
-          return new Utf8SpecialValue(name, new byte[0], 0);
+          return new Utf8SpecialValue(name, value, maxLength);
         case SfoEntryType.Utf8:
           return new Utf8Value(name, value, maxLength);
         case SfoEntryType.Integer:
           int newNumber = 0;
-          if (value.StartsWith("0x"))
-            int.TryParse(value.Substring(2), System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out newNumber);
+          if (value.Contains("0x"))
+            int.TryParse(value.Replace("0x", ""), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out newNumber);
           else
-            int.TryParse(value, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out newNumber);
+            int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out newNumber);
           return new IntegerValue(name, newNumber);
         default:
           return null;
@@ -199,24 +226,30 @@ namespace LibOrbisPkg.SFO
       
     }
   }
+  /// <summary>
+  /// A special string used in system SFOs? Not null terminated according to PS3 DevWiki.
+  /// </summary>
   public class Utf8SpecialValue : Value
   {
-    public Utf8SpecialValue(string name, byte[] value, int maxLength) 
+    public Utf8SpecialValue(string name, string value, int maxLength) 
       : base(name, SfoEntryType.Utf8Special)
     {
       Type = SfoEntryType.Utf8Special;
       MaxLength = maxLength;
       Value = value;
     }
-    public byte[] Value;
+    public string Value;
     public override int Length => Value.Length;
     public override int MaxLength { get; }
-    public override byte[] ToByteArray() => Value;
+    public override byte[] ToByteArray() => Encoding.UTF8.GetBytes(Value);
     public override string ToString()
     {
-      return Value.AsHexCompact();
+      return Value;
     }
   }
+  /// <summary>
+  /// A utf8-encoded string value. Null terminated.
+  /// </summary>
   public class Utf8Value : Value
   {
     public Utf8Value(string name, string value, int maxLength)
@@ -229,12 +262,15 @@ namespace LibOrbisPkg.SFO
     public override int Length => Encoding.UTF8.GetByteCount(Value) + 1;
     public override int MaxLength { get; }
     public string Value;
-    public override byte[] ToByteArray() => Encoding.UTF8.GetBytes(Value);
+    public override byte[] ToByteArray() => Encoding.UTF8.GetBytes(Value + "\0"); // Adding the null char adds a zero byte to the output.
     public override string ToString()
     {
       return Value;
     }
   }
+  /// <summary>
+  /// 32-bit integer value.
+  /// </summary>
   public class IntegerValue : Value
   {
     public IntegerValue(string name, int value)

@@ -31,11 +31,17 @@
       this.listView1 = new System.Windows.Forms.ListView();
       this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
       this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+      this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+      this.columnHeader5 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
       this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
       this.toolStrip1 = new System.Windows.Forms.ToolStrip();
       this.defaultsDropDownButton = new System.Windows.Forms.ToolStripDropDownButton();
       this.loadACDefaultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.loadGPDefaultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.toolStripDropDownButton1 = new System.Windows.Forms.ToolStripDropDownButton();
+      this.stringToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.intToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.bytesUtf8SpecialToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.label1 = new System.Windows.Forms.Label();
       this.nameTextBox = new System.Windows.Forms.TextBox();
       this.typeDropDown = new System.Windows.Forms.ComboBox();
@@ -45,10 +51,6 @@
       this.maxLengthInput = new System.Windows.Forms.NumericUpDown();
       this.sizeLabel = new System.Windows.Forms.Label();
       this.label5 = new System.Windows.Forms.Label();
-      this.toolStripDropDownButton1 = new System.Windows.Forms.ToolStripDropDownButton();
-      this.stringToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-      this.intToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-      this.bytesUtf8SpecialToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.toolStrip1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.maxLengthInput)).BeginInit();
       this.SuspendLayout();
@@ -61,8 +63,11 @@
       this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1,
             this.columnHeader2,
+            this.columnHeader4,
+            this.columnHeader5,
             this.columnHeader3});
       this.listView1.FullRowSelect = true;
+      this.listView1.HideSelection = false;
       this.listView1.Location = new System.Drawing.Point(0, 77);
       this.listView1.Name = "listView1";
       this.listView1.Size = new System.Drawing.Size(650, 299);
@@ -80,6 +85,17 @@
       // columnHeader2
       // 
       this.columnHeader2.Text = "Type";
+      this.columnHeader2.Width = 73;
+      // 
+      // columnHeader4
+      // 
+      this.columnHeader4.Text = "Size";
+      this.columnHeader4.Width = 38;
+      // 
+      // columnHeader5
+      // 
+      this.columnHeader5.Text = "MaxSize";
+      this.columnHeader5.Width = 52;
       // 
       // columnHeader3
       // 
@@ -124,6 +140,37 @@
       this.loadGPDefaultsToolStripMenuItem.Text = "Load GP Defaults";
       this.loadGPDefaultsToolStripMenuItem.Click += new System.EventHandler(this.loadGPDefaultsToolStripMenuItem_Click);
       // 
+      // toolStripDropDownButton1
+      // 
+      this.toolStripDropDownButton1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.stringToolStripMenuItem,
+            this.intToolStripMenuItem,
+            this.bytesUtf8SpecialToolStripMenuItem});
+      this.toolStripDropDownButton1.Name = "toolStripDropDownButton1";
+      this.toolStripDropDownButton1.Size = new System.Drawing.Size(97, 22);
+      this.toolStripDropDownButton1.Text = "Add Key/Value";
+      // 
+      // stringToolStripMenuItem
+      // 
+      this.stringToolStripMenuItem.Name = "stringToolStripMenuItem";
+      this.stringToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+      this.stringToolStripMenuItem.Text = "String";
+      this.stringToolStripMenuItem.Click += new System.EventHandler(this.stringToolStripMenuItem_Click);
+      // 
+      // intToolStripMenuItem
+      // 
+      this.intToolStripMenuItem.Name = "intToolStripMenuItem";
+      this.intToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+      this.intToolStripMenuItem.Text = "Int";
+      this.intToolStripMenuItem.Click += new System.EventHandler(this.intToolStripMenuItem_Click);
+      // 
+      // bytesUtf8SpecialToolStripMenuItem
+      // 
+      this.bytesUtf8SpecialToolStripMenuItem.Name = "bytesUtf8SpecialToolStripMenuItem";
+      this.bytesUtf8SpecialToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+      this.bytesUtf8SpecialToolStripMenuItem.Text = "String Special";
+      this.bytesUtf8SpecialToolStripMenuItem.Click += new System.EventHandler(this.bytesUtf8SpecialToolStripMenuItem_Click);
+      // 
       // label1
       // 
       this.label1.AutoSize = true;
@@ -149,7 +196,7 @@
       this.typeDropDown.Items.AddRange(new object[] {
             "String",
             "Integer",
-            "Bytes"});
+            "Special"});
       this.typeDropDown.Location = new System.Drawing.Point(44, 50);
       this.typeDropDown.Name = "typeDropDown";
       this.typeDropDown.Size = new System.Drawing.Size(59, 21);
@@ -216,37 +263,6 @@
       this.label5.TabIndex = 13;
       this.label5.Text = "Type";
       // 
-      // toolStripDropDownButton1
-      // 
-      this.toolStripDropDownButton1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.stringToolStripMenuItem,
-            this.intToolStripMenuItem,
-            this.bytesUtf8SpecialToolStripMenuItem});
-      this.toolStripDropDownButton1.Name = "toolStripDropDownButton1";
-      this.toolStripDropDownButton1.Size = new System.Drawing.Size(97, 22);
-      this.toolStripDropDownButton1.Text = "Add Key/Value";
-      // 
-      // stringToolStripMenuItem
-      // 
-      this.stringToolStripMenuItem.Name = "stringToolStripMenuItem";
-      this.stringToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-      this.stringToolStripMenuItem.Text = "String/Utf8";
-      this.stringToolStripMenuItem.Click += new System.EventHandler(this.stringToolStripMenuItem_Click);
-      // 
-      // intToolStripMenuItem
-      // 
-      this.intToolStripMenuItem.Name = "intToolStripMenuItem";
-      this.intToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-      this.intToolStripMenuItem.Text = "Int";
-      this.intToolStripMenuItem.Click += new System.EventHandler(this.intToolStripMenuItem_Click);
-      // 
-      // bytesUtf8SpecialToolStripMenuItem
-      // 
-      this.bytesUtf8SpecialToolStripMenuItem.Name = "bytesUtf8SpecialToolStripMenuItem";
-      this.bytesUtf8SpecialToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-      this.bytesUtf8SpecialToolStripMenuItem.Text = "Bytes/Utf8Special";
-      this.bytesUtf8SpecialToolStripMenuItem.Click += new System.EventHandler(this.bytesUtf8SpecialToolStripMenuItem_Click);
-      // 
       // SFOView
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -294,5 +310,7 @@
     private System.Windows.Forms.ToolStripMenuItem stringToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem intToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem bytesUtf8SpecialToolStripMenuItem;
+    private System.Windows.Forms.ColumnHeader columnHeader4;
+    private System.Windows.Forms.ColumnHeader columnHeader5;
   }
 }
