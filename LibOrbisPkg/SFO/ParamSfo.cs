@@ -90,7 +90,7 @@ namespace LibOrbisPkg.SFO
             ret.Values.Add(new Utf8Value(name, Encoding.UTF8.GetString(s.ReadBytes(len > 0 ? len - 1 : len)), maxLen));
             break;
           case SfoEntryType.Utf8Special:
-            ret.Values.Add(new Utf8Value(name, Encoding.UTF8.GetString(s.ReadBytes(len)), maxLen));
+            ret.Values.Add(new Utf8SpecialValue(name, Encoding.UTF8.GetString(s.ReadBytes(len)), maxLen));
             break;
           default:
             throw new Exception($"Unknown SFO type: {(ushort)format:X4}");

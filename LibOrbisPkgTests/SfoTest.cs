@@ -56,8 +56,8 @@ namespace LibOrbisPkgTests
     {
       var sfo = new ParamSfo();
       sfo.SetValue("KEY1", SfoEntryType.Integer, "1234");
-      sfo.SetValue("KEY2", SfoEntryType.Utf8, "This is the title");
-      sfo.SetValue("KEY3", SfoEntryType.Utf8Special, "This is a special string");
+      sfo.SetValue("KEY2", SfoEntryType.Utf8, "This is the title", 32);
+      sfo.SetValue("KEY3", SfoEntryType.Utf8Special, "This is a special string", 32);
       sfo.SetValue("KEY4", SfoEntryType.Integer, "0x1234");
 
       using (var ms = new MemoryStream())
@@ -65,10 +65,10 @@ namespace LibOrbisPkgTests
         sfo.Write(ms);
         ms.Seek(0, SeekOrigin.Begin);
         var sfo2 = ParamSfo.FromStream(ms);
-        Assert.AreEqual((sfo["KEY1"] as IntegerValue).Value, 1234);
-        Assert.AreEqual((sfo["KEY2"] as Utf8Value).Value, "This is the title");
-        Assert.AreEqual((sfo["KEY3"] as Utf8SpecialValue).Value, "This is a special string");
-        Assert.AreEqual((sfo["KEY4"] as IntegerValue).Value, 0x1234);
+        Assert.AreEqual((sfo2["KEY1"] as IntegerValue).Value, 1234);
+        Assert.AreEqual((sfo2["KEY2"] as Utf8Value).Value, "This is the title");
+        Assert.AreEqual((sfo2["KEY3"] as Utf8SpecialValue).Value, "This is a special string");
+        Assert.AreEqual((sfo2["KEY4"] as IntegerValue).Value, 0x1234);
       }
     }
   }
