@@ -212,11 +212,11 @@ namespace PkgTool
           using(var file = File.OpenRead(pkgPath))
           {
             var pkg = new PkgReader(file).ReadPkg();
-            Console.WriteLine("Offset\tSize\tFlags\t\tIndex\tEnc?\tName");
+            Console.WriteLine("Offset      Size      Flags      Index Enc? Name");
             var i = 0;
             foreach(var meta in pkg.Metas.Metas)
             {
-              Console.WriteLine($"0x{meta.DataOffset:X2}\t0x{meta.DataSize:X}\t{meta.Flags1:X8}\t{i++}\t{(meta.Encrypted ? "Enc" : "")}\t{meta.id}");
+              Console.WriteLine($"0x{meta.DataOffset,-10:X2}0x{meta.DataSize,-8:X}{meta.Flags1,-11:X8}{i++,-6}{(meta.KeyIndex == 0 ? "" : meta.KeyIndex.ToString()),-5}{meta.id}");
             }
           }
         }),
