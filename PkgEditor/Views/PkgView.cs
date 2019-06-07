@@ -199,7 +199,7 @@ namespace PkgEditor.Views
     {
       if(entriesListView.SelectedItems[0].SubItems[0].Text == "PARAM_SFO")
       {
-        mainWin.OpenTab(new SFOView(pkg.ParamSfo.ParamSfo, true), "param.sfo");
+        mainWin.OpenTab(new SFOView(pkg.ParamSfo.ParamSfo, true), "param.sfo [Read-Only]");
       }
     }
 

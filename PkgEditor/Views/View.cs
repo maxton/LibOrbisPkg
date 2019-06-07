@@ -21,7 +21,7 @@ namespace PkgEditor.Views
     /// <summary>
     /// This method should be called by an overloading class when the document has been modified, so the UI can update the Save/As buttons.
     /// </summary>
-    protected void OnSaveStatusChanged() => SaveStatusChanged(this, new EventArgs());
+    protected void OnSaveStatusChanged() => SaveStatusChanged?.Invoke(this, new EventArgs());
 
     /// <summary>
     /// This should return true if the current document can be File->saved with Ctrl-S.
