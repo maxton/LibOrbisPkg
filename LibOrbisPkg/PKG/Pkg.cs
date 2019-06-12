@@ -113,18 +113,7 @@ namespace LibOrbisPkg.PKG
       return digest.SequenceEqual(EntryKeys.Keys[1].digest);
     }
 
-    /// <summary>
-    /// Calculates the digests for the GeneralDigests entry.
-    /// Preconditions: the following are set
-    ///   - ParamSfo
-    ///   - Content ID
-    ///   - drm_type
-    ///   - content_type
-    ///   - pfs_image_digest (if there is a pfs image)
-    ///   - all header values from 0x0 to 0x40
-    ///   - all header values from 0x400 to 0x480
-    /// </summary>
-    public Dictionary<GeneralDigest, byte[]> CalcGeneralDigests()
+    string CreateMajorParamString()
     {
       var sfo = ParamSfo.ParamSfo;
       var majorParamString = "ATTRIBUTE" + sfo["ATTRIBUTE"];
@@ -133,8 +122,13 @@ namespace LibOrbisPkg.PKG
       majorParamString += "CATEGORY" + sfo["CATEGORY"];
       majorParamString += "FORMAT" + sfo["FORMAT"];
       majorParamString += "PUBTOOLVER" + sfo["PUBTOOLVER"];
-      var majorParamDigest = Crypto.Sha256(Encoding.ASCII.GetBytes(majorParamString));
+      return majorParamString;
+    }
+
+    internal byte[] ComputeContentDigest()
+    {
       byte[] ContentDigest;
+      var majorParamDigest = Crypto.Sha256(Encoding.ASCII.GetBytes(CreateMajorParamString()));
       using (var ms = new MemoryStream())
       {
         ms.Write(Encoding.ASCII.GetBytes(Header.content_id), 0, 36);
@@ -151,6 +145,11 @@ namespace LibOrbisPkg.PKG
         ms.Write(majorParamDigest, 0, 32);
         ContentDigest = Crypto.Sha256(ms);
       }
+      return ContentDigest;
+    }
+
+    internal byte[] ComputeHeaderDigest()
+    {
       byte[] headerDigest;
       using (var ms = new MemoryStream())
       {
@@ -164,12 +163,33 @@ namespace LibOrbisPkg.PKG
           headerDigest = hash.Hash;
         }
       }
+      return headerDigest;
+    }
+
+    internal byte[] ComputeMajorParamDigest()
+    {
+      return Crypto.Sha256(Encoding.ASCII.GetBytes(CreateMajorParamString()));
+    }
+
+    /// <summary>
+    /// Calculates the digests for the GeneralDigests entry.
+    /// Preconditions: the following are set
+    ///   - ParamSfo
+    ///   - Content ID
+    ///   - drm_type
+    ///   - content_type
+    ///   - pfs_image_digest (if there is a pfs image)
+    ///   - all header values from 0x0 to 0x40
+    ///   - all header values from 0x400 to 0x480
+    /// </summary>
+    public Dictionary<GeneralDigest, byte[]> CalcGeneralDigests()
+    {
       return new Dictionary<GeneralDigest, byte[]>
       {
-        { GeneralDigest.HeaderDigest, headerDigest },
+        { GeneralDigest.HeaderDigest, ComputeHeaderDigest() },
         { GeneralDigest.GameDigest, Header.pfs_image_digest },
-        { GeneralDigest.ContentDigest, ContentDigest },
-        { GeneralDigest.MajorParamDigest, majorParamDigest },
+        { GeneralDigest.ContentDigest, ComputeContentDigest() },
+        { GeneralDigest.MajorParamDigest, ComputeMajorParamDigest() },
         { GeneralDigest.ParamDigest, Crypto.Sha256(ParamSfo.ParamSfo.Serialize()) },
       };
     }

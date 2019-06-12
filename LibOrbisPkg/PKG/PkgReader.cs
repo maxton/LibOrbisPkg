@@ -35,9 +35,11 @@ namespace LibOrbisPkg.PKG
           case EntryId.PARAM_SFO:
             s.Position = entry.DataOffset;
             pkg.ParamSfo = new SfoEntry(SFO.ParamSfo.FromStream(s));
+            pkg.ParamSfo.meta = entry;
             break;
           case EntryId.ENTRY_KEYS:
             pkg.EntryKeys = KeysEntry.Read(entry, s);
+            pkg.EntryKeys.meta = entry;
             break;
           case EntryId.IMAGE_KEY:
             s.Position = entry.DataOffset;
@@ -50,6 +52,7 @@ namespace LibOrbisPkg.PKG
           case EntryId.GENERAL_DIGESTS:
             s.Position = entry.DataOffset;
             pkg.GeneralDigests = GeneralDigestsEntry.Read(s);
+            pkg.GeneralDigests.meta = entry;
             break;
         }
       }

@@ -12,6 +12,7 @@ using GameArchives;
 using LibArchiveExplorer;
 using LibOrbisPkg.PKG;
 using LibOrbisPkg.Util;
+using System.Threading.Tasks;
 
 namespace PkgEditor.Views
 {
@@ -203,24 +204,33 @@ namespace PkgEditor.Views
       }
     }
 
-    private void checkDigests_Click(object sender, EventArgs _)
+    private async void checkDigests_Click(object sender, EventArgs _)
     {
       validateResult.Text = "Checking PKG digests...";
-      Action<string> errorHandler = e => validateResult.Text += Environment.NewLine + $"Digest mismatch: {e}";
-      var validator = new PkgValidator(pkg, errorHandler);
+      listView1.Enabled = false;
+      checkDigestsButton.Enabled = false;
+      var validator = new PkgValidator(pkg);
       CloseFileView();
-      using (var s = pkgFile.GetStream())
+      await Task.Run(() =>
       {
-        var errors = validator.Validate(s);
-        if (errors.Count == 0)
+        using (var s = pkgFile.GetStream())
         {
-          validateResult.Text += Environment.NewLine + "PKG Successfully validated";
+          listView1.Items.Clear();
+          foreach (var v in validator.Validate(s))
+          {
+            var item = new ListViewItem(v.Item1.Name);
+            if (v.Item2)
+              item.BackColor = Color.LightGreen;
+            else
+              item.BackColor = Color.LightSalmon;
+            item.Tag = v;
+            listView1.BeginInvoke((Action)(() => listView1.Items.Add(item)));
+          }
         }
-        else
-        {
-          validateResult.Text += Environment.NewLine + $"PKG Validation Failed: {errors.Count} hashes did not match";
-        }
-      }
+      });
+      listView1.Enabled = true;
+      checkDigestsButton.Enabled = true;
+      validateResult.Text = "Done!";
       ReopenFileView();
     }
 
@@ -235,6 +245,26 @@ namespace PkgEditor.Views
           {
             pkgFile.GetStream();
           }
+        }
+      }
+    }
+
+    private void ListView1_SelectedIndexChanged(object sender, EventArgs e)
+    {
+      if(listView1.SelectedItems.Count != 1)
+      {
+        validateResult.Text = "";
+      }
+      else
+      {
+        if(listView1.SelectedItems[0].Tag is Tuple<PkgValidator.Validation, bool> t)
+        {
+          validateResult.Text =
+            $"Type: {t.Item1.Type}{Environment.NewLine}" +
+            $"Name: {t.Item1.Name}{Environment.NewLine}" +
+            $"Description: {t.Item1.Description}{Environment.NewLine}" +
+            $"Offset: 0x{t.Item1.Location:X}{Environment.NewLine}" +
+            $"This {(t.Item2 ? "was validated" : "did not validate")} successfully.";
         }
       }
     }

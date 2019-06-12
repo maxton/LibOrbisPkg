@@ -44,8 +44,10 @@
       this.button1 = new System.Windows.Forms.Button();
       this.tabPage1 = new System.Windows.Forms.TabPage();
       this.tabPage2 = new System.Windows.Forms.TabPage();
+      this.listView1 = new System.Windows.Forms.ListView();
       this.checkDigestsButton = new System.Windows.Forms.Button();
       this.validateResult = new System.Windows.Forms.TextBox();
+      this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
       this.tabControl1.SuspendLayout();
       this.headerTab.SuspendLayout();
       this.entriesTab.SuspendLayout();
@@ -192,6 +194,7 @@
       // 
       // tabPage2
       // 
+      this.tabPage2.Controls.Add(this.listView1);
       this.tabPage2.Controls.Add(this.checkDigestsButton);
       this.tabPage2.Controls.Add(this.validateResult);
       this.tabPage2.Location = new System.Drawing.Point(4, 22);
@@ -201,6 +204,20 @@
       this.tabPage2.TabIndex = 4;
       this.tabPage2.Text = "Validate";
       this.tabPage2.UseVisualStyleBackColor = true;
+      // 
+      // listView1
+      // 
+      this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.columnHeader2});
+      this.listView1.FullRowSelect = true;
+      this.listView1.Location = new System.Drawing.Point(6, 35);
+      this.listView1.MultiSelect = false;
+      this.listView1.Name = "listView1";
+      this.listView1.Size = new System.Drawing.Size(132, 329);
+      this.listView1.TabIndex = 2;
+      this.listView1.UseCompatibleStateImageBehavior = false;
+      this.listView1.View = System.Windows.Forms.View.Details;
+      this.listView1.SelectedIndexChanged += new System.EventHandler(this.ListView1_SelectedIndexChanged);
       // 
       // checkDigestsButton
       // 
@@ -217,11 +234,16 @@
       this.validateResult.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-      this.validateResult.Location = new System.Drawing.Point(6, 35);
+      this.validateResult.Location = new System.Drawing.Point(144, 35);
       this.validateResult.Multiline = true;
       this.validateResult.Name = "validateResult";
-      this.validateResult.Size = new System.Drawing.Size(523, 329);
+      this.validateResult.Size = new System.Drawing.Size(385, 329);
       this.validateResult.TabIndex = 0;
+      // 
+      // columnHeader2
+      // 
+      this.columnHeader2.Text = "Name";
+      this.columnHeader2.Width = 110;
       // 
       // PkgView
       // 
@@ -261,5 +283,7 @@
     private System.Windows.Forms.TabPage tabPage2;
     private System.Windows.Forms.Button checkDigestsButton;
     private System.Windows.Forms.TextBox validateResult;
+    private System.Windows.Forms.ListView listView1;
+    private System.Windows.Forms.ColumnHeader columnHeader2;
   }
 }
