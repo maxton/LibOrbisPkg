@@ -171,10 +171,10 @@ namespace LibOrbisPkg.SFO
       {
         new IntegerValue("ATTRIBUTE", 0),
         new Utf8Value("CATEGORY", "ac", 4),
-        new Utf8Value("CONTENT_ID", "AAXXXX-BBBBYYYYY_00-ZZZZZZZZZZZZZZZZ", 48),
+        new Utf8Value("CONTENT_ID", "AA0000-BBBB00000_00-ZZZZZZZZZZZZZZZZ", 48),
         new Utf8Value("FORMAT", "obs", 4),
         new Utf8Value("TITLE", "Title", 128),
-        new Utf8Value("TITLE_ID", "BBBBYYYYY", 12),
+        new Utf8Value("TITLE_ID", "BBBB00000", 12),
         new Utf8Value("VERSION", "01.00", 8),
       }
     };
@@ -182,7 +182,18 @@ namespace LibOrbisPkg.SFO
     {
       Values = new List<Value>
       {
-
+        new IntegerValue("APP_TYPE", 4),
+        new Utf8Value("APP_VER", "01.00", 8),
+        new IntegerValue("ATTRIBUTE", 0),
+        new Utf8Value("CATEGORY", "gd", 4),
+        new Utf8Value("CONTENT_ID", "AA0000-BBBB00000_00-ZZZZZZZZZZZZZZZZ", 48),
+        new IntegerValue("DOWNLOAD_DATA_SIZE", 0),
+        new Utf8Value("FORMAT", "obs", 4),
+        new IntegerValue("PARENTAL_LEVEL", 1),
+        new Utf8Value("TITLE", "Title", 128),
+        new Utf8Value("TITLE_ID", "BBBB00000", 12),
+        new IntegerValue("SYSTEM_VER", 0),
+        new Utf8Value("VERSION", "01.00", 8),
       }
     };
   }

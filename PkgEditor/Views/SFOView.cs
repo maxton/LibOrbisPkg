@@ -23,6 +23,7 @@ namespace PkgEditor.Views
     private bool @readonly = false;
     private bool modified = false;
     private int attributeFlags = 0;
+    private int attribute2Flags = 0;
     private Value selectedValue = null;
 
     public bool Modified
@@ -260,23 +261,39 @@ namespace PkgEditor.Views
           break;
       }
       if (newValue != null)
-        selectedValue = proj[selectedValue.Name] = newValue;
+      {
+        proj[selectedValue.Name] = null;
+        selectedValue = proj[newValue.Name] = newValue;
+
+      }
       ProjectWasModified(sender);
     }
 
     private void GuidedEditor_Init()
     {
       sfoTypeCombobox.Enabled = !@readonly;
-      contentIdTextBox.ReadOnly = @readonly;
+      contentIdTextBox.ReadOnly = titleTextBox.ReadOnly = appVersionTextBox.ReadOnly = versionTextBox.ReadOnly = @readonly;
+      attributes2Enable.Enabled = !@readonly;
       attributesListBox.Items.Clear();
       for (var i = 0; i < 32; i++)
       {
         attributesListBox.Items.Add(AttributeNames[i], false);
+        attributes2ListBox.Items.Add(Attribute2Names[i], false);
       }
       sfoTypeCombobox.Items.Clear();
       foreach (var t in SfoTypes)
       {
         sfoTypeCombobox.Items.Add(t);
+      }
+      appTypeComboBox.Items.Clear();
+      foreach (var t in AppTypes)
+      {
+        appTypeComboBox.Items.Add(t);
+      }
+      downloadSizeComboBox.Items.Clear();
+      foreach (var d in DownloadSizes)
+      {
+        downloadSizeComboBox.Items.Add(d);
       }
       GuidedEditor_Reload();
     }
@@ -292,6 +309,14 @@ namespace PkgEditor.Views
           attributesListBox.SetItemChecked(i, (attributeFlags & (1 << i)) == (1 << i));
         }
       }
+      if (sender != attributes2ListBox)
+      {
+        attribute2Flags = proj["ATTRIBUTE2"] is IntegerValue a ? a.Value : 0;
+        for (int i = 0; i < 32; i++)
+        {
+          attributes2ListBox.SetItemChecked(i, (attribute2Flags & (1 << i)) == (1 << i));
+        }
+      }
       if (sender != contentIdTextBox)
       {
         contentIdTextBox.Text = proj["CONTENT_ID"] is Utf8Value contentId ? contentId.Value : "";
@@ -300,17 +325,65 @@ namespace PkgEditor.Views
       {
         sfoTypeCombobox.SelectedItem = SfoTypes.FirstOrDefault(x => x.Category == proj["CATEGORY"]?.ToString());
       }
+      if (sender != titleTextBox)
+      {
+        titleTextBox.Text = proj["TITLE"] is Utf8Value t ? t.Value : "";
+      }
+      downloadSizeComboBox.Enabled
+        = appTypeComboBox.Enabled 
+        = appVersionTextBox.Enabled 
+        = proj["CATEGORY"] is Utf8Value c ? c.Value.StartsWith("g") : false;
+      if (sender != appVersionTextBox)
+      {
+        appVersionTextBox.Text = proj["APP_VER"] is Utf8Value a ? a.Value : "";
+      }
+      if (sender != versionTextBox)
+      {
+        versionTextBox.Text = proj["VERSION"] is Utf8Value v ? v.Value : "";
+      }
+      if (sender != appTypeComboBox)
+      {
+        appTypeComboBox.SelectedIndex = proj["APP_TYPE"] is IntegerValue a ? a.Value : 0;
+      }
+      if (sender != downloadSizeComboBox)
+      {
+        var index = proj["DOWNLOAD_DATA_SIZE"] is IntegerValue d && d.Value > 63 ? (int)Math.Log(d.Value / 64, 2) + 1 : 0;
+        downloadSizeComboBox.SelectedIndex = index >= 0 && index <= 5 ? index : 0;
+      }
+      attributes2Enable.Checked = proj["ATTRIBUTE2"] != null;
       loaded = true;
     }
 
     private void GuidedEditor_Changed(object sender, EventArgs e)
     {
-      if (!loaded) return;
+      if (!loaded || @readonly) return;
       if (contentIdTextBox.Text.Length == 36)
+      {
         proj.SetValue("CONTENT_ID", SfoEntryType.Utf8, contentIdTextBox.Text, 48);
+        proj.SetValue("TITLE_ID", SfoEntryType.Utf8, contentIdTextBox.Text.Substring(7, 9), 12);
+      }
+      proj.SetValue("TITLE", SfoEntryType.Utf8, titleTextBox.Text, 128);
       if (sfoTypeCombobox.SelectedItem is SfoType st)
+      {
         proj.SetValue("CATEGORY", SfoEntryType.Utf8, st.Category, 4);
+        appTypeComboBox.Enabled = appVersionTextBox.Enabled = st.Category.StartsWith("g");
+      }
       proj.SetValue("ATTRIBUTE", SfoEntryType.Integer, attributeFlags.ToString());
+      if (attributes2Enable.Checked)
+        proj.SetValue("ATTRIBUTE2", SfoEntryType.Integer, attribute2Flags.ToString());
+      else
+        proj["ATTRIBUTE2"] = null;
+      if (appVersionTextBox.Enabled)
+        proj.SetValue("APP_VER", SfoEntryType.Utf8, appVersionTextBox.Text, 8);
+      else
+        proj["APP_VER"] = null;
+      if (appTypeComboBox.Enabled)
+        proj.SetValue("APP_TYPE", SfoEntryType.Integer, appTypeComboBox.SelectedIndex.ToString());
+      else
+        proj["APP_TYPE"] = null;
+      if (downloadSizeComboBox.Enabled)
+        proj.SetValue("DOWNLOAD_DATA_SIZE", SfoEntryType.Integer, $"{64 * (1 << (downloadSizeComboBox.SelectedIndex - 1))}");
+      proj.SetValue("VERSION", SfoEntryType.Utf8, versionTextBox.Text, 8);
       ProjectWasModified(sender);
     }
 
@@ -325,13 +398,19 @@ namespace PkgEditor.Views
         return;
       }
       var flag = 1 << e.Index;
+      int attributes = sender == attributesListBox ? attributeFlags : attribute2Flags;
       if (e.NewValue == CheckState.Checked)
         // Set flag
-        attributeFlags |= flag;
+        attributes |= flag;
       else
         // Unset flag
-        attributeFlags &= ~flag;
-      GuidedEditor_Changed(attributesListBox, null);
+        attributes &= ~flag;
+
+      if (sender == attributesListBox)
+        attributeFlags = attributes;
+      else
+        attribute2Flags = attributes;
+      GuidedEditor_Changed(sender, null);
     }
 
 
@@ -422,6 +501,43 @@ namespace PkgEditor.Views
       "Unknown(31)",
       "Display Location (?)"
     };
+
+    private static string[] Attribute2Names = new[]
+    {
+      "Unknown(1)",
+      "The application supports Video Recording Feature",
+      "The application supports Content Search Feature",
+      "Unknown(4)",
+      "PSVR Personal Eye-to-Eye distance setting disabled",
+      "PSVR Personal Eye-to-Eye distance dynamically changeable",
+      "Unknown(7)",
+      "Unknown(8)",
+      "The application supports broadcast separate mode",
+      "The library does not apply dummy load for tracking Playstation Move to CPU",
+      "Unknown(11)",
+      "The application supports One on One match event with an old SDK",
+      "The application supports Team on team tournament with an old SDK",
+      "Unknown(14)",
+      "Unknown(15)",
+      "Unknown(16)",
+      "Unknown(17)",
+      "Unknown(18)",
+      "Unknown(19)",
+      "Unknown(20)",
+      "Unknown(21)",
+      "Unknown(22)",
+      "Unknown(23)",
+      "Unknown(24)",
+      "Unknown(25)",
+      "Unknown(26)",
+      "Unknown(27)",
+      "Unknown(28)",
+      "Unknown(29)",
+      "Unknown(30)",
+      "Unknown(31)",
+      "Unknown(32)",
+    };
+
     private class SfoType
     {
       public string Category;
@@ -458,6 +574,37 @@ namespace PkgEditor.Views
       new SfoType( "sd", "Save Data" ),
       new SfoType( "la", "License Area (Vita)?" ),
       new SfoType( "wda", "Unknown" ),
+    };
+
+    private class AppType
+    {
+      public int Type;
+      public string Description;
+      public AppType(int type, string description)
+      {
+        Type = type;
+        Description = description;
+      }
+      public override string ToString()
+      {
+        return $"{Type} - {Description}";
+      }
+    }
+    private static List<AppType> AppTypes = new List<AppType> {
+      new AppType( 0, "Not Specified" ),
+      new AppType( 1, "Paid standalone full app" ),
+      new AppType( 2, "Upgradable app" ),
+      new AppType( 3, "Demo app" ),
+      new AppType( 4, "Freemium app" ),
+    };
+    private static string[] DownloadSizes = new[]
+    {
+      "0MiB (Disable)",
+      "64MiB",
+      "128MiB",
+      "256MiB",
+      "512MiB",
+      "1GiB"
     };
   }
 }

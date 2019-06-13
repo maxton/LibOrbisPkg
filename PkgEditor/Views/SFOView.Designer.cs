@@ -65,11 +65,24 @@
       this.editorPanel = new System.Windows.Forms.Panel();
       this.guidedEditorPage = new System.Windows.Forms.TabPage();
       this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+      this.appTypeComboBox = new System.Windows.Forms.ComboBox();
+      this.label9 = new System.Windows.Forms.Label();
+      this.label8 = new System.Windows.Forms.Label();
+      this.appVersionTextBox = new System.Windows.Forms.TextBox();
+      this.label7 = new System.Windows.Forms.Label();
+      this.versionTextBox = new System.Windows.Forms.TextBox();
+      this.label6 = new System.Windows.Forms.Label();
+      this.titleTextBox = new System.Windows.Forms.TextBox();
+      this.groupBox2 = new System.Windows.Forms.GroupBox();
+      this.attributes2Enable = new System.Windows.Forms.CheckBox();
+      this.attributes2ListBox = new System.Windows.Forms.CheckedListBox();
       this.label4 = new System.Windows.Forms.Label();
       this.contentIdTextBox = new System.Windows.Forms.TextBox();
       this.groupBox1 = new System.Windows.Forms.GroupBox();
       this.attributesListBox = new System.Windows.Forms.CheckedListBox();
       this.guidedEditorBottomPanel = new System.Windows.Forms.Panel();
+      this.downloadSizeComboBox = new System.Windows.Forms.ComboBox();
+      this.label10 = new System.Windows.Forms.Label();
       this.contextMenuStrip1.SuspendLayout();
       this.toolStrip1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.maxLengthInput)).BeginInit();
@@ -81,6 +94,7 @@
       this.splitContainer1.Panel1.SuspendLayout();
       this.splitContainer1.Panel2.SuspendLayout();
       this.splitContainer1.SuspendLayout();
+      this.groupBox2.SuspendLayout();
       this.groupBox1.SuspendLayout();
       this.SuspendLayout();
       // 
@@ -100,7 +114,7 @@
       this.listView1.HideSelection = false;
       this.listView1.Location = new System.Drawing.Point(0, 56);
       this.listView1.Name = "listView1";
-      this.listView1.Size = new System.Drawing.Size(711, 316);
+      this.listView1.Size = new System.Drawing.Size(711, 483);
       this.listView1.TabIndex = 1;
       this.listView1.UseCompatibleStateImageBehavior = false;
       this.listView1.View = System.Windows.Forms.View.Details;
@@ -204,15 +218,14 @@
       // loadACDefaultsToolStripMenuItem
       // 
       this.loadACDefaultsToolStripMenuItem.Name = "loadACDefaultsToolStripMenuItem";
-      this.loadACDefaultsToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
+      this.loadACDefaultsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.loadACDefaultsToolStripMenuItem.Text = "Load AC Defaults";
       this.loadACDefaultsToolStripMenuItem.Click += new System.EventHandler(this.loadACDefaultsToolStripMenuItem_Click);
       // 
       // loadGPDefaultsToolStripMenuItem
       // 
-      this.loadGPDefaultsToolStripMenuItem.Enabled = false;
       this.loadGPDefaultsToolStripMenuItem.Name = "loadGPDefaultsToolStripMenuItem";
-      this.loadGPDefaultsToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
+      this.loadGPDefaultsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.loadGPDefaultsToolStripMenuItem.Text = "Load GP Defaults";
       this.loadGPDefaultsToolStripMenuItem.Click += new System.EventHandler(this.loadGPDefaultsToolStripMenuItem_Click);
       // 
@@ -356,7 +369,7 @@
       this.sfoTypeCombobox.FormattingEnabled = true;
       this.sfoTypeCombobox.Location = new System.Drawing.Point(9, 21);
       this.sfoTypeCombobox.Name = "sfoTypeCombobox";
-      this.sfoTypeCombobox.Size = new System.Drawing.Size(259, 21);
+      this.sfoTypeCombobox.Size = new System.Drawing.Size(355, 21);
       this.sfoTypeCombobox.TabIndex = 14;
       this.sfoTypeCombobox.SelectedIndexChanged += new System.EventHandler(this.GuidedEditor_Changed);
       // 
@@ -368,7 +381,7 @@
       this.tabControl1.Location = new System.Drawing.Point(0, 25);
       this.tabControl1.Name = "tabControl1";
       this.tabControl1.SelectedIndex = 0;
-      this.tabControl1.Size = new System.Drawing.Size(728, 407);
+      this.tabControl1.Size = new System.Drawing.Size(728, 574);
       this.tabControl1.TabIndex = 16;
       this.tabControl1.SelectedIndexChanged += new System.EventHandler(this.TabControl1_SelectedIndexChanged);
       // 
@@ -378,7 +391,7 @@
       this.tableEditorPage.Location = new System.Drawing.Point(4, 22);
       this.tableEditorPage.Name = "tableEditorPage";
       this.tableEditorPage.Padding = new System.Windows.Forms.Padding(3);
-      this.tableEditorPage.Size = new System.Drawing.Size(720, 381);
+      this.tableEditorPage.Size = new System.Drawing.Size(720, 548);
       this.tableEditorPage.TabIndex = 0;
       this.tableEditorPage.Text = "Table Editor";
       this.tableEditorPage.UseVisualStyleBackColor = true;
@@ -398,7 +411,7 @@
       this.editorPanel.Dock = System.Windows.Forms.DockStyle.Fill;
       this.editorPanel.Location = new System.Drawing.Point(3, 3);
       this.editorPanel.Name = "editorPanel";
-      this.editorPanel.Size = new System.Drawing.Size(714, 375);
+      this.editorPanel.Size = new System.Drawing.Size(714, 542);
       this.editorPanel.TabIndex = 17;
       // 
       // guidedEditorPage
@@ -407,7 +420,7 @@
       this.guidedEditorPage.Location = new System.Drawing.Point(4, 22);
       this.guidedEditorPage.Name = "guidedEditorPage";
       this.guidedEditorPage.Padding = new System.Windows.Forms.Padding(3);
-      this.guidedEditorPage.Size = new System.Drawing.Size(720, 381);
+      this.guidedEditorPage.Size = new System.Drawing.Size(720, 548);
       this.guidedEditorPage.TabIndex = 1;
       this.guidedEditorPage.Text = "Guided Editor";
       this.guidedEditorPage.UseVisualStyleBackColor = true;
@@ -423,6 +436,17 @@
       // splitContainer1.Panel1
       // 
       this.splitContainer1.Panel1.AutoScroll = true;
+      this.splitContainer1.Panel1.Controls.Add(this.downloadSizeComboBox);
+      this.splitContainer1.Panel1.Controls.Add(this.label10);
+      this.splitContainer1.Panel1.Controls.Add(this.appTypeComboBox);
+      this.splitContainer1.Panel1.Controls.Add(this.label9);
+      this.splitContainer1.Panel1.Controls.Add(this.label8);
+      this.splitContainer1.Panel1.Controls.Add(this.appVersionTextBox);
+      this.splitContainer1.Panel1.Controls.Add(this.label7);
+      this.splitContainer1.Panel1.Controls.Add(this.versionTextBox);
+      this.splitContainer1.Panel1.Controls.Add(this.label6);
+      this.splitContainer1.Panel1.Controls.Add(this.titleTextBox);
+      this.splitContainer1.Panel1.Controls.Add(this.groupBox2);
       this.splitContainer1.Panel1.Controls.Add(this.label4);
       this.splitContainer1.Panel1.Controls.Add(this.contentIdTextBox);
       this.splitContainer1.Panel1.Controls.Add(this.groupBox1);
@@ -432,9 +456,124 @@
       // splitContainer1.Panel2
       // 
       this.splitContainer1.Panel2.Controls.Add(this.guidedEditorBottomPanel);
-      this.splitContainer1.Size = new System.Drawing.Size(714, 375);
-      this.splitContainer1.SplitterDistance = 278;
+      this.splitContainer1.Size = new System.Drawing.Size(714, 542);
+      this.splitContainer1.SplitterDistance = 374;
       this.splitContainer1.TabIndex = 17;
+      // 
+      // appTypeComboBox
+      // 
+      this.appTypeComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.appTypeComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+      this.appTypeComboBox.FormattingEnabled = true;
+      this.appTypeComboBox.Location = new System.Drawing.Point(161, 140);
+      this.appTypeComboBox.Name = "appTypeComboBox";
+      this.appTypeComboBox.Size = new System.Drawing.Size(203, 21);
+      this.appTypeComboBox.TabIndex = 26;
+      this.appTypeComboBox.SelectedIndexChanged += new System.EventHandler(this.GuidedEditor_Changed);
+      // 
+      // label9
+      // 
+      this.label9.AutoSize = true;
+      this.label9.Location = new System.Drawing.Point(158, 124);
+      this.label9.Name = "label9";
+      this.label9.Size = new System.Drawing.Size(53, 13);
+      this.label9.TabIndex = 25;
+      this.label9.Text = "App Type";
+      // 
+      // label8
+      // 
+      this.label8.AutoSize = true;
+      this.label8.Location = new System.Drawing.Point(82, 124);
+      this.label8.Name = "label8";
+      this.label8.Size = new System.Drawing.Size(64, 13);
+      this.label8.TabIndex = 24;
+      this.label8.Text = "App Version";
+      // 
+      // appVersionTextBox
+      // 
+      this.appVersionTextBox.Location = new System.Drawing.Point(85, 140);
+      this.appVersionTextBox.MaxLength = 5;
+      this.appVersionTextBox.Name = "appVersionTextBox";
+      this.appVersionTextBox.Size = new System.Drawing.Size(67, 20);
+      this.appVersionTextBox.TabIndex = 23;
+      this.appVersionTextBox.TextChanged += new System.EventHandler(this.GuidedEditor_Changed);
+      // 
+      // label7
+      // 
+      this.label7.AutoSize = true;
+      this.label7.Location = new System.Drawing.Point(6, 124);
+      this.label7.Name = "label7";
+      this.label7.Size = new System.Drawing.Size(42, 13);
+      this.label7.TabIndex = 22;
+      this.label7.Text = "Version";
+      // 
+      // versionTextBox
+      // 
+      this.versionTextBox.Location = new System.Drawing.Point(9, 140);
+      this.versionTextBox.MaxLength = 5;
+      this.versionTextBox.Name = "versionTextBox";
+      this.versionTextBox.Size = new System.Drawing.Size(67, 20);
+      this.versionTextBox.TabIndex = 21;
+      this.versionTextBox.TextChanged += new System.EventHandler(this.GuidedEditor_Changed);
+      // 
+      // label6
+      // 
+      this.label6.AutoSize = true;
+      this.label6.Location = new System.Drawing.Point(6, 85);
+      this.label6.Name = "label6";
+      this.label6.Size = new System.Drawing.Size(27, 13);
+      this.label6.TabIndex = 20;
+      this.label6.Text = "Title";
+      // 
+      // titleTextBox
+      // 
+      this.titleTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.titleTextBox.Location = new System.Drawing.Point(9, 101);
+      this.titleTextBox.MaxLength = 127;
+      this.titleTextBox.Name = "titleTextBox";
+      this.titleTextBox.Size = new System.Drawing.Size(355, 20);
+      this.titleTextBox.TabIndex = 19;
+      this.titleTextBox.TextChanged += new System.EventHandler(this.GuidedEditor_Changed);
+      // 
+      // groupBox2
+      // 
+      this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.groupBox2.Controls.Add(this.attributes2Enable);
+      this.groupBox2.Controls.Add(this.attributes2ListBox);
+      this.groupBox2.Location = new System.Drawing.Point(6, 359);
+      this.groupBox2.Name = "groupBox2";
+      this.groupBox2.Size = new System.Drawing.Size(361, 151);
+      this.groupBox2.TabIndex = 17;
+      this.groupBox2.TabStop = false;
+      this.groupBox2.Text = "Attributes 2";
+      // 
+      // attributes2Enable
+      // 
+      this.attributes2Enable.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.attributes2Enable.AutoSize = true;
+      this.attributes2Enable.BackColor = System.Drawing.SystemColors.Window;
+      this.attributes2Enable.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+      this.attributes2Enable.Location = new System.Drawing.Point(296, -1);
+      this.attributes2Enable.Name = "attributes2Enable";
+      this.attributes2Enable.Size = new System.Drawing.Size(59, 17);
+      this.attributes2Enable.TabIndex = 2;
+      this.attributes2Enable.Text = "Enable";
+      this.attributes2Enable.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+      this.attributes2Enable.UseVisualStyleBackColor = false;
+      this.attributes2Enable.CheckedChanged += new System.EventHandler(this.GuidedEditor_Changed);
+      // 
+      // attributes2ListBox
+      // 
+      this.attributes2ListBox.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.attributes2ListBox.FormattingEnabled = true;
+      this.attributes2ListBox.Location = new System.Drawing.Point(3, 16);
+      this.attributes2ListBox.Name = "attributes2ListBox";
+      this.attributes2ListBox.Size = new System.Drawing.Size(355, 132);
+      this.attributes2ListBox.TabIndex = 0;
+      this.attributes2ListBox.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.AttributesListBox_ItemCheck);
       // 
       // label4
       // 
@@ -452,7 +591,7 @@
       this.contentIdTextBox.Location = new System.Drawing.Point(9, 62);
       this.contentIdTextBox.MaxLength = 36;
       this.contentIdTextBox.Name = "contentIdTextBox";
-      this.contentIdTextBox.Size = new System.Drawing.Size(259, 20);
+      this.contentIdTextBox.Size = new System.Drawing.Size(355, 20);
       this.contentIdTextBox.TabIndex = 17;
       this.contentIdTextBox.TextChanged += new System.EventHandler(this.GuidedEditor_Changed);
       // 
@@ -461,9 +600,9 @@
       this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
       this.groupBox1.Controls.Add(this.attributesListBox);
-      this.groupBox1.Location = new System.Drawing.Point(6, 88);
+      this.groupBox1.Location = new System.Drawing.Point(6, 202);
       this.groupBox1.Name = "groupBox1";
-      this.groupBox1.Size = new System.Drawing.Size(265, 151);
+      this.groupBox1.Size = new System.Drawing.Size(361, 151);
       this.groupBox1.TabIndex = 16;
       this.groupBox1.TabStop = false;
       this.groupBox1.Text = "Attributes 1";
@@ -474,7 +613,7 @@
       this.attributesListBox.FormattingEnabled = true;
       this.attributesListBox.Location = new System.Drawing.Point(3, 16);
       this.attributesListBox.Name = "attributesListBox";
-      this.attributesListBox.Size = new System.Drawing.Size(259, 132);
+      this.attributesListBox.Size = new System.Drawing.Size(355, 132);
       this.attributesListBox.TabIndex = 0;
       this.attributesListBox.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.AttributesListBox_ItemCheck);
       // 
@@ -483,8 +622,27 @@
       this.guidedEditorBottomPanel.Dock = System.Windows.Forms.DockStyle.Fill;
       this.guidedEditorBottomPanel.Location = new System.Drawing.Point(0, 0);
       this.guidedEditorBottomPanel.Name = "guidedEditorBottomPanel";
-      this.guidedEditorBottomPanel.Size = new System.Drawing.Size(428, 371);
+      this.guidedEditorBottomPanel.Size = new System.Drawing.Size(332, 538);
       this.guidedEditorBottomPanel.TabIndex = 16;
+      // 
+      // downloadSizeComboBox
+      // 
+      this.downloadSizeComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+      this.downloadSizeComboBox.FormattingEnabled = true;
+      this.downloadSizeComboBox.Location = new System.Drawing.Point(9, 179);
+      this.downloadSizeComboBox.Name = "downloadSizeComboBox";
+      this.downloadSizeComboBox.Size = new System.Drawing.Size(143, 21);
+      this.downloadSizeComboBox.TabIndex = 28;
+      this.downloadSizeComboBox.SelectedIndexChanged += new System.EventHandler(this.GuidedEditor_Changed);
+      // 
+      // label10
+      // 
+      this.label10.AutoSize = true;
+      this.label10.Location = new System.Drawing.Point(6, 163);
+      this.label10.Name = "label10";
+      this.label10.Size = new System.Drawing.Size(104, 13);
+      this.label10.TabIndex = 27;
+      this.label10.Text = "Download Data Size";
       // 
       // SFOView
       // 
@@ -493,7 +651,7 @@
       this.Controls.Add(this.tabControl1);
       this.Controls.Add(this.toolStrip1);
       this.Name = "SFOView";
-      this.Size = new System.Drawing.Size(728, 432);
+      this.Size = new System.Drawing.Size(728, 599);
       this.contextMenuStrip1.ResumeLayout(false);
       this.toolStrip1.ResumeLayout(false);
       this.toolStrip1.PerformLayout();
@@ -508,6 +666,8 @@
       this.splitContainer1.Panel2.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
       this.splitContainer1.ResumeLayout(false);
+      this.groupBox2.ResumeLayout(false);
+      this.groupBox2.PerformLayout();
       this.groupBox1.ResumeLayout(false);
       this.ResumeLayout(false);
       this.PerformLayout();
@@ -556,5 +716,18 @@
     private System.Windows.Forms.CheckedListBox attributesListBox;
     private System.Windows.Forms.TextBox contentIdTextBox;
     private System.Windows.Forms.Label label4;
+    private System.Windows.Forms.GroupBox groupBox2;
+    private System.Windows.Forms.CheckedListBox attributes2ListBox;
+    private System.Windows.Forms.CheckBox attributes2Enable;
+    private System.Windows.Forms.Label label6;
+    private System.Windows.Forms.TextBox titleTextBox;
+    private System.Windows.Forms.Label label7;
+    private System.Windows.Forms.TextBox versionTextBox;
+    private System.Windows.Forms.Label label8;
+    private System.Windows.Forms.TextBox appVersionTextBox;
+    private System.Windows.Forms.Label label9;
+    private System.Windows.Forms.ComboBox appTypeComboBox;
+    private System.Windows.Forms.ComboBox downloadSizeComboBox;
+    private System.Windows.Forms.Label label10;
   }
 }
