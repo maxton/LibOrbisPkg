@@ -211,12 +211,12 @@ namespace PkgEditor.Views
       checkDigestsButton.Enabled = false;
       var validator = new PkgValidator(pkg);
       CloseFileView();
+      listView1.Items.Clear();
       await Task.Run(() =>
       {
         using (var s = pkgFile.GetStream())
         {
-          listView1.Items.Clear();
-          foreach (var v in validator.Validate(s))
+          foreach (var v in validator.Validate(s).OrderBy((a)=>a.Item1.Location))
           {
             var item = new ListViewItem(v.Item1.Name);
             if (v.Item2)
@@ -228,6 +228,7 @@ namespace PkgEditor.Views
           }
         }
       });
+      
       listView1.Enabled = true;
       checkDigestsButton.Enabled = true;
       validateResult.Text = "Done!";

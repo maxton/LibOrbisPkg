@@ -109,13 +109,14 @@ namespace LibOrbisPkg.PKG
       foreach(var d in pkg.GeneralDigests.Digests)
       {
         if (d.Key == GeneralDigest.DigestMetaData) continue;
+        if (!pkg.GeneralDigests.set_digests.HasFlag(d.Key)) continue;
         var meta = GeneralDigests[d.Key];
         var generalDigestsLoc = pkg.GeneralDigests.meta.DataOffset;
         var validation = new Validation(
           ValidationType.Hash, 
           meta.Item1, 
           meta.Item2, 
-          generalDigestsLoc + ((int)d.Key * 32));
+          generalDigestsLoc + ((int)Math.Log((int)d.Key,2) * 32));
         switch (d.Key)
         {
           case GeneralDigest.ContentDigest:
@@ -139,9 +140,27 @@ namespace LibOrbisPkg.PKG
               pkg.GeneralDigests.Digests[GeneralDigest.ParamDigest].SequenceEqual(Crypto.Sha256(pkg.ParamSfo.ParamSfo.Serialize()));
             break;
           default:
+            // Don't know how to compute other hashes, so skip them.
             continue;
         }
         validations.Add(validation);
+      }
+
+      var digests = pkg.Digests;
+      var digestsOffset = pkg.Metas.Metas.Where(m => m.id == EntryId.DIGESTS).First().DataOffset;
+      for (var i = 1; i < pkg.Metas.Metas.Count; i++)
+      {
+        var meta = pkg.Metas.Metas[i];
+        var j = i;
+        validations.Add(new Validation(ValidationType.Hash,
+          $"{meta.id} digest",
+          $"Hash of the {meta.id} entry",
+          digests.meta.DataOffset + (32 * j))
+        {
+          Validate = () =>
+            Crypto.Sha256(pkgStream, meta.DataOffset, meta.DataSize)
+            .SequenceEqual(digests.FileData.Skip(32 * j).Take(32)),
+        });
       }
 
       validations.Add(new Validation(
@@ -149,21 +168,83 @@ namespace LibOrbisPkg.PKG
         "PFS Signed Digest",
         "A hash of the first 0x10000 bytes of the PFS image",
         0x460)
-        {
-          Validate = () =>
-            Crypto.Sha256(pkgStream, (long)pkg.Header.pfs_image_offset, 0x10000).SequenceEqual(pkg.Header.pfs_signed_digest)
-        });
+      {
+        Validate = () =>
+          Crypto.Sha256(pkgStream, (long)pkg.Header.pfs_image_offset, 0x10000)
+          .SequenceEqual(pkg.Header.pfs_signed_digest)
+      });
 
       validations.Add(new Validation(
         ValidationType.Hash,
         "PFS Image Digest",
         "A hash of the entire PFS image",
         0x440)
+      {
+        Validate = () =>
+          Crypto.Sha256(pkgStream, (long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size)
+          .SequenceEqual(pkg.Header.pfs_image_digest)
+      });
+
+      validations.Add(new Validation(
+        ValidationType.Hash,
+        "Body Digest",
+        "Hash of the PKG body (entry filesystem)",
+        0x160)
+      {
+        Validate = () =>
+          Crypto.Sha256(pkgStream, (long)pkg.Header.body_offset, (long)pkg.Header.body_size)
+          .SequenceEqual(pkg.Header.body_digest)
+      });
+
+      validations.Add(new Validation(
+        ValidationType.Hash,
+        "Digest Table Hash",
+        "Hash of the entry digests table",
+        0x140)
+      {
+        Validate = () =>
+          Crypto.Sha256(pkg.Digests.FileData)
+          .SequenceEqual(pkg.Header.digest_table_hash)
+      });
+
+      validations.Add(new Validation(
+        ValidationType.Hash,
+        "SC Entries Hash 1",
+        "Hash of 5 entries (ENTRY_KEYS, IMAGE_KEY, GENERAL_DIGESTS, METAS, DIGESTS)",
+        0x100)
+      {
+        Validate = () =>
         {
-          Validate = () =>
-            Crypto.Sha256(pkgStream, (long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size)
-            .SequenceEqual(pkg.Header.pfs_image_digest)
-        });
+          var ms = new MemoryStream();
+          foreach (var entry in new Entry[] { pkg.EntryKeys, pkg.ImageKey, pkg.GeneralDigests, pkg.Metas, pkg.Digests })
+          {
+            new SubStream(pkgStream, entry.meta.DataOffset, entry.meta.DataSize).CopyTo(ms);
+          }
+          return Crypto.Sha256(ms).SequenceEqual(pkg.Header.sc_entries1_hash);
+        }
+      });
+
+      validations.Add(new Validation(
+        ValidationType.Hash,
+        "SC Entries Hash 2",
+        "Hash of 4 entries (ENTRY_KEYS, IMAGE_KEY, GENERAL_DIGESTS, METAS)",
+        0x120)
+      {
+        Validate = () =>
+        {
+          var ms = new MemoryStream();
+          foreach (var entry in new Entry[] { pkg.EntryKeys, pkg.ImageKey, pkg.GeneralDigests, pkg.Metas })
+          {
+            long size = entry.meta.DataSize;
+            if (entry.Id == EntryId.METAS)
+            {
+              size = pkg.Header.sc_entry_count * 0x20;
+            }
+            new SubStream(pkgStream, entry.meta.DataOffset, size).CopyTo(ms);
+          }
+          return Crypto.Sha256(ms).SequenceEqual(pkg.Header.sc_entries2_hash);
+        }
+      });
 
       return validations;
     }
