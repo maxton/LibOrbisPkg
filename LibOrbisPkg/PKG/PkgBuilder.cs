@@ -61,7 +61,10 @@ namespace LibOrbisPkg.PKG
     public Pkg Write(Stream s, Action<string> logger = null)
     {
       Logger = logger ?? Console.WriteLine;
+      s.SetLength(0);
       InitPkg();
+      s.SetLength((long)pkg.Header.package_size);
+      s.Position = (long)pkg.Header.pfs_image_offset;
       outerPfs.WriteImage(new OffsetStream(s, (long)pkg.Header.pfs_image_offset));
       if (pkg.Header.content_type == ContentType.GD)
       {
