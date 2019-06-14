@@ -156,19 +156,7 @@ namespace PkgEditor
         string[] files = (string[])(e.Data.GetData(DataFormats.FileDrop, false));
         foreach (string file in files)
         {
-          string path = System.IO.Path.GetFullPath(file).ToString();
-          switch (path.Split('.').Last().ToLowerInvariant())
-          {
-            case "gp4":
-              openGp4(path);
-              break;
-            case "pkg":
-              openPkg(path);
-              break;
-            case "sfo":
-              openSfo(path);
-              break;
-          }
+          openFile(Path.GetFullPath(file).ToString());
         }
       }
     }
