@@ -148,5 +148,34 @@ namespace PkgEditor
       var view = new Views.SFOView(sfo);
       OpenTab(view, "New file");
     }
+
+    private void MainWin_Drop(object sender, DragEventArgs e)
+    {
+      if (e.Data.GetDataPresent(DataFormats.FileDrop))
+      {
+        string[] files = (string[])(e.Data.GetData(DataFormats.FileDrop, false));
+        foreach (string file in files)
+        {
+          string path = System.IO.Path.GetFullPath(file).ToString();
+          switch (path.Split('.').Last().ToLowerInvariant())
+          {
+            case "gp4":
+              openGp4(path);
+              break;
+            case "pkg":
+              openPkg(path);
+              break;
+            case "sfo":
+              openSfo(path);
+              break;
+          }
+        }
+      }
+    }
+
+    private void MainWin_DragEnter(object sender, DragEventArgs e)
+    {
+      e.Effect = DragDropEffects.Copy;
+    }
   }
 }

@@ -144,6 +144,7 @@
       // 
       // MainWin
       // 
+      this.AllowDrop = true;
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(800, 450);
@@ -154,6 +155,8 @@
       this.MainMenuStrip = this.menuStrip;
       this.Name = "MainWin";
       this.Text = "PkgEditor";
+      this.DragDrop += new System.Windows.Forms.DragEventHandler(this.MainWin_Drop);
+      this.DragEnter += new System.Windows.Forms.DragEventHandler(this.MainWin_DragEnter);
       this.menuStrip.ResumeLayout(false);
       this.menuStrip.PerformLayout();
       this.ResumeLayout(false);
