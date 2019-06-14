@@ -16,6 +16,11 @@ namespace PkgEditor
     public MainWin()
     {
       InitializeComponent();
+      var args = Environment.GetCommandLineArgs();
+      if(args.Length > 1 && File.Exists(args[1]))
+      {
+        openFile(args[1]);
+      }
     }
 
     private void ShowOpenFileDialog(string title, string filetypes, Action<string> successCb)
