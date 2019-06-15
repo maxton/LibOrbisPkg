@@ -16,15 +16,15 @@ you enter a passcode, you can browse files as well.
 
 #### [Screenshots](https://imgur.com/a/n0cP5Ox)
 
-![SFO Screenshot](https://i.imgur.com/jad4qWZ.png)
+![PKG Info](https://i.imgur.com/H8xJRvj.png)
+
+![SFO Screenshot](https://i.imgur.com/6BBdxim.png)
 
 ![GP4 Screenshot](https://i.imgur.com/cjEzB6T.png)
 
-![PKG Header](https://i.imgur.com/X5zRkRt.png)
+![PKG Files](https://i.imgur.com/hT1QjcM.png)
 
-![PKG Files](https://i.imgur.com/1rvFgqC.png)
-
-![PKG Digest Check](https://i.imgur.com/pFIVRNh.png)
+![PKG Digest Check](https://i.imgur.com/VoHuGRF.png)
 
 ### PkgTool
 PkgTool is a command line tool for common PKG/PFS/SFO tasks. Integrate it into your build scripts!
