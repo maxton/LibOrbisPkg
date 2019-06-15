@@ -287,6 +287,18 @@ namespace LibOrbisPkg.PKG
       }
       return (uint)Names[name];
     }
+
+    public string GetName(uint offset)
+    {
+      int s = 0;
+      foreach(var n in nameList)
+      {
+        if (s == offset) return n;
+        s += n.Length + 1;
+      }
+      return null;
+    }
+
     public override EntryId Id => EntryId.ENTRY_NAMES;
     public override string Name => null;
     public override uint Length => (uint)length;
@@ -298,6 +310,20 @@ namespace LibOrbisPkg.PKG
         s.Write(bytes, 0, bytes.Length);
         s.WriteByte(0);
       }
+    }
+
+    public static NameTableEntry Read(MetaEntry e, Stream pkg)
+    {
+      var sz = 0;
+      var names = new List<string>();
+      pkg.Position = e.DataOffset;
+      while(sz < e.DataSize)
+      {
+        var name = pkg.ReadASCIINullTerminated((int)e.DataSize);
+        names.Add(name);
+        sz += name.Length + 1;
+      }
+      return new NameTableEntry(names) { meta = e };
     }
   }
 

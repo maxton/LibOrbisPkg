@@ -62,8 +62,20 @@
     <Compile Include="MainWin.Designer.cs">
       <DependentUpon>MainWin.cs</DependentUpon>
     </Compile>
+    <Compile Include="PasscodeEntry.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PasscodeEntry.Designer.cs">
+      <DependentUpon>PasscodeEntry.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Views\FileView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\FileView.Designer.cs">
+      <DependentUpon>FileView.cs</DependentUpon>
+    </Compile>
     <Compile Include="Views\SFOView.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -97,6 +109,9 @@
     <EmbeddedResource Include="MainWin.resx">
       <DependentUpon>MainWin.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="PasscodeEntry.resx">
+      <DependentUpon>PasscodeEntry.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -107,6 +122,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="Views\FileView.resx">
+      <DependentUpon>FileView.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Views\SFOView.resx">
       <DependentUpon>SFOView.cs</DependentUpon>
     </EmbeddedResource>
@@ -131,14 +149,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GameArchives\LibArchiveExplorer\LibArchiveExplorer.csproj">
-      <Project>{29722aa8-e9fc-4b5b-9c73-31a6293dba55}</Project>
-      <Name>LibArchiveExplorer</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\GameArchives\Library\GameArchives.csproj">
-      <Project>{906748f0-3a55-4b20-bccb-9dc7187f1d5e}</Project>
-      <Name>GameArchives</Name>
-    </ProjectReference>
     <ProjectReference Include="..\LibOrbisPkg\LibOrbisPkg.csproj">
       <Project>{b053f491-ff0f-4cbb-b03b-520591bb0441}</Project>
       <Name>LibOrbisPkg</Name>

@@ -45,8 +45,7 @@ namespace PkgEditor
 
     private void openPkg(string filename)
     {
-      var pkg = GameArchives.Util.LocalFile(filename);
-      OpenTab(new Views.PkgView(pkg), Path.GetFileName(filename));
+      OpenTab(new Views.PkgView(filename), Path.GetFileName(filename));
     }
 
     private void openSfo(string filename)

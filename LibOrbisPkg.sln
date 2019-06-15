@@ -1,20 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2000
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29009.5
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibOrbisPkg", "LibOrbisPkg\LibOrbisPkg.csproj", "{B053F491-FF0F-4CBB-B03B-520591BB0441}"
-	ProjectSection(ProjectDependencies) = postProject
-		{906748F0-3A55-4B20-BCCB-9DC7187F1D5E} = {906748F0-3A55-4B20-BCCB-9DC7187F1D5E}
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PkgEditor", "PkgEditor\PkgEditor.csproj", "{60B5D407-D849-4B84-8A5E-D740EA1F8125}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PkgTool", "PkgTool\PkgTool.csproj", "{571AD92B-B725-4405-8078-903E2D0F3E3D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameArchives", "GameArchives\Library\GameArchives.csproj", "{906748F0-3A55-4B20-BCCB-9DC7187F1D5E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibArchiveExplorer", "GameArchives\LibArchiveExplorer\LibArchiveExplorer.csproj", "{29722AA8-E9FC-4B5B-9C73-31A6293DBA55}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibOrbisPkgTests", "LibOrbisPkgTests\LibOrbisPkgTests.csproj", "{4BA1AA8A-A964-4E3D-9DDE-DC9F7749D3BE}"
 EndProject
@@ -47,18 +40,6 @@ Global
 		{571AD92B-B725-4405-8078-903E2D0F3E3D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{571AD92B-B725-4405-8078-903E2D0F3E3D}.Release-minimal|Any CPU.ActiveCfg = Release|Any CPU
 		{571AD92B-B725-4405-8078-903E2D0F3E3D}.Release-minimal|Any CPU.Build.0 = Release|Any CPU
-		{906748F0-3A55-4B20-BCCB-9DC7187F1D5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{906748F0-3A55-4B20-BCCB-9DC7187F1D5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{906748F0-3A55-4B20-BCCB-9DC7187F1D5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{906748F0-3A55-4B20-BCCB-9DC7187F1D5E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{906748F0-3A55-4B20-BCCB-9DC7187F1D5E}.Release-minimal|Any CPU.ActiveCfg = Release-minimal|Any CPU
-		{906748F0-3A55-4B20-BCCB-9DC7187F1D5E}.Release-minimal|Any CPU.Build.0 = Release-minimal|Any CPU
-		{29722AA8-E9FC-4B5B-9C73-31A6293DBA55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{29722AA8-E9FC-4B5B-9C73-31A6293DBA55}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{29722AA8-E9FC-4B5B-9C73-31A6293DBA55}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{29722AA8-E9FC-4B5B-9C73-31A6293DBA55}.Release|Any CPU.Build.0 = Release|Any CPU
-		{29722AA8-E9FC-4B5B-9C73-31A6293DBA55}.Release-minimal|Any CPU.ActiveCfg = Release|Any CPU
-		{29722AA8-E9FC-4B5B-9C73-31A6293DBA55}.Release-minimal|Any CPU.Build.0 = Release|Any CPU
 		{4BA1AA8A-A964-4E3D-9DDE-DC9F7749D3BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4BA1AA8A-A964-4E3D-9DDE-DC9F7749D3BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4BA1AA8A-A964-4E3D-9DDE-DC9F7749D3BE}.Release|Any CPU.ActiveCfg = Release|Any CPU

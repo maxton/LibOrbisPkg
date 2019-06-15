@@ -28,6 +28,7 @@
     /// </summary>
     private void InitializeComponent()
     {
+      this.components = new System.ComponentModel.Container();
       this.tabControl1 = new System.Windows.Forms.TabControl();
       this.headerTab = new System.Windows.Forms.TabPage();
       this.treeView1 = new System.Windows.Forms.TreeView();
@@ -38,6 +39,9 @@
       this.columnHeaderOffset = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
       this.columnHeaderEnc = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
       this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+      this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+      this.extractDecryptedMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.extractToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.filesTab = new System.Windows.Forms.TabPage();
       this.label1 = new System.Windows.Forms.Label();
       this.passcodeTextBox = new System.Windows.Forms.TextBox();
@@ -51,6 +55,7 @@
       this.tabControl1.SuspendLayout();
       this.headerTab.SuspendLayout();
       this.entriesTab.SuspendLayout();
+      this.contextMenuStrip1.SuspendLayout();
       this.filesTab.SuspendLayout();
       this.tabPage2.SuspendLayout();
       this.SuspendLayout();
@@ -107,10 +112,12 @@
             this.columnHeaderOffset,
             this.columnHeaderEnc,
             this.columnHeader1});
+      this.entriesListView.ContextMenuStrip = this.contextMenuStrip1;
       this.entriesListView.Dock = System.Windows.Forms.DockStyle.Fill;
       this.entriesListView.FullRowSelect = true;
       this.entriesListView.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
       this.entriesListView.Location = new System.Drawing.Point(3, 3);
+      this.entriesListView.MultiSelect = false;
       this.entriesListView.Name = "entriesListView";
       this.entriesListView.Size = new System.Drawing.Size(529, 364);
       this.entriesListView.TabIndex = 7;
@@ -141,6 +148,29 @@
       // columnHeader1
       // 
       this.columnHeader1.Text = "KeyIdx";
+      // 
+      // contextMenuStrip1
+      // 
+      this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.extractToolStripMenuItem,
+            this.extractDecryptedMenuItem});
+      this.contextMenuStrip1.Name = "contextMenuStrip1";
+      this.contextMenuStrip1.Size = new System.Drawing.Size(181, 70);
+      this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.ContextMenuStrip1_Opening);
+      // 
+      // extractDecryptedMenuItem
+      // 
+      this.extractDecryptedMenuItem.Name = "extractDecryptedMenuItem";
+      this.extractDecryptedMenuItem.Size = new System.Drawing.Size(180, 22);
+      this.extractDecryptedMenuItem.Text = "Extract and Decrypt";
+      this.extractDecryptedMenuItem.Click += new System.EventHandler(this.ToolStripMenuItem1_Click);
+      // 
+      // extractToolStripMenuItem
+      // 
+      this.extractToolStripMenuItem.Name = "extractToolStripMenuItem";
+      this.extractToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+      this.extractToolStripMenuItem.Text = "Extract";
+      this.extractToolStripMenuItem.Click += new System.EventHandler(this.ExtractToolStripMenuItem_Click);
       // 
       // filesTab
       // 
@@ -207,6 +237,8 @@
       // 
       // listView1
       // 
+      this.listView1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
       this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader2});
       this.listView1.FullRowSelect = true;
@@ -255,6 +287,7 @@
       this.tabControl1.ResumeLayout(false);
       this.headerTab.ResumeLayout(false);
       this.entriesTab.ResumeLayout(false);
+      this.contextMenuStrip1.ResumeLayout(false);
       this.filesTab.ResumeLayout(false);
       this.filesTab.PerformLayout();
       this.tabPage2.ResumeLayout(false);
@@ -285,5 +318,8 @@
     private System.Windows.Forms.TextBox validateResult;
     private System.Windows.Forms.ListView listView1;
     private System.Windows.Forms.ColumnHeader columnHeader2;
+    private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
+    private System.Windows.Forms.ToolStripMenuItem extractToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem extractDecryptedMenuItem;
   }
 }

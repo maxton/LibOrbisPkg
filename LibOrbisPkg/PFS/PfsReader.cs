@@ -17,7 +17,7 @@ namespace LibOrbisPkg.PFS
     /// </summary>
     public abstract class Node
     {
-      public Node parent;
+      public Dir parent;
       public string name;
       public long offset;
       public long size;
@@ -70,6 +70,24 @@ namespace LibOrbisPkg.PFS
       public IMemoryReader GetView()
       {
         return new MemoryAccessor(reader, offset);
+      }
+      public void Save(string path)
+      {
+        long pos = offset;
+        var buf = new byte[0x10000];
+        using (var file = System.IO.File.OpenWrite(path))
+        {
+          var sz = size;
+          file.SetLength(sz);
+          while (sz > 0)
+          {
+            var toRead = (int)Math.Min(size, buf.Length);
+            reader.Read(pos, buf, 0, toRead);
+            file.Write(buf, 0, toRead);
+            pos += toRead;
+            sz -= toRead;
+          }
+        }
       }
     }
 
@@ -133,8 +151,7 @@ namespace LibOrbisPkg.PFS
       uroot = root.Get("uroot") as Dir;
       if (uroot == null)
         throw new Exception("Invalid PFS image (no uroot)");
-      uroot.parent = null;
-      uroot.name = "";
+      uroot.name = "uroot";
     }
 
     public File GetFile(string fullPath)
@@ -152,7 +169,12 @@ namespace LibOrbisPkg.PFS
       return uroot;
     }
 
-    private Dir LoadDir(uint dinode, Node parent, string name)
+    public Dir GetSuperRoot()
+    {
+      return root;
+    }
+
+    private Dir LoadDir(uint dinode, Dir parent, string name)
     {
       var ret = new Dir() { name = name, parent = parent };
       var ino = dinodes[dinode];

@@ -35,6 +35,9 @@ namespace LibOrbisPkg.PKG
           case EntryId.METAS:
             pkg.Metas.meta = entry;
             break;
+          case EntryId.ENTRY_NAMES:
+            pkg.EntryNames = NameTableEntry.Read(entry, s);
+            break;
           case EntryId.PARAM_SFO:
             s.Position = entry.DataOffset;
             pkg.ParamSfo = new SfoEntry(SFO.ParamSfo.FromStream(s));

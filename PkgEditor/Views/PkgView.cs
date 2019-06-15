@@ -7,12 +7,13 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Collections;
+using System.IO;
 
-using GameArchives;
-using LibArchiveExplorer;
 using LibOrbisPkg.PKG;
 using LibOrbisPkg.Util;
 using System.Threading.Tasks;
+using System.IO.MemoryMappedFiles;
+using LibOrbisPkg.PFS;
 
 namespace PkgEditor.Views
 {
@@ -23,26 +24,39 @@ namespace PkgEditor.Views
 
     public override void Close()
     {
-      CloseFileView();
+      pkgFile.Dispose();
+      va?.Dispose();
     }
 
     private Pkg pkg;
-    private IFile pkgFile;
+    private MemoryMappedFile pkgFile;
+    private MemoryMappedViewAccessor va;
+    private string passcode;
 
-    public PkgView(IFile pkgFile)
+    public PkgView(string path)
     {
       InitializeComponent();
-      if (pkgFile == null) return;
-      this.pkgFile = pkgFile;
-      using (var s = pkgFile.GetStream())
+      if (path == null) return;
+      pkgFile = MemoryMappedFile.CreateFromFile(path);
+      using (var s = pkgFile.CreateViewStream())
         ObjectPreview(new PkgReader(s).ReadHeader());
-      using (var s = pkgFile.GetStream())
+      using (var s = pkgFile.CreateViewStream())
         pkg = new PkgReader(s).ReadPkg();
+
       var sfoEditor = new SFOView(pkg.ParamSfo.ParamSfo, true);
       sfoEditor.Dock = DockStyle.Fill;
       tabPage1.Controls.Add(sfoEditor);
 
-      ekpfs = pkg.GetEkpfs();
+
+      if (pkg.CheckPasscode("00000000000000000000000000000000"))
+      {
+        passcode = "00000000000000000000000000000000";
+        ekpfs = Crypto.ComputeKeys(pkg.Header.content_id, passcode, 1);
+      }
+      else
+      {
+        ekpfs = pkg.GetEkpfs();
+      }
       ReopenFileView();
 
       foreach(var e in pkg.Metas.Metas)
@@ -161,23 +175,17 @@ namespace PkgEditor.Views
     }
 
     private byte[] ekpfs;
-    Action closePkg;
-    private void CloseFileView()
-    {
-      closePkg?.Invoke();
-      closePkg = null;
-    }
 
     private void ReopenFileView()
     {
       if (!pkg.CheckEkpfs(ekpfs))
         return;
-
-      var package = PackageReader.ReadPackageFromFile(pkgFile, new string(ekpfs.Select(b => (char)b).ToArray()));
-      closePkg = () => package.Dispose();
-      var innerPfs = PackageReader.ReadPackageFromFile(package.GetFile("/pfs_image.dat"));
-      closePkg = () => { innerPfs.Dispose(); package.Dispose(); };
-      var view = new PackageView(innerPfs, PackageManager.GetInstance());
+      if (va != null)
+        return;
+      va = pkgFile.CreateViewAccessor((long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size);
+      var outerPfs = new PfsReader(va, ekpfs);
+      var inner = new PfsReader(new PFSCReader(outerPfs.GetFile("pfs_image.dat").GetView()));
+      var view = new FileView(inner);
       view.Dock = DockStyle.Fill;
       filesTab.Controls.Clear();
       filesTab.Controls.Add(view);
@@ -187,7 +195,8 @@ namespace PkgEditor.Views
     {
       if(pkg.CheckPasscode(passcodeTextBox.Text))
       {
-        ekpfs = Crypto.ComputeKeys(pkg.Header.content_id, passcodeTextBox.Text, 1);
+        passcode = passcodeTextBox.Text;
+        ekpfs = Crypto.ComputeKeys(pkg.Header.content_id, passcode, 1);
         ReopenFileView();
       }
       else
@@ -210,11 +219,10 @@ namespace PkgEditor.Views
       listView1.Enabled = false;
       checkDigestsButton.Enabled = false;
       var validator = new PkgValidator(pkg);
-      CloseFileView();
       listView1.Items.Clear();
       await Task.Run(() =>
       {
-        using (var s = pkgFile.GetStream())
+        using (var s = pkgFile.CreateViewStream())
         {
           foreach (var v in validator.Validate(s).OrderBy((a)=>a.Item1.Location))
           {
@@ -232,22 +240,6 @@ namespace PkgEditor.Views
       listView1.Enabled = true;
       checkDigestsButton.Enabled = true;
       validateResult.Text = "Done!";
-      ReopenFileView();
-    }
-
-    private void button2_Click(object sender, EventArgs e)
-    {
-      using (var sfd = new SaveFileDialog())
-      {
-        sfd.Filter = "PFS Image (*.dat)|*.dat";
-        if(sfd.ShowDialog() == DialogResult.OK)
-        {
-          using (var fs = System.IO.File.OpenWrite(sfd.FileName))
-          {
-            pkgFile.GetStream();
-          }
-        }
-      }
     }
 
     private void ListView1_SelectedIndexChanged(object sender, EventArgs e)
@@ -267,6 +259,88 @@ namespace PkgEditor.Views
             $"Offset: 0x{t.Item1.Location:X}{Environment.NewLine}" +
             $"This {(t.Item2 ? "was validated" : "did not validate")} successfully.";
         }
+      }
+    }
+
+    bool RequestPasscode()
+    {
+      if(new PasscodeEntry() is PasscodeEntry p && p.ShowDialog() == DialogResult.OK && pkg.CheckPasscode(p.Passcode))
+      {
+        passcode = p.Passcode;
+        ekpfs = Crypto.ComputeKeys(pkg.Header.content_id, passcode, 1);
+        ReopenFileView();
+        return true;
+      }
+      return false;
+    }
+
+    void ExtractEntry(MetaEntry entry, bool decrypt = false)
+    {
+      if (decrypt && entry.Encrypted && passcode == null)
+      {
+        var gotPasscode = false;
+        while (gotPasscode == false)
+        {
+          gotPasscode = RequestPasscode();
+          if (gotPasscode) break;
+          var result = MessageBox.Show(
+            "Sorry, that passcode was incorrect." + Environment.NewLine
+            + "Abort to cancel extraction, ignore to extract in encrypted form, retry to try a new passcode.",
+            "Invalid Passcode",
+            MessageBoxButtons.AbortRetryIgnore,
+            MessageBoxIcon.Warning);
+          if (result == DialogResult.Abort)
+            return;
+          if (result == DialogResult.Ignore)
+            break;
+        }
+      }
+      var name = entry.NameTableOffset != 0 ? pkg.EntryNames.GetName(entry.NameTableOffset) : entry.id.ToString();
+      if (new SaveFileDialog() { FileName = name } is SaveFileDialog s && s.ShowDialog() == DialogResult.OK)
+      {
+        using (var f = File.OpenWrite(s.FileName))
+        using (var entryStream = pkgFile.CreateViewStream(entry.DataOffset, entry.DataSize))
+        {
+          if(entry.Encrypted && decrypt && passcode != null)
+          {
+            var tmp = new byte[entry.DataSize];
+            entryStream.Read(tmp, 0, tmp.Length);
+            tmp = Entry.Decrypt(tmp, pkg.Header.content_id, passcode, entry);
+            f.Write(tmp, 0, tmp.Length);
+          }
+          else
+          {
+            entryStream.CopyTo(f);
+          }
+        }
+      }
+    }
+
+    private void ExtractToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      if(entriesListView.SelectedItems.Count == 1)
+      {
+        ExtractEntry(entriesListView.SelectedItems[0].Tag as MetaEntry);       
+      }
+    }
+    private void ToolStripMenuItem1_Click(object sender, EventArgs e)
+    {
+      if (entriesListView.SelectedItems.Count == 1)
+      {
+        ExtractEntry(entriesListView.SelectedItems[0].Tag as MetaEntry, true);
+      }
+    }
+
+    private void ContextMenuStrip1_Opening(object sender, CancelEventArgs e)
+    {
+      if (entriesListView.SelectedItems.Count != 1)
+      {
+        extractDecryptedMenuItem.Enabled = extractToolStripMenuItem.Enabled = false;
+      }
+      else
+      {
+        extractToolStripMenuItem.Enabled = true;
+        extractDecryptedMenuItem.Enabled = (entriesListView.SelectedItems[0].Tag as MetaEntry)?.Encrypted ?? false;
       }
     }
   }

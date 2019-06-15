@@ -32,6 +32,7 @@
       System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GP4View));
       this.splitContainer1 = new System.Windows.Forms.SplitContainer();
       this.dirsTreeView = new System.Windows.Forms.TreeView();
+      this.imageList1 = new System.Windows.Forms.ImageList(this.components);
       this.filesListView = new System.Windows.Forms.ListView();
       this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
       this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -39,7 +40,6 @@
       this.renameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.newFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-      this.folderFileIcons = new System.Windows.Forms.ImageList(this.components);
       this.passcodeTextBox = new System.Windows.Forms.TextBox();
       this.label1 = new System.Windows.Forms.Label();
       this.label2 = new System.Windows.Forms.Label();
@@ -86,11 +86,21 @@
       // 
       this.dirsTreeView.Dock = System.Windows.Forms.DockStyle.Fill;
       this.dirsTreeView.HideSelection = false;
+      this.dirsTreeView.ImageIndex = 0;
+      this.dirsTreeView.ImageList = this.imageList1;
       this.dirsTreeView.Location = new System.Drawing.Point(0, 0);
       this.dirsTreeView.Name = "dirsTreeView";
+      this.dirsTreeView.SelectedImageIndex = 0;
       this.dirsTreeView.Size = new System.Drawing.Size(230, 272);
       this.dirsTreeView.TabIndex = 0;
       this.dirsTreeView.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.dirsTreeView_AfterSelect);
+      // 
+      // imageList1
+      // 
+      this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
+      this.imageList1.TransparentColor = System.Drawing.Color.Transparent;
+      this.imageList1.Images.SetKeyName(0, "Folder_small.png");
+      this.imageList1.Images.SetKeyName(1, "File_small.png");
       // 
       // filesListView
       // 
@@ -105,7 +115,7 @@
       this.filesListView.Location = new System.Drawing.Point(0, 0);
       this.filesListView.Name = "filesListView";
       this.filesListView.Size = new System.Drawing.Size(460, 272);
-      this.filesListView.SmallImageList = this.folderFileIcons;
+      this.filesListView.SmallImageList = this.imageList1;
       this.filesListView.TabIndex = 0;
       this.filesListView.UseCompatibleStateImageBehavior = false;
       this.filesListView.View = System.Windows.Forms.View.Details;
@@ -155,13 +165,6 @@
       this.newFolderToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
       this.newFolderToolStripMenuItem.Text = "New Folder";
       this.newFolderToolStripMenuItem.Click += new System.EventHandler(this.newFolderToolStripMenuItem_Click);
-      // 
-      // folderFileIcons
-      // 
-      this.folderFileIcons.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("folderFileIcons.ImageStream")));
-      this.folderFileIcons.TransparentColor = System.Drawing.Color.Transparent;
-      this.folderFileIcons.Images.SetKeyName(0, "Folder_small.png");
-      this.folderFileIcons.Images.SetKeyName(1, "File_small.png");
       // 
       // passcodeTextBox
       // 
@@ -369,7 +372,6 @@
     private System.Windows.Forms.ColumnHeader columnHeader1;
     private System.Windows.Forms.ColumnHeader columnHeader2;
     private System.Windows.Forms.Button buildPfsButton;
-    private System.Windows.Forms.ImageList folderFileIcons;
     private System.Windows.Forms.ContextMenuStrip fileViewContextMenu;
     private System.Windows.Forms.ToolStripMenuItem renameToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
@@ -385,5 +387,6 @@
     private System.Windows.Forms.DateTimePicker creationTimePicker;
     private System.Windows.Forms.CheckBox useTimeOfBuildCheckBox;
     private System.Windows.Forms.CheckBox includeTimeCheckBox;
+    private System.Windows.Forms.ImageList imageList1;
   }
 }

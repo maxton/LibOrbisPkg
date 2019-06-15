@@ -102,6 +102,7 @@ namespace LibOrbisPkg.PKG
     /// <returns>True if the passcode is correct</returns>
     public bool CheckPasscode(string passcode)
     {
+      if (passcode == null || passcode.Length != 32) return false;
       var dk0 = Crypto.ComputeKeys(Header.content_id, passcode, 0);
       var digest0 = Crypto.Sha256(dk0).Xor(dk0);
       return digest0.SequenceEqual(EntryKeys.Keys[0].digest);
