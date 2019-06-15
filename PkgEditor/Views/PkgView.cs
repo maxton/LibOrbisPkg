@@ -14,6 +14,7 @@ using LibOrbisPkg.Util;
 using System.Threading.Tasks;
 using System.IO.MemoryMappedFiles;
 using LibOrbisPkg.PFS;
+using LibOrbisPkg.SFO;
 
 namespace PkgEditor.Views
 {
@@ -42,7 +43,28 @@ namespace PkgEditor.Views
         ObjectPreview(new PkgReader(s).ReadHeader());
       using (var s = pkgFile.CreateViewStream())
         pkg = new PkgReader(s).ReadPkg();
-
+      if(pkg.Metas.Metas.Where(entry => entry.id == EntryId.ICON0_PNG).FirstOrDefault() is MetaEntry icon0)
+      {
+        using(var s = pkgFile.CreateViewStream(icon0.DataOffset, icon0.DataSize))
+        {
+          pictureBox1.Image = Image.FromStream(s);
+        }
+      }
+      contentIdTextBox.Text = pkg.Header.content_id;
+      titleTextBox.Text = pkg.ParamSfo.ParamSfo["TITLE"]?.ToString();
+      sizeLabel.Text = FileView.HumanReadableFileSize((long)pkg.Header.package_size);
+      var category = pkg.ParamSfo.ParamSfo["CATEGORY"].ToString();
+      typeLabel.Text = SFOView.SfoTypes.Where(x => x.Category == category).FirstOrDefault() is SFOView.SfoType t ? t.Description : "Unknown";
+      versionLabel.Text = pkg.ParamSfo.ParamSfo["VERSION"]?.ToString();
+      if(pkg.ParamSfo.ParamSfo["APP_VER"] is Utf8Value v)
+      {
+        appVerLabel.Text = v.Value;
+      }
+      else
+      {
+        appVerLabelLabel.Visible = false;
+        appVerLabel.Visible = false;
+      }
       var sfoEditor = new SFOView(pkg.ParamSfo.ParamSfo, true);
       sfoEditor.Dock = DockStyle.Fill;
       tabPage1.Controls.Add(sfoEditor);
@@ -303,10 +325,10 @@ namespace PkgEditor.Views
         {
           if(entry.Encrypted && decrypt && passcode != null)
           {
-            var tmp = new byte[entry.DataSize];
+            var tmp = new byte[(entry.DataSize + 15) & ~15];
             entryStream.Read(tmp, 0, tmp.Length);
             tmp = Entry.Decrypt(tmp, pkg.Header.content_id, passcode, entry);
-            f.Write(tmp, 0, tmp.Length);
+            f.Write(tmp, 0, (int)entry.DataSize);
           }
           else
           {

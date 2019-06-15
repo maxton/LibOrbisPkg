@@ -538,7 +538,7 @@ namespace PkgEditor.Views
       "Unknown(32)",
     };
 
-    private class SfoType
+    public class SfoType
     {
       public string Category;
       public string Description;
@@ -552,7 +552,7 @@ namespace PkgEditor.Views
         return $"{Category} - {Description}";
       }
     }
-    private static List<SfoType> SfoTypes = new List<SfoType> {
+    public static readonly List<SfoType> SfoTypes = new List<SfoType> {
       new SfoType( "ac", "Additional Content" ),
       new SfoType( "bd", "Blu-ray Disc?" ),
       new SfoType( "gc", "Game Content(?)" ),

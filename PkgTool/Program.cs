@@ -242,8 +242,7 @@ namespace PkgTool
             using (var outFile = File.Create(outPath))
             {
               var meta = pkg.Metas.Metas[idx];
-              var entry = new SubStream(pkgFile, meta.DataOffset, meta.DataSize);
-              outFile.SetLength(entry.Length);
+              outFile.SetLength(meta.DataSize);
               if(meta.Encrypted)
               {
                 if(passcode == null)
@@ -252,14 +251,15 @@ namespace PkgTool
                 }
                 else
                 {
+                  var entry = new SubStream(pkgFile, meta.DataOffset, (meta.DataSize + 15) & ~15);
                   var tmp = new byte[entry.Length];
                   entry.Read(tmp, 0, tmp.Length);
                   tmp = Entry.Decrypt(tmp, pkg.Header.content_id, passcode, meta);
-                  outFile.Write(tmp, 0, tmp.Length);
+                  outFile.Write(tmp, 0, (int)meta.DataSize);
                   return;
                 }
               }
-              entry.CopyTo(outFile);
+              new SubStream(pkgFile, meta.DataOffset, meta.DataSize).CopyTo(outFile);
             }
           }
           return;
