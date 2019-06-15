@@ -32,8 +32,6 @@ after_build:
  - >
    7z a PkgEditor-%APPVEYOR_BUILD_VERSION%.zip 
    %APPVEYOR_BUILD_FOLDER%\PkgEditor\bin\Release\PkgEditor.exe
-   %APPVEYOR_BUILD_FOLDER%\PkgEditor\bin\Release\GameArchives.dll
-   %APPVEYOR_BUILD_FOLDER%\PkgEditor\bin\Release\LibArchiveExplorer.dll
    %APPVEYOR_BUILD_FOLDER%\LibOrbisPkg\bin\Release\LibOrbisPkg.dll
    %APPVEYOR_BUILD_FOLDER%\README.md
    %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
@@ -55,7 +53,7 @@ artifacts:
 
 deploy:
   release: LibOrbisPkg-v$(appveyor_build_version)
-  description: |
+  description: >
     This is an automated release from AppVeyor.
 
     Download PkgEditor-$(appveyor_build_version).zip for the GUI,
