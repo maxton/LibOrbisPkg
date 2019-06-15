@@ -31,6 +31,11 @@
       this.components = new System.ComponentModel.Container();
       this.tabControl1 = new System.Windows.Forms.TabControl();
       this.infoTab = new System.Windows.Forms.TabPage();
+      this.tabControl2 = new System.Windows.Forms.TabControl();
+      this.tabPage3 = new System.Windows.Forms.TabPage();
+      this.pkgHeaderTreeView = new System.Windows.Forms.TreeView();
+      this.tabPage4 = new System.Windows.Forms.TabPage();
+      this.pfsHeaderTreeView = new System.Windows.Forms.TreeView();
       this.appVerLabel = new System.Windows.Forms.Label();
       this.appVerLabelLabel = new System.Windows.Forms.Label();
       this.versionLabel = new System.Windows.Forms.Label();
@@ -44,8 +49,6 @@
       this.label4 = new System.Windows.Forms.Label();
       this.contentIdTextBox = new System.Windows.Forms.TextBox();
       this.label3 = new System.Windows.Forms.Label();
-      this.label2 = new System.Windows.Forms.Label();
-      this.treeView1 = new System.Windows.Forms.TreeView();
       this.entriesTab = new System.Windows.Forms.TabPage();
       this.entriesListView = new System.Windows.Forms.ListView();
       this.columnHeaderId = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -68,6 +71,9 @@
       this.validateResult = new System.Windows.Forms.TextBox();
       this.tabControl1.SuspendLayout();
       this.infoTab.SuspendLayout();
+      this.tabControl2.SuspendLayout();
+      this.tabPage3.SuspendLayout();
+      this.tabPage4.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.entriesTab.SuspendLayout();
       this.contextMenuStrip1.SuspendLayout();
@@ -104,8 +110,7 @@
       this.infoTab.Controls.Add(this.label4);
       this.infoTab.Controls.Add(this.contentIdTextBox);
       this.infoTab.Controls.Add(this.label3);
-      this.infoTab.Controls.Add(this.label2);
-      this.infoTab.Controls.Add(this.treeView1);
+      this.infoTab.Controls.Add(this.tabControl2);
       this.infoTab.Location = new System.Drawing.Point(4, 22);
       this.infoTab.Name = "infoTab";
       this.infoTab.Padding = new System.Windows.Forms.Padding(3);
@@ -113,6 +118,57 @@
       this.infoTab.TabIndex = 2;
       this.infoTab.Text = "Info";
       this.infoTab.UseVisualStyleBackColor = true;
+      // 
+      // tabControl2
+      // 
+      this.tabControl2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.tabControl2.Controls.Add(this.tabPage3);
+      this.tabControl2.Controls.Add(this.tabPage4);
+      this.tabControl2.Location = new System.Drawing.Point(3, 169);
+      this.tabControl2.Name = "tabControl2";
+      this.tabControl2.SelectedIndex = 0;
+      this.tabControl2.Size = new System.Drawing.Size(529, 198);
+      this.tabControl2.TabIndex = 16;
+      // 
+      // tabPage3
+      // 
+      this.tabPage3.Controls.Add(this.pkgHeaderTreeView);
+      this.tabPage3.Location = new System.Drawing.Point(4, 22);
+      this.tabPage3.Name = "tabPage3";
+      this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
+      this.tabPage3.Size = new System.Drawing.Size(521, 172);
+      this.tabPage3.TabIndex = 0;
+      this.tabPage3.Text = "Header";
+      this.tabPage3.UseVisualStyleBackColor = true;
+      // 
+      // pkgHeaderTreeView
+      // 
+      this.pkgHeaderTreeView.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.pkgHeaderTreeView.Location = new System.Drawing.Point(3, 3);
+      this.pkgHeaderTreeView.Name = "pkgHeaderTreeView";
+      this.pkgHeaderTreeView.Size = new System.Drawing.Size(515, 166);
+      this.pkgHeaderTreeView.TabIndex = 0;
+      // 
+      // tabPage4
+      // 
+      this.tabPage4.Controls.Add(this.pfsHeaderTreeView);
+      this.tabPage4.Location = new System.Drawing.Point(4, 22);
+      this.tabPage4.Name = "tabPage4";
+      this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
+      this.tabPage4.Size = new System.Drawing.Size(521, 172);
+      this.tabPage4.TabIndex = 1;
+      this.tabPage4.Text = "Outer PFS Header";
+      this.tabPage4.UseVisualStyleBackColor = true;
+      // 
+      // pfsHeaderTreeView
+      // 
+      this.pfsHeaderTreeView.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.pfsHeaderTreeView.Location = new System.Drawing.Point(3, 3);
+      this.pfsHeaderTreeView.Name = "pfsHeaderTreeView";
+      this.pfsHeaderTreeView.Size = new System.Drawing.Size(515, 166);
+      this.pfsHeaderTreeView.TabIndex = 1;
       // 
       // appVerLabel
       // 
@@ -235,25 +291,6 @@
       this.label3.Size = new System.Drawing.Size(58, 13);
       this.label3.TabIndex = 2;
       this.label3.Text = "Content ID";
-      // 
-      // label2
-      // 
-      this.label2.AutoSize = true;
-      this.label2.Location = new System.Drawing.Point(6, 168);
-      this.label2.Name = "label2";
-      this.label2.Size = new System.Drawing.Size(42, 13);
-      this.label2.TabIndex = 1;
-      this.label2.Text = "Header";
-      // 
-      // treeView1
-      // 
-      this.treeView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-      this.treeView1.Location = new System.Drawing.Point(3, 184);
-      this.treeView1.Name = "treeView1";
-      this.treeView1.Size = new System.Drawing.Size(529, 183);
-      this.treeView1.TabIndex = 0;
       // 
       // entriesTab
       // 
@@ -449,6 +486,9 @@
       this.tabControl1.ResumeLayout(false);
       this.infoTab.ResumeLayout(false);
       this.infoTab.PerformLayout();
+      this.tabControl2.ResumeLayout(false);
+      this.tabPage3.ResumeLayout(false);
+      this.tabPage4.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
       this.entriesTab.ResumeLayout(false);
       this.contextMenuStrip1.ResumeLayout(false);
@@ -464,7 +504,7 @@
 
     private System.Windows.Forms.TabControl tabControl1;
     private System.Windows.Forms.TabPage infoTab;
-    private System.Windows.Forms.TreeView treeView1;
+    private System.Windows.Forms.TreeView pkgHeaderTreeView;
     private System.Windows.Forms.TabPage entriesTab;
     private System.Windows.Forms.TabPage filesTab;
     private System.Windows.Forms.ListView entriesListView;
@@ -490,7 +530,6 @@
     private System.Windows.Forms.Label label4;
     private System.Windows.Forms.TextBox contentIdTextBox;
     private System.Windows.Forms.Label label3;
-    private System.Windows.Forms.Label label2;
     private System.Windows.Forms.Label label6;
     private System.Windows.Forms.Label label5;
     private System.Windows.Forms.Label label8;
@@ -499,5 +538,9 @@
     private System.Windows.Forms.Label versionLabel;
     private System.Windows.Forms.Label appVerLabel;
     private System.Windows.Forms.Label appVerLabelLabel;
+    private System.Windows.Forms.TabControl tabControl2;
+    private System.Windows.Forms.TabPage tabPage3;
+    private System.Windows.Forms.TabPage tabPage4;
+    private System.Windows.Forms.TreeView pfsHeaderTreeView;
   }
 }

@@ -40,10 +40,12 @@ namespace PkgEditor.Views
       if (path == null) return;
       pkgFile = MemoryMappedFile.CreateFromFile(path);
       using (var s = pkgFile.CreateViewStream())
-        ObjectPreview(new PkgReader(s).ReadHeader());
+        ObjectPreview(new PkgReader(s).ReadHeader(), pkgHeaderTreeView);
       using (var s = pkgFile.CreateViewStream())
         pkg = new PkgReader(s).ReadPkg();
-      if(pkg.Metas.Metas.Where(entry => entry.id == EntryId.ICON0_PNG).FirstOrDefault() is MetaEntry icon0)
+      using (var s = pkgFile.CreateViewStream((long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size))
+        ObjectPreview(PfsHeader.ReadFromStream(s), pfsHeaderTreeView);
+      if (pkg.Metas.Metas.Where(entry => entry.id == EntryId.ICON0_PNG).FirstOrDefault() is MetaEntry icon0)
       {
         using(var s = pkgFile.CreateViewStream(icon0.DataOffset, icon0.DataSize))
         {
@@ -95,12 +97,10 @@ namespace PkgEditor.Views
       }
     }
 
-    object previewObj;
-    void ObjectPreview(object obj)
+    void ObjectPreview(object obj, TreeView tv)
     {
-      treeView1.Nodes.Clear();
-      AddObjectNodes(obj, treeView1.Nodes);
-      previewObj = obj;
+      tv.Nodes.Clear();
+      AddObjectNodes(obj, tv.Nodes);
     }
 
     string toString(object obj)
