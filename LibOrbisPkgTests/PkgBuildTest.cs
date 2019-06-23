@@ -153,7 +153,7 @@ namespace LibOrbisPkgTests
           var pkg = new PkgReader(pkgStream).ReadPkg();
           foreach(var v in new PkgValidator(pkg).Validate(pkgStream))
           {
-            Assert.IsTrue(v.Item2, v.Item1.Name);
+            Assert.IsTrue(v.Item2 == PkgValidator.ValidationResult.Ok, v.Item1.Name);
           }
         }
       }

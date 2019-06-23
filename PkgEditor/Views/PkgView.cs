@@ -249,9 +249,9 @@ namespace PkgEditor.Views
           foreach (var v in validator.Validate(s).OrderBy((a)=>a.Item1.Location))
           {
             var item = new ListViewItem(v.Item1.Name);
-            if (v.Item2)
+            if (v.Item2 == PkgValidator.ValidationResult.Ok)
               item.BackColor = Color.LightGreen;
-            else
+            else if (v.Item2 == PkgValidator.ValidationResult.Fail)
               item.BackColor = Color.LightSalmon;
             item.Tag = v;
             listView1.BeginInvoke((Action)(() => listView1.Items.Add(item)));
@@ -272,14 +272,27 @@ namespace PkgEditor.Views
       }
       else
       {
-        if(listView1.SelectedItems[0].Tag is Tuple<PkgValidator.Validation, bool> t)
+        if(listView1.SelectedItems[0].Tag is Tuple<PkgValidator.Validation, PkgValidator.ValidationResult> t)
         {
+          var resultTxt = "";
+          switch (t.Item2)
+          {
+            case PkgValidator.ValidationResult.Ok:
+              resultTxt = "This was validated successfully";
+              break;
+            case PkgValidator.ValidationResult.Fail:
+              resultTxt = "This was found to be invalid";
+              break;
+            case PkgValidator.ValidationResult.NoKey:
+              resultTxt = "This may be valid but could not be checked due to lack of necessary key(s)";
+              break;
+          }
           validateResult.Text =
             $"Type: {t.Item1.Type}{Environment.NewLine}" +
             $"Name: {t.Item1.Name}{Environment.NewLine}" +
             $"Description: {t.Item1.Description}{Environment.NewLine}" +
             $"Offset: 0x{t.Item1.Location:X}{Environment.NewLine}" +
-            $"This {(t.Item2 ? "was validated" : "did not validate")} successfully.";
+           resultTxt;
         }
       }
     }

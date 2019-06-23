@@ -13,6 +13,21 @@ namespace LibOrbisPkg.PKG
       Hash,
       Signature
     }
+    public enum ValidationResult
+    {
+      /// <summary>
+      /// The hash or signature was successfully validated
+      /// </summary>
+      Ok,
+      /// <summary>
+      /// The hash or signature was invalid
+      /// </summary>
+      Fail,
+      /// <summary>
+      /// The hash or signature could not be verified due to lack of keys
+      /// </summary>
+      NoKey,
+    }
     public class Validation
     {
       /// <summary>
@@ -31,7 +46,7 @@ namespace LibOrbisPkg.PKG
       /// The offset of the final hash or digest in the PKG file;
       /// </summary>
       public readonly long Location;
-      public Func<bool> Validate;
+      public Func<ValidationResult> Validate;
       public Validation(ValidationType t, string name, string desc, long location)
       {
         Type = t;
@@ -47,6 +62,18 @@ namespace LibOrbisPkg.PKG
           Name.GetHashCode(),
           Description.GetHashCode(),
           Location.GetHashCode());
+    }
+
+    private static ValidationResult CheckHashes(byte[] expected, byte[] actual)
+    {
+      if(expected.SequenceEqual(actual))
+      {
+        return ValidationResult.Ok;
+      }
+      else
+      {
+        return ValidationResult.Fail;
+      }
     }
 
     private Pkg pkg;
@@ -121,23 +148,23 @@ namespace LibOrbisPkg.PKG
         {
           case GeneralDigest.ContentDigest:
             validation.Validate = () =>
-              pkg.GeneralDigests.Digests[GeneralDigest.ContentDigest].SequenceEqual(pkg.ComputeContentDigest());
+              CheckHashes(pkg.GeneralDigests.Digests[GeneralDigest.ContentDigest], pkg.ComputeContentDigest());
             break;
           case GeneralDigest.GameDigest:
             validation.Validate = () =>
-              pkg.GeneralDigests.Digests[GeneralDigest.GameDigest].SequenceEqual(pkg.Header.pfs_image_digest);
+              CheckHashes(pkg.GeneralDigests.Digests[GeneralDigest.GameDigest], pkg.Header.pfs_image_digest);
             break;
           case GeneralDigest.HeaderDigest:
             validation.Validate = () =>
-              pkg.GeneralDigests.Digests[GeneralDigest.HeaderDigest].SequenceEqual(pkg.ComputeHeaderDigest());
+              CheckHashes(pkg.GeneralDigests.Digests[GeneralDigest.HeaderDigest], pkg.ComputeHeaderDigest());
             break;
           case GeneralDigest.MajorParamDigest:
             validation.Validate = () =>
-              pkg.GeneralDigests.Digests[GeneralDigest.MajorParamDigest].SequenceEqual(pkg.ComputeMajorParamDigest());
+              CheckHashes(pkg.GeneralDigests.Digests[GeneralDigest.MajorParamDigest], pkg.ComputeMajorParamDigest());
             break;
           case GeneralDigest.ParamDigest:
             validation.Validate = () =>
-              pkg.GeneralDigests.Digests[GeneralDigest.ParamDigest].SequenceEqual(Crypto.Sha256(pkg.ParamSfo.ParamSfo.Serialize()));
+              CheckHashes(pkg.GeneralDigests.Digests[GeneralDigest.ParamDigest], Crypto.Sha256(pkg.ParamSfo.ParamSfo.Serialize()));
             break;
           default:
             // Don't know how to compute other hashes, so skip them.
@@ -158,8 +185,9 @@ namespace LibOrbisPkg.PKG
           digests.meta.DataOffset + (32 * j))
         {
           Validate = () =>
-            Crypto.Sha256(pkgStream, meta.DataOffset, meta.DataSize)
-            .SequenceEqual(digests.FileData.Skip(32 * j).Take(32)),
+            CheckHashes(
+              digests.FileData.Skip(32 * j).Take(32).ToArray(),
+              Crypto.Sha256(pkgStream, meta.DataOffset, meta.DataSize)),
         });
       }
 
@@ -170,8 +198,9 @@ namespace LibOrbisPkg.PKG
         0x460)
       {
         Validate = () =>
-          Crypto.Sha256(pkgStream, (long)pkg.Header.pfs_image_offset, 0x10000)
-          .SequenceEqual(pkg.Header.pfs_signed_digest)
+          CheckHashes(
+            pkg.Header.pfs_signed_digest,
+            Crypto.Sha256(pkgStream, (long)pkg.Header.pfs_image_offset, 0x10000))
       });
 
       validations.Add(new Validation(
@@ -181,8 +210,9 @@ namespace LibOrbisPkg.PKG
         0x440)
       {
         Validate = () =>
-          Crypto.Sha256(pkgStream, (long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size)
-          .SequenceEqual(pkg.Header.pfs_image_digest)
+          CheckHashes(
+            pkg.Header.pfs_image_digest,
+            Crypto.Sha256(pkgStream, (long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size))
       });
 
       validations.Add(new Validation(
@@ -192,8 +222,9 @@ namespace LibOrbisPkg.PKG
         0x160)
       {
         Validate = () =>
-          Crypto.Sha256(pkgStream, (long)pkg.Header.body_offset, (long)pkg.Header.body_size)
-          .SequenceEqual(pkg.Header.body_digest)
+          CheckHashes(
+            pkg.Header.body_digest,
+            Crypto.Sha256(pkgStream, (long)pkg.Header.body_offset, (long)pkg.Header.body_size))
       });
 
       validations.Add(new Validation(
@@ -203,8 +234,9 @@ namespace LibOrbisPkg.PKG
         0x140)
       {
         Validate = () =>
-          Crypto.Sha256(pkg.Digests.FileData)
-          .SequenceEqual(pkg.Header.digest_table_hash)
+          CheckHashes(
+            pkg.Header.digest_table_hash,
+            Crypto.Sha256(pkg.Digests.FileData))
       });
 
       validations.Add(new Validation(
@@ -220,7 +252,7 @@ namespace LibOrbisPkg.PKG
           {
             new SubStream(pkgStream, entry.meta.DataOffset, entry.meta.DataSize).CopyTo(ms);
           }
-          return Crypto.Sha256(ms).SequenceEqual(pkg.Header.sc_entries1_hash);
+          return CheckHashes(pkg.Header.sc_entries1_hash, Crypto.Sha256(ms));
         }
       });
 
@@ -242,7 +274,33 @@ namespace LibOrbisPkg.PKG
             }
             new SubStream(pkgStream, entry.meta.DataOffset, size).CopyTo(ms);
           }
-          return Crypto.Sha256(ms).SequenceEqual(pkg.Header.sc_entries2_hash);
+          return CheckHashes(pkg.Header.sc_entries2_hash, Crypto.Sha256(ms));
+        }
+      });
+
+      validations.Add(new Validation(
+        ValidationType.Hash,
+        "PKG Header Digest",
+        "Hash of the first 0xFE0 bytes of the PKG",
+        0xFE0)
+      {
+        Validate = () =>
+          CheckHashes(
+            pkg.HeaderDigest,
+            Crypto.Sha256(pkgStream, 0, 0xFE0))
+      });
+
+      validations.Add(new Validation(
+        ValidationType.Signature,
+        "PKG Header Signature",
+        "Signed hash of the first 0x1000 bytes of the PKG",
+        0x1000)
+      {
+        Validate = () =>
+        {
+          byte[] header_sha256 = Crypto.Sha256(pkgStream, 0, 0x1000);
+          var sig = Crypto.RSA2048EncryptKey(Keys.PkgSignKey, header_sha256);
+          return sig.SequenceEqual(pkg.HeaderSignature) ? ValidationResult.Ok : ValidationResult.NoKey;
         }
       });
 
@@ -253,7 +311,7 @@ namespace LibOrbisPkg.PKG
     /// Checks the hashes and signatures for this PKG.
     /// </summary>
     /// <returns>Returns a list of validation steps and their success (true) or failure (false).</returns>
-    public IEnumerable<Tuple<Validation, bool>> Validate(Stream pkgStream)
+    public IEnumerable<Tuple<Validation, ValidationResult>> Validate(Stream pkgStream)
     {
       foreach(var validation in Validations(pkgStream))
       {
