@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GP4\Gp4Creator.cs" />
     <Compile Include="GP4\Gp4Project.cs" />
     <Compile Include="PFS\PFSCReader.cs" />
     <Compile Include="PFS\PFSCWriter.cs" />

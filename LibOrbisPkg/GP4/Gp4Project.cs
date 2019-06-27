@@ -175,6 +175,13 @@ namespace LibOrbisPkg.GP4
     /// <returns>The new directory</returns>
     public Dir AddDir(Dir parent, string name)
     {
+      // Idempotence
+      var existingDir = (parent?.Children ?? RootDir)
+        .Where(d => d.TargetName == name)
+        .FirstOrDefault();
+      if (existingDir != null)
+        return existingDir;
+
       var newDir = new Dir
       {
         TargetName = name,

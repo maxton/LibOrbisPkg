@@ -22,7 +22,8 @@ namespace LibOrbisPkgTests
     }
     public void Dispose()
     {
-      File.Delete(Path);
+      if(File.Exists(Path))
+        File.Delete(Path);
     }
   }
 }

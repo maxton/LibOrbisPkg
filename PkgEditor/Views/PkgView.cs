@@ -48,9 +48,10 @@ namespace PkgEditor.Views
         using (var s = pkgFile.CreateViewStream((long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size))
           ObjectPreview(PfsHeader.ReadFromStream(s), pfsHeaderTreeView);
       }
-      catch(Exception)
+      catch(Exception e)
       {
         pkgHeaderTabControl.TabPages.Remove(outerPfsHeaderTabPage);
+        MessageBox.Show("Error loading outer PFS: " + e.Message + Environment.NewLine + "Please report this issue at https://github.com/maxton/LibOrbisPkg/issues");
       }
       if (pkg.Metas.Metas.Where(entry => entry.id == EntryId.ICON0_PNG).FirstOrDefault() is MetaEntry icon0)
       {
@@ -273,10 +274,17 @@ namespace PkgEditor.Views
           }
         }
       });
-      
+
       listView1.Enabled = true;
       checkDigestsButton.Enabled = true;
       validateResult.Text = "Done!";
+      foreach(ListViewItem x in listView1.Items)
+      {
+        if(x.BackColor == Color.LightSalmon)
+        {
+          validateResult.Text += Environment.NewLine + "Failed: " + x.Text;
+        }
+      }
     }
 
     private void ListView1_SelectedIndexChanged(object sender, EventArgs e)
@@ -391,6 +399,22 @@ namespace PkgEditor.Views
       {
         extractToolStripMenuItem.Enabled = true;
         extractDecryptedMenuItem.Enabled = (entriesListView.SelectedItems[0].Tag as MetaEntry)?.Encrypted ?? false;
+      }
+    }
+
+    private void Button2_Click(object sender, EventArgs e)
+    {
+      var sfd = new SaveFileDialog()
+      {
+        FileName = "Project.gp4",
+        Filter = "GP4 Projects|Project.gp4",
+        Title = "Choose a location for the exported PKG and project file",
+      };
+      if(sfd.ShowDialog() == DialogResult.OK)
+      {
+        var outputDir = Path.GetDirectoryName(sfd.FileName);
+        LibOrbisPkg.GP4.Gp4Creator.CreateProjectFromPKG(outputDir, pkgFile, passcode);
+        MessageBox.Show("PKG Exported to " + outputDir);
       }
     }
   }

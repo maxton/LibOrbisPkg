@@ -70,6 +70,15 @@ namespace PkgTool
             $"{project.volume.Package.ContentId}.pkg"));
         }),
       Verb.Create(
+        "makegp4",
+        "Extracts all content from the PKG and creates a GP4 project in the output directory",
+        ArgDef.Multi(ArgDef.Option("passcode"), "input.pkg", "output_dir"),
+        (_, optionals, args) => 
+        {
+          var passcode = optionals.ContainsKey("passcode") ? optionals["passcode"] : null;
+          Gp4Creator.CreateProjectFromPKG(args[2], args[1], passcode);
+        }),
+      Verb.Create(
         "extractpkg",
         "Extracts all the files from a PKG to the given output directory. Use the verbose flag to print filenames as they are extracted.",
         ArgDef.Multi(ArgDef.Bool("verbose"), ArgDef.Option("passcode"), "input.pkg", "output_directory"),

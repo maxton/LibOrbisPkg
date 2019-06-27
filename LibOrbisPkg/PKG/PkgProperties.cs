@@ -69,7 +69,7 @@ namespace LibOrbisPkg.PKG
       return new PkgProperties
       {
         ContentId = project.volume.Package.ContentId,
-        VolumeType = GP4.VolumeTypeUtil.OfString(project.volume.volume_type),
+        VolumeType = project.volume.Type,
         Passcode = project.volume.Package.Passcode,
         TimeStamp = project.volume.TimeStamp,
         EntitlementKey = project.volume.Package.EntitlementKey,

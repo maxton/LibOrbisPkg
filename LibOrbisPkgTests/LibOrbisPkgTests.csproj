@@ -50,8 +50,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PkgBuildTest.cs" />
+    <Compile Include="PkgReadTest.cs" />
     <Compile Include="SfoTest.cs" />
+    <Compile Include="TempDir.cs" />
     <Compile Include="TempFile.cs" />
+    <Compile Include="TestHelper.cs" />
     <Compile Include="XtsTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

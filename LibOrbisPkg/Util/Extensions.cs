@@ -23,6 +23,16 @@ namespace LibOrbisPkg.Util
       return arr;
     }
   }
+
+  public static class ByteArrayExtensions
+  {
+    public static string ToHexCompact(this byte[] b)
+    {
+      var sb = new System.Text.StringBuilder();
+      foreach (var x in b) sb.AppendFormat("{0:X2}", x);
+      return sb.ToString();
+    }
+  }
 #if !CORE
   public static class TupleExtension
   {
