@@ -81,7 +81,7 @@ namespace LibOrbisPkg.PFS
           file.SetLength(sz);
           while (sz > 0)
           {
-            var toRead = (int)Math.Min(size, buf.Length);
+            var toRead = (int)Math.Min(sz, buf.Length);
             reader.Read(pos, buf, 0, toRead);
             file.Write(buf, 0, toRead);
             pos += toRead;
@@ -153,6 +153,8 @@ namespace LibOrbisPkg.PFS
         throw new Exception("Invalid PFS image (no uroot)");
       uroot.name = "uroot";
     }
+
+    public PfsHeader Header => hdr;
 
     public File GetFile(string fullPath)
     {
