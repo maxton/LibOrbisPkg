@@ -146,6 +146,23 @@ namespace LibOrbisPkg.Util
       return rsa.SignHash(sha256Hash, CryptoConfig.MapNameToOID("SHA256"));
     }
 
+    public static bool RSA2048VerifySha256(byte[] sha256Hash, byte[] signature, RSAKeyset keyset)
+    {
+      RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
+      rsa.ImportParameters(new RSAParameters
+      {
+        P = keyset.Prime1,
+        Q = keyset.Prime2,
+        Exponent = keyset.PublicExponent,
+        Modulus = keyset.Modulus,
+        DP = keyset.Exponent1,
+        DQ = keyset.Exponent2,
+        InverseQ = keyset.Coefficient,
+        D = keyset.PrivateExponent
+      });
+      return rsa.VerifyHash(sha256Hash, CryptoConfig.MapNameToOID("SHA256"), signature);
+    }
+
     /// <summary>
     /// Encrypts the value with 2048 bit RSA.
     /// Accepts and returns Big-Endian values

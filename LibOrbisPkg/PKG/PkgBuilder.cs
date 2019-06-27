@@ -268,7 +268,7 @@ namespace LibOrbisPkg.PKG
       pkg.Metas = new MetasEntry();
       pkg.Digests = new GenericEntry(EntryId.DIGESTS);
       pkg.EntryNames = new NameTableEntry();
-      pkg.LicenseDat = new GenericEntry(EntryId.LICENSE_DAT) { FileData = GenLicense() };
+      pkg.LicenseDat = GenLicense();
       pkg.LicenseInfo = new GenericEntry(EntryId.LICENSE_INFO) { FileData = GenLicenseInfo() };
       var paramSfoFile = project.RootDir.GetFile("sce_sys/param.sfo");
       if(paramSfoFile == null)
@@ -424,18 +424,12 @@ namespace LibOrbisPkg.PKG
       }
     }
 
-    private byte[] GenLicense()
+    private LicenseDat GenLicense()
     {
-      var license = new LicenseDat(
+      return new LicenseDat(
         pkg.Header.content_id,
         pkg.Header.content_type,
         project.EntitlementKey?.FromHexCompact());
-      using (var ms = new MemoryStream())
-      {
-        new LicenseDatWriter(ms).Write(license);
-        ms.SetLength(0x400);
-        return ms.ToArray();
-      }
     }
 
     private byte[] GenLicenseInfo()

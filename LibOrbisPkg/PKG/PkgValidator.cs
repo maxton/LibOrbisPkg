@@ -304,6 +304,27 @@ namespace LibOrbisPkg.PKG
         }
       });
 
+      if(pkg.LicenseDat is Rif.LicenseDat ld)
+      {
+        validations.Add(new Validation(
+         ValidationType.Signature,
+         "Debug RIF Signature",
+         "Signed hash of the debug RIF secret",
+         ld.meta.DataOffset + 0x300)
+        {
+          Validate = () =>
+          {
+            using (var ms = new MemoryStream())
+            {
+              ld.Write(ms);
+              var hash = Crypto.Sha256(ms, 0, 0x300);
+              return Crypto.RSA2048VerifySha256(hash, ld.Signature, RSAKeyset.DebugRifKeyset)
+                ? ValidationResult.Ok : ValidationResult.Fail;
+            }
+          }
+        });
+      }
+
       return validations;
     }
 

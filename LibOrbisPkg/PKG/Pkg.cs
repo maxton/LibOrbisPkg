@@ -27,7 +27,7 @@ namespace LibOrbisPkg.PKG
     // variable...
     public GenericEntry Digests;
     public NameTableEntry EntryNames;
-    public GenericEntry LicenseDat;
+    public Rif.LicenseDat LicenseDat;
     public GenericEntry LicenseInfo;
     public SfoEntry ParamSfo;
     public GenericEntry PsReservedDat;

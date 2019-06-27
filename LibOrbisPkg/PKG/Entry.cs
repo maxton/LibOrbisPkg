@@ -49,6 +49,25 @@ namespace LibOrbisPkg.PKG
       Crypto.AesCbcCfb128Decrypt(tmp, entryBytes, tmp.Length, iv_key.Skip(16).Take(16).ToArray(), iv_key.Take(16).ToArray());
       return tmp;
     }
+
+    /// <summary>
+    /// Decrypts the given entry using the entry encryption.
+    /// Throws an exception if it can't be decrypted.
+    /// </summary>
+    public static byte[] Decrypt(byte[] entryBytes, Pkg pkg, MetaEntry meta)
+    {
+      if(meta.KeyIndex != 3)
+      {
+        throw new Exception("We only have the key for encryption key 3");
+      }
+      var iv_key = Crypto.Sha256(
+              meta.GetBytes()
+              .Concat(Crypto.RSA2048Decrypt(pkg.EntryKeys.Keys[3].key, RSAKeyset.PkgDerivedKey3Keyset))
+              .ToArray());
+      var tmp = new byte[entryBytes.Length];
+      Crypto.AesCbcCfb128Decrypt(tmp, entryBytes, tmp.Length, iv_key.Skip(16).Take(16).ToArray(), iv_key.Take(16).ToArray());
+      return tmp;
+    }
   }
 
   /// <summary>

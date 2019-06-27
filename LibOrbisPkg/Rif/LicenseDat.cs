@@ -6,7 +6,7 @@ using LibOrbisPkg.Util;
 
 namespace LibOrbisPkg.Rif
 {
-  public class LicenseDat
+  public class LicenseDat : Entry
   {
     public LicenseDat() { }
     /// <summary>
@@ -53,6 +53,12 @@ namespace LibOrbisPkg.Rif
     public byte[] Secret;
     public byte[] Signature = new byte[256];
 
+    public override EntryId Id => EntryId.LICENSE_DAT;
+
+    public override uint Length => 0x400;
+
+    public override string Name => null; // Not saved with a name in the PKG
+
     public void DecryptSecretWithDebugKey()
     {
       Crypto.AesCbcCfb128Decrypt(Secret, Secret, Secret.Length, Keys.rif_debug_key, SecretIv);
@@ -71,6 +77,11 @@ namespace LibOrbisPkg.Rif
         var hash = Crypto.Sha256(ms, 0, 0x300);
         Signature = Crypto.RSA2048SignSha256(hash, RSAKeyset.DebugRifKeyset);
       }
+    }
+
+    public override void Write(Stream s)
+    {
+      new LicenseDatWriter(s).Write(this);
     }
   }
 
