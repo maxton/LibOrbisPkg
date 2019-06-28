@@ -658,7 +658,7 @@ namespace PkgTool
       var verb_list = (args.Length > 0
           && verbs.Where(verb => verb.Name.StartsWith(args[0])).ToArray() is Verb[] prefixList 
           && prefixList.Length > 0) ? prefixList : verbs;
-      foreach (var verb in verb_list)
+      foreach (var verb in verb_list.OrderBy(z => z.Name))
       {
         Console.WriteLine($"  {verb}");
         Console.WriteLine($"    {verb.HelpText}");
