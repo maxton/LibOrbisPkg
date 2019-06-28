@@ -23,7 +23,7 @@ namespace PkgTool
     public static Verb[] Verbs = new[]
     {
       Verb.Create(
-        "makepfs",
+        "pfs_buildinner",
         "Builds an inner PFS image from the given GP4 project.",
         ArgDef.Required("input_project.gp4", "output_pfs.dat"),
         args =>
@@ -37,7 +37,7 @@ namespace PkgTool
           new PfsBuilder(props, Console.WriteLine).WriteImage(outFile);
         }),
       Verb.Create(
-        "makeouterpfs",
+        "pfs_buildouter",
         "Builds an outer PFS image, optionally encrypted, from the given GP4 project.",
         ArgDef.Multi(ArgDef.Bool("encrypt"), "input_project.gp4", "output_pfs.dat"),
         (switches, args) =>
@@ -56,7 +56,7 @@ namespace PkgTool
           outerPfs.WriteImage(outFile);
         }),
       Verb.Create(
-        "makepkg",
+        "pkg_build",
         "Builds a fake PKG from the given GP4 project in the given output directory.",
         ArgDef.Required("input_project.gp4", "output_directory"),
         args =>
@@ -70,7 +70,7 @@ namespace PkgTool
             $"{project.volume.Package.ContentId}.pkg"));
         }),
       Verb.Create(
-        "makegp4",
+        "pkg_makegp4",
         "Extracts all content from the PKG and creates a GP4 project in the output directory",
         ArgDef.Multi(ArgDef.Option("passcode"), "input.pkg", "output_dir"),
         (_, optionals, args) => 
@@ -79,7 +79,7 @@ namespace PkgTool
           Gp4Creator.CreateProjectFromPKG(args[2], args[1], passcode);
         }),
       Verb.Create(
-        "extractpkg",
+        "pkg_extract",
         "Extracts all the files from a PKG to the given output directory. Use the verbose flag to print filenames as they are extracted.",
         ArgDef.Multi(ArgDef.Bool("verbose"), ArgDef.Option("passcode"), "input.pkg", "output_directory"),
         (flags, optionals, args) =>
@@ -104,7 +104,7 @@ namespace PkgTool
           }
         }),
       Verb.Create(
-        "extractpfs",
+        "pfs_extract",
         "Extracts all the files from a PFS image to the given output directory. Use the verbose flag to print filenames as they are extracted.",
         ArgDef.Multi(ArgDef.Bool("verbose"), "input.dat", "output_directory"),
         (flags, args) =>
@@ -119,7 +119,7 @@ namespace PkgTool
           }
         }),
       Verb.Create(
-        "extractinnerpfs",
+        "pkg_extractinnerpfs",
         "Extracts the inner PFS image from a PKG file.",
         ArgDef.Multi(ArgDef.Option("passcode"), "input.pkg", "output_pfs.dat"),
         (switches, optionals, args) =>
@@ -158,7 +158,7 @@ namespace PkgTool
           }
         }),
       Verb.Create(
-        "extractouterpfs",
+        "pkg_extractouterpfs",
         "Extracts and decrypts the outer PFS image from a PKG file. Use the --encrypted flag to leave the image encrypted.",
         ArgDef.Multi(ArgDef.Bool("encrypted"), ArgDef.Option("passcode"), "input.pkg", "pfs_image.dat"),
         (switches, optionals, args) =>
@@ -212,7 +212,7 @@ namespace PkgTool
           }
         }),
       Verb.Create(
-        "listentries",
+        "pkg_listentries",
         "Lists the entries in a PKG file.",
         ArgDef.Required("input.pkg"),
         args =>
@@ -230,7 +230,7 @@ namespace PkgTool
           }
         }),
       Verb.Create(
-        "extractentry",
+        "pkg_extractentry",
         "Extracts the selected entry from the given PKG file.",
         ArgDef.Multi(ArgDef.Option("passcode"), "input.pkg", "entry_id", "output.bin"),
         (flags, optionals, args) =>
@@ -272,6 +272,40 @@ namespace PkgTool
             }
           }
           return;
+        }),
+      Verb.Create(
+        "pkg_validate",
+        "Checks the hashes and signatures of a PKG.",
+        ArgDef.Multi(ArgDef.Bool("verbose"), "input.pkg"),
+        (option, args) =>
+        {
+          using(var fs = File.OpenRead(args[1]))
+          {
+            var pkg = new PkgReader(fs).ReadPkg();
+            var validator = new PkgValidator(pkg);
+            bool ok = true;
+            foreach(var validation in validator.Validations(fs))
+            {
+              switch(validation.Validate())
+              {
+                case PkgValidator.ValidationResult.Fail:
+                  ok = false;
+                  Console.WriteLine("[ERROR] {2} invalid at 0x{0:X}: {1}", validation.Location, validation.Name, validation.Type);
+                  break;
+                case PkgValidator.ValidationResult.NoKey:
+                  Console.WriteLine("[WARN]  {2} cannot be validated without secret keys at 0x{0:X}: {1}", validation.Location, validation.Name, validation.Type);
+                  break;
+                case PkgValidator.ValidationResult.Ok:
+                  Console.WriteLine("[OK]    ({2}) {0} @ 0x{1:X}", validation.Name, validation.Location, validation.Type);
+                  break;
+              }
+              if(option["verbose"])
+              {
+                Console.WriteLine("          " + validation.Description);
+              }
+            }
+
+          }
         }),
       Verb.Create(
         "sfo_listentries",
@@ -621,7 +655,10 @@ namespace PkgTool
       Console.WriteLine($"Usage: {name} <verb> [options ...]");
       Console.WriteLine("");
       Console.WriteLine("Verbs:");
-      foreach (var verb in verbs)
+      var verb_list = (args.Length > 0
+          && verbs.Where(verb => verb.Name.StartsWith(args[0])).ToArray() is Verb[] prefixList 
+          && prefixList.Length > 0) ? prefixList : verbs;
+      foreach (var verb in verb_list)
       {
         Console.WriteLine($"  {verb}");
         Console.WriteLine($"    {verb.HelpText}");
