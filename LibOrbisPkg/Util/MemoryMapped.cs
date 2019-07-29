@@ -56,8 +56,17 @@ namespace LibOrbisPkg.Util
     private long offset;
     public MemoryAccessor(IMemoryReader mr, long offset = 0)
     {
-      this.offset = offset;
-      reader = mr;
+      // Efficient nesting of MemoryAccessors: eliminating long call chains to the base IMemoryReader
+      if(mr is MemoryAccessor ma)
+      {
+        this.offset = offset + ma.offset;
+        this.reader = ma.reader;
+      }
+      else
+      {
+        this.offset = offset;
+        this.reader = mr;
+      }
     }
     public void Dispose() { }
     public void Read<T>(long pos, out T value) where T : struct

@@ -271,7 +271,7 @@ namespace LibOrbisPkg.PFS
       foreach (var dir in allDirs)
       {
         var ino = MakeInode(
-          Mode: InodeMode.dir | InodeMode.rx_only,
+          Mode: InodeMode.dir | inode.RXOnly,
           Number: (uint)inodes.Count,
           Blocks: 1,
           Size: 65536,
@@ -297,7 +297,7 @@ namespace LibOrbisPkg.PFS
       foreach (var file in allFiles.OrderBy(x => x.FullPath()))
       {
         var ino = MakeInode(
-          Mode: InodeMode.file | InodeMode.rx_only,
+          Mode: InodeMode.file | inode.RXOnly,
           Size: file.Size,
           SizeCompressed: file.CompressedSize,
           Number: (uint)inodes.Count,
@@ -440,7 +440,8 @@ namespace LibOrbisPkg.PFS
         hdr.InodeBlockSig.SetTime(properties.FileTime);
         for (var i = 1; i < hdr.DinodeBlockCount; i++)
         {
-          hdr.InodeBlockSig.SetDirectBlock(i, -1);
+          if(i < 12)
+            hdr.InodeBlockSig.SetDirectBlock(i, -1);
           hdr.Ndblock++;
         }
         super_root_ino.SetDirectBlock(0, (int)hdr.Ndblock);
@@ -515,7 +516,7 @@ namespace LibOrbisPkg.PFS
     void SetupRootStructure()
     {
       inodes.Add(super_root_ino = MakeInode(
-        Mode: InodeMode.dir | InodeMode.rx_only,
+        Mode: InodeMode.dir | inode.RXOnly,
         Blocks: 1,
         Size: 65536,
         SizeCompressed: 65536,
@@ -524,13 +525,13 @@ namespace LibOrbisPkg.PFS
         Flags: InodeFlags.@internal | InodeFlags.@readonly
       ));
       inodes.Add(fpt_ino = MakeInode(
-        Mode: InodeMode.file | InodeMode.rx_only,
+        Mode: InodeMode.file | inode.RXOnly,
         Blocks: 1,
         Number: 1,
         Flags: InodeFlags.@internal | InodeFlags.@readonly
       ));
       var uroot_ino = MakeInode(
-        Mode: InodeMode.dir | InodeMode.rx_only,
+        Mode: InodeMode.dir | inode.RXOnly,
         Number: 2,
         Size: 65536,
         SizeCompressed: 65536,

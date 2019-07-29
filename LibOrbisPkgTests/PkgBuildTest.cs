@@ -9,6 +9,7 @@ using LibOrbisPkg.GP4;
 using LibOrbisPkg.PKG;
 using LibOrbisPkg.PFS;
 using LibOrbisPkg.SFO;
+using LibOrbisPkg.Util;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 
@@ -71,6 +72,41 @@ namespace LibOrbisPkgTests
         new PkgBuilder(TestHelper.MakeProperties()).Write(pkgFile.Path, s => { });
         TestHelper.OpenPkgFilesystem(pkgFile.Path, innerPfs =>
           Assert.AreEqual("sce_sys", innerPfs.GetURoot().children[0].name));
+      }
+    }
+
+    [TestMethod]
+    public void ManyFilePkg()
+    {
+      const int NumFiles = 5000;
+      using (var pkgFile = new TempFile())
+      {
+        var buf = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+        Action<Stream> fileWriter = s => s.Write(buf, 0, 16);
+        var rootDir = TestHelper.MakeRoot();
+        var filesDir = new FSDir() { Parent = rootDir, name = "files" };
+        rootDir.Dirs.Add(filesDir);
+        for(int i = 0; i < NumFiles; i++)
+        {
+          filesDir.Files.Add(new FSFile(fileWriter, $"file_{i}", 16) { Parent = filesDir });
+        }
+        new PkgBuilder(TestHelper.MakeProperties(RootDir: rootDir)).Write(pkgFile.Path, Console.WriteLine);
+        int foundFiles = 0;
+        TestHelper.OpenPkgFilesystem(pkgFile.Path, innerPfs =>
+          {
+            var testBuf = new byte[16];
+            foreach(var f in innerPfs.GetURoot().GetAllFiles())
+            {
+              foundFiles++;
+              using (var view = f.GetView())
+              {
+                view.Read(0, testBuf, 0, 16);
+                CollectionAssert.AreEqual(buf, testBuf, $"Expected {buf.AsHexCompact()}, got {testBuf.AsHexCompact()}");
+              }
+            }
+          });
+
+        Assert.AreEqual(NumFiles, foundFiles);
       }
     }
 

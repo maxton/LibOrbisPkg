@@ -212,6 +212,7 @@ typedef struct {
 
 
 typedef struct {
+    local int64 start = FTell();
     int32 ino;
     int32 type;
     int32 namelen;
@@ -219,6 +220,7 @@ typedef struct {
     char name[];
     if((FTell() & 7) != 0)
         char space[(FTell() + 7 & (~7)) - FTell()];
+    FSeek(start + entsize);
 } dirent<read=DIRENTRD>;
 
 string DIRENTRD(dirent& di){
@@ -294,7 +296,7 @@ typedef struct {
                 
                 cont = true;
                   while(cont == true){
-                    dirent d;
+                    dirent d<optimize=false>;
                     
                     cont = d.ino != 0;
                   }

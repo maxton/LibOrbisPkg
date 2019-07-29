@@ -137,8 +137,6 @@ namespace LibOrbisPkg.PFS
     u_execute = 256,
     dir = 16384,
     file = 32768,
-    rx_only = 0x16D,
-    rwx = 0x1FF
   }
 
   /// <summary>
@@ -172,6 +170,11 @@ namespace LibOrbisPkg.PFS
   /// </summary>
   public abstract class inode
   {
+    public const InodeMode RXOnly =
+      InodeMode.o_read | InodeMode.o_execute |
+      InodeMode.g_read | InodeMode.g_execute |
+      InodeMode.u_read | InodeMode.u_execute;
+
     public inode()
     {
       SetTime((long)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds);
@@ -517,10 +520,16 @@ namespace LibOrbisPkg.PFS
       {
         name = value;
         NameLength = name.Length;
-        EntSize = NameLength + 17;
-        if (EntSize % 8 != 0)
-          EntSize += 8 - (EntSize % 8);
+        EntSize = CalculateEntSize();
       }
+    }
+
+    public int CalculateEntSize()
+    {
+      var EntSize = NameLength + 17;
+      if (EntSize % 8 != 0)
+        EntSize += 8 - (EntSize % 8);
+      return EntSize;
     }
 
     private string name;
