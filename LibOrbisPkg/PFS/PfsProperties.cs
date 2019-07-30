@@ -64,6 +64,7 @@ namespace LibOrbisPkg.PFS
         Encrypt = encrypt,
         Sign = true,
         EKPFS = EKPFS,
+        // This doesn't seem to really matter when verifying a PKG so use all zeroes for now
         Seed = new byte[16],
         FileTime = GetTimeStamp(props),
       };

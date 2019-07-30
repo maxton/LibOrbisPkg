@@ -83,8 +83,6 @@ namespace LibOrbisPkg.PFS
       // TODO: Combine the superroot-specific stuff with the rest of the data block writing.
       // I think this is as simple as adding superroot and flat_path_table to allNodes
 
-      // This doesn't seem to really matter when verifying a PKG so use all zeroes for now
-      var seed = new byte[16];
       // Insert header digest to be calculated with the rest of the digests
       final_sigs.Push(new BlockSigInfo(0, 0x380, 0x5A0));
       hdr = new PfsHeader {
@@ -94,7 +92,7 @@ namespace LibOrbisPkg.PFS
              | (properties.Encrypt ? PfsMode.Encrypted : 0)
              | PfsMode.UnknownFlagAlwaysSet,
         UnknownIndex = 1,
-        Seed = properties.Encrypt || properties.Sign ? seed : null
+        Seed = properties.Encrypt || properties.Sign ? properties.Seed : null
       };
       inodes = new List<inode>();
 
@@ -102,7 +100,7 @@ namespace LibOrbisPkg.PFS
       SetupRootStructure();
       allDirs = root.GetAllChildrenDirs();
       allFiles = root.GetAllChildrenFiles().Where(f => f.Parent?.name != "sce_sys" || !PKG.EntryNames.NameToId.ContainsKey(f.name)).ToList();
-      allNodes = new List<FSNode>(allDirs);
+      allNodes = new List<FSNode>(allDirs.OrderBy(d => d.FullPath()).ToList());
       allNodes.AddRange(allFiles);
 
       Log($"Creating inodes ({allDirs.Count} dirs and {allFiles.Count} files)...");
@@ -268,7 +266,7 @@ namespace LibOrbisPkg.PFS
     void addDirInodes()
     {
       inodes.Add(root.ino);
-      foreach (var dir in allDirs)
+      foreach (var dir in allDirs.OrderBy(x => x.FullPath()))
       {
         var ino = MakeInode(
           Mode: InodeMode.dir | inode.RXOnly,
@@ -334,13 +332,17 @@ namespace LibOrbisPkg.PFS
       return ib;
     }
 
+    ///<summary>
+    ///Given an inode number and an index into the db[] array, returns the absolute offset of that array value
+    ///</summary>
+    long inoNumberToOffset(uint number, int db = 0)
+      => hdr.BlockSize + (DinodeS32.SizeOf * number) + 0x64 + (36 * db);
+
     /// <summary>
     /// Sets the data blocks. Also updates header for total number of data blocks.
     /// </summary>
     void CalculateDataBlockLayout()
     {
-      long inoNumberToOffset(uint number, int db = 0)
-        => hdr.BlockSize + (DinodeS32.SizeOf * number) + 0x64 + (36 * db);
       if (properties.Sign)
       {
         // Include the header block in the total count
@@ -403,25 +405,31 @@ namespace LibOrbisPkg.PFS
           if(blocks > 12)
           {
             // More than 12 blocks -> use 1 indirect block
+            // ib[0]
             final_sigs.Push(new BlockSigInfo(ibStartBlock, inoNumberToOffset(n.ino.Number, 12)));
             for(int i = 12, pointerOffset = 0; (blocks - i) > 0 && i < (12 + sigs_per_block); i++, pointerOffset += 36)
             {
+              // ib[0][i]
               data_sigs.Push(new BlockSigInfo((int)hdr.Ndblock++, ibStartBlock * hdr.BlockSize + pointerOffset));
             }
             ibStartBlock++;
           }
           if(blocks > 12 + sigs_per_block)
           {
+            uint blockSigsDone = 12 + sigs_per_block;
             // More than 12 + one block of pointers -> use 1 doubly-indirect block + any number of indirect blocks
+            // ib[1] = signature for block of signatures for block of signatures for data blocks
             final_sigs.Push(new BlockSigInfo(ibStartBlock, inoNumberToOffset(n.ino.Number, 13)));
-            for(var i = 12 + sigs_per_block; (blocks - i) > 0 && i < (12 + sigs_per_block + (sigs_per_block * sigs_per_block)); i += sigs_per_block)
+            var ib_1_block = ibStartBlock;
+            for(var i = 0; i < sigs_per_block && blockSigsDone < blocks; i++)
             {
-              final_sigs.Push(new BlockSigInfo(ibStartBlock, inoNumberToOffset(n.ino.Number, 12)));
-              for (int j = 0, pointerOffset = 0; (blocks - i - j) > 0 && j < sigs_per_block; j++, pointerOffset += 36)
+              // ib[1][i] = signature for block of signatures for data blocks
+              final_sigs.Push(new BlockSigInfo((int)++ibStartBlock, ib_1_block * hdr.BlockSize + i*36));
+              for (int j = 0; j < sigs_per_block && blockSigsDone < blocks; j++, blockSigsDone++)
               {
-                data_sigs.Push(new BlockSigInfo((int)hdr.Ndblock++, ibStartBlock * hdr.BlockSize + pointerOffset));
+                // ib[1][i][j] = signature for data block
+                data_sigs.Push(new BlockSigInfo((int)hdr.Ndblock++, ibStartBlock * hdr.BlockSize + (j*36)));
               }
-              ibStartBlock++;
             }
           }
         }

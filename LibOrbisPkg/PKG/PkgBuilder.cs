@@ -247,7 +247,7 @@ namespace LibOrbisPkg.PKG
         pfs_image_size = (ulong)pfsSize,
         mount_image_offset = 0,
         mount_image_size = 0,
-        package_size = 0,
+        package_size = (ulong)(0x80000 + pfsSize),
         pfs_signed_size = 0x10000,
         pfs_cache_size = 0xD0000,
         pfs_image_digest = new byte[32],
@@ -294,7 +294,7 @@ namespace LibOrbisPkg.PKG
           if (project.UseCreationTime)
             time = ",c_time=" + project.CreationDate.ToString("HHmmss");
         }
-        var sizeInfo = $",img0_l0_size={pkg.Header.pfs_image_size / (1000 * 1000)}" +
+        var sizeInfo = $",img0_l0_size={(pkg.Header.package_size + 0xFFFFF) / (1024 * 1024)}" +
           $",img0_l1_size=0" +
           $",img0_sc_ksize=512" +
           $",img0_pc_ksize=832";
