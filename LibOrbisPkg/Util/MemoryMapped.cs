@@ -82,6 +82,36 @@ namespace LibOrbisPkg.Util
       reader.ReadArray(pos + this.offset, value, offset, count);
     }
   }
+  class ChunkedMemoryReader : IMemoryReader
+  {
+    private int chunkSize;
+    private int[] chunks;
+    private IMemoryReader reader;
+    public ChunkedMemoryReader(IMemoryReader mr, int chunkSize, int[] chunks)
+    {
+      this.chunks = chunks;
+      this.chunkSize = chunkSize;
+      this.reader = mr;
+    }
+
+    public void Dispose()
+    {
+    }
+
+    public void Read(long pos, byte[] buf, int offset, int count)
+    {
+      var chunkIdx = pos / chunkSize;
+      while(count > 0)
+      {
+        int offsetIntoChunk = (int)(pos % chunkSize);
+        int toReadFromChunk = Math.Min(chunkSize - offsetIntoChunk, count);
+        reader.Read((long)chunks[chunkIdx++]*chunkSize + offsetIntoChunk, buf, offset, count);
+        pos += toReadFromChunk;
+        offset += toReadFromChunk;
+        count -= toReadFromChunk;
+      }
+    }
+  }
   public class MemoryMappedViewAccessor_ : IMemoryAccessor
   {
     private MemoryMappedViewAccessor _va;

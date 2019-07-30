@@ -65,10 +65,13 @@ namespace LibOrbisPkg.PFS
     /// </summary>
     public class File : Node
     {
+      public int[] blocks;
       private IMemoryReader reader;
       public File(IMemoryReader r) { reader = r; }
       public IMemoryReader GetView()
       {
+        if (blocks != null)
+          return new ChunkedMemoryReader(reader, 0x10000, blocks);
         return new MemoryAccessor(reader, offset);
       }
       public void Save(string path)
@@ -217,6 +220,51 @@ namespace LibOrbisPkg.PFS
 
     private File LoadFile(uint dinode, Dir parent, string name)
     {
+      int[] blocks = null;
+      if(dinodes[dinode].Blocks > 1 && dinodes[dinode].DirectBlocks[1] != -1)
+      {
+        if (!hdr.Mode.HasFlag(PfsMode.Signed))
+        {
+          throw new Exception("Unsigned PFS images probably shouldn't have noncontiguous blocks");
+        }
+        blocks = new int[dinodes[dinode].Blocks];
+        var remainingBlocks = (long)dinodes[dinode].Blocks;
+        var sigsPerBlock = hdr.BlockSize / 36;
+        for (int i = 0; i < 12 && i < remainingBlocks; i++)
+        {
+          blocks[i] = dinodes[dinode].DirectBlocks[i];
+        }
+
+        remainingBlocks -= 12;
+        long blockIndexOffset = 12;
+        for (int i = 0; i < remainingBlocks && i < sigsPerBlock; i++)
+        {
+          reader.Read(dinodes[dinode].IndirectBlocks[0] * hdr.BlockSize + (i * 36) + 32, out blocks[i + blockIndexOffset]);
+        }
+        remainingBlocks -= sigsPerBlock;
+        blockIndexOffset += sigsPerBlock;
+        for (int j = 0; j * sigsPerBlock < remainingBlocks; j++)
+        {
+          reader.Read(dinodes[dinode].IndirectBlocks[1] * hdr.BlockSize + (j * 36) + 32, out int indirectBlockOffset);
+          for (int i = 0; i < sigsPerBlock && i + (j * sigsPerBlock) < remainingBlocks; i++)
+          {
+            reader.Read(indirectBlockOffset * hdr.BlockSize + (i * 36) + 32, out blocks[i + blockIndexOffset]);
+          }
+          blockIndexOffset += sigsPerBlock;
+        }
+        bool contiguous = true;
+        int last = blocks[0] - 1;
+        for(int i = 1; i < blocks.Length; i++)
+        {
+          if(blocks[i - 1] + 1 != blocks[i])
+          {
+            contiguous = false;
+            break;
+          }
+        }
+        if (contiguous)
+          blocks = null;
+      }
       return new File(reader)
       {
         name = name,
@@ -224,7 +272,8 @@ namespace LibOrbisPkg.PFS
         offset = dinodes[dinode].StartBlock * hdr.BlockSize,
         size = dinodes[dinode].Size,
         compressed_size = dinodes[dinode].SizeCompressed,
-        ino = dinode
+        ino = dinode,
+        blocks = blocks,
       };
     }
   }
