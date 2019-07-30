@@ -75,13 +75,13 @@ namespace LibOrbisPkg.PFS
       if(sectorSize == hdr.BlockSz2)
       {
         // fast case: uncompressed sector
-        _accessor.ReadArray(sectorOffset, output, 0, hdr.BlockSz);
+        _accessor.Read(sectorOffset, output, 0, hdr.BlockSz);
       }
       else
       {
         // slow case: compressed sector
         var sectorBuf = new byte[(int)sectorSize - 2];
-        _accessor.ReadArray(sectorOffset + 2, sectorBuf, 0, (int)sectorSize - 2);
+        _accessor.Read(sectorOffset + 2, sectorBuf, 0, (int)sectorSize - 2);
         using (var bufStream = new MemoryStream(sectorBuf))
         using (var ds = new DeflateStream(bufStream, CompressionMode.Decompress))
         {

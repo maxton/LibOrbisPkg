@@ -76,12 +76,13 @@ namespace LibOrbisPkg.PFS
       }
       public void Save(string path)
       {
-        long pos = offset;
         var buf = new byte[0x10000];
         using (var file = System.IO.File.OpenWrite(path))
         {
           var sz = size;
           file.SetLength(sz);
+          long pos = 0;
+          var reader = GetView();
           while (sz > 0)
           {
             var toRead = (int)Math.Min(sz, buf.Length);
