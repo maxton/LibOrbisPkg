@@ -213,7 +213,7 @@ namespace PkgEditor.Views
           try
           { 
             new PfsBuilder(PfsProperties.MakeInnerPFSProps(PkgProperties.FromGp4(proj, Path.GetDirectoryName(path))), writer.WriteLine).WriteImage(fs);
-            Console.WriteLine("Done! Saved to {0}", ofd.FileName);
+            writer.WriteLine("Done! Saved to {0}", ofd.FileName);
           }
           catch (Exception ex)
           {

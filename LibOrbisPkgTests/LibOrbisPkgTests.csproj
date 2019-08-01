@@ -49,6 +49,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PfsTests.cs" />
     <Compile Include="PkgBuildTest.cs" />
     <Compile Include="PkgReadTest.cs" />
     <Compile Include="SfoTest.cs" />

@@ -21,15 +21,14 @@ namespace LibOrbisPkg.PFS
     private List<inode> inodes;
     private List<PfsDirent> super_root_dirents;
 
-    private inode super_root_ino, fpt_ino;
-
-    private FSDir root;
+    private inode super_root_ino, fpt_ino, cr_ino;
 
     private List<FSDir> allDirs;
     private List<FSFile> allFiles;
     private List<FSNode> allNodes;
 
     private FlatPathTable fpt;
+    private CollisionResolver colResolver;
 
     private PfsProperties properties;
 
@@ -97,20 +96,21 @@ namespace LibOrbisPkg.PFS
       inodes = new List<inode>();
 
       Log("Setting up filesystem structure...");
-      SetupRootStructure();
-      allDirs = root.GetAllChildrenDirs();
-      allFiles = root.GetAllChildrenFiles().Where(f => f.Parent?.name != "sce_sys" || !PKG.EntryNames.NameToId.ContainsKey(f.name)).ToList();
+      allDirs = properties.root.GetAllChildrenDirs();
+      allFiles = properties.root.GetAllChildrenFiles().Where(f => f.Parent?.name != "sce_sys" || !PKG.EntryNames.NameToId.ContainsKey(f.name)).ToList();
       allNodes = new List<FSNode>(allDirs.OrderBy(d => d.FullPath()).ToList());
       allNodes.AddRange(allFiles);
+
+      SetupRootStructure(FlatPathTable.HasCollision(allNodes));
 
       Log($"Creating inodes ({allDirs.Count} dirs and {allFiles.Count} files)...");
       addDirInodes();
       addFileInodes();
       
-      fpt = new FlatPathTable(allNodes);
+      (fpt, colResolver) = FlatPathTable.Create(allNodes);
 
       Log("Calculating data block layout...");
-      allNodes.Insert(0, root);
+      allNodes.Insert(0, properties.root);
       CalculateDataBlockLayout();
     }
 
@@ -121,10 +121,18 @@ namespace LibOrbisPkg.PFS
       WriteInodes(stream);
       WriteSuperrootDirents(stream);
 
-      var fpt_file = new FSFile(s => fpt.WriteToStream(s), "flat_path_table", fpt.Size);
-      fpt_file.ino = fpt_ino;
-      allNodes.Insert(0, fpt_file);
-      
+      allNodes.Insert(0, new FSFile(s => fpt.WriteToStream(s), "flat_path_table", fpt.Size)
+      {
+        ino = fpt_ino
+      });
+      if (colResolver != null)
+      {
+        allNodes.Insert(1, new FSFile(s => colResolver.WriteToStream(s), "collision_resolver", colResolver.Size)
+        {
+          ino = cr_ino
+        });
+      }
+
       for (var x = 0; x < allNodes.Count; x++)
       {
         var f = allNodes[x];
@@ -265,7 +273,7 @@ namespace LibOrbisPkg.PFS
     /// </summary>
     void addDirInodes()
     {
-      inodes.Add(root.ino);
+      inodes.Add(properties.root.ino);
       foreach (var dir in allDirs.OrderBy(x => x.FullPath()))
       {
         var ino = MakeInode(
@@ -343,6 +351,7 @@ namespace LibOrbisPkg.PFS
     /// </summary>
     void CalculateDataBlockLayout()
     {
+      // TODO: Consolidate of all this duplicate code
       if (properties.Sign)
       {
         // Include the header block in the total count
@@ -463,8 +472,23 @@ namespace LibOrbisPkg.PFS
 
         for (int i = 1; i < fpt_ino.Blocks && i < 12; i++)
           fpt_ino.SetDirectBlock(i, (int)hdr.Ndblock++);
-        // DATs I've found include an empty block after the FPT
-        hdr.Ndblock++;
+
+        // DATs I've found include an empty block after the FPT if there's no collision resolver
+        if(cr_ino == null)
+        {
+          hdr.Ndblock++;
+        }
+        else
+        {
+          // collision resolver
+          cr_ino.SetDirectBlock(0, (int)hdr.Ndblock++);
+          cr_ino.Size = colResolver.Size;
+          cr_ino.SizeCompressed = colResolver.Size;
+          cr_ino.Blocks = (uint)CeilDiv(colResolver.Size, hdr.BlockSize);
+
+          for (int i = 1; i < cr_ino.Blocks && i < 12; i++)
+            cr_ino.SetDirectBlock(i, (int)hdr.Ndblock++);
+        }
 
         // Calculate length of all dirent blocks
         foreach (var n in allNodes)
@@ -521,26 +545,36 @@ namespace LibOrbisPkg.PFS
     /// Creates inodes and dirents for superroot, flat_path_table, and uroot.
     /// Also, creates the root node for the FS tree.
     /// </summary>
-    void SetupRootStructure()
+    void SetupRootStructure(bool hasCollision)
     {
+      var inodeNum = 0u;
       inodes.Add(super_root_ino = MakeInode(
         Mode: InodeMode.dir | inode.RXOnly,
         Blocks: 1,
         Size: 65536,
         SizeCompressed: 65536,
         Nlink: 1,
-        Number: 0,
+        Number: inodeNum++,
         Flags: InodeFlags.@internal | InodeFlags.@readonly
       ));
       inodes.Add(fpt_ino = MakeInode(
         Mode: InodeMode.file | inode.RXOnly,
         Blocks: 1,
-        Number: 1,
+        Number: inodeNum++,
         Flags: InodeFlags.@internal | InodeFlags.@readonly
       ));
+      if(hasCollision)
+      {
+        inodes.Add(cr_ino = MakeInode(
+          Mode: InodeMode.file | inode.RXOnly,
+          Blocks: 1,
+          Number: inodeNum++,
+          Flags: InodeFlags.@internal | InodeFlags.@readonly
+        ));
+      }
       var uroot_ino = MakeInode(
         Mode: InodeMode.dir | inode.RXOnly,
-        Number: 2,
+        Number: inodeNum++,
         Size: 65536,
         SizeCompressed: 65536,
         Blocks: 1,
@@ -550,17 +584,22 @@ namespace LibOrbisPkg.PFS
 
       super_root_dirents = new List<PfsDirent>
       {
-        new PfsDirent { InodeNumber = 1, Name = "flat_path_table", Type = DirentType.File },
-        new PfsDirent { InodeNumber = 2, Name = "uroot", Type = DirentType.Directory }
+        new PfsDirent { InodeNumber = fpt_ino.Number, Name = "flat_path_table", Type = DirentType.File },
       };
-
-      root = properties.root;
-      root.name = "uroot";
-      root.ino = uroot_ino;
-      root.Dirents = new List<PfsDirent>
+      if(hasCollision)
       {
-        new PfsDirent { Name = ".", Type = DirentType.Dot, InodeNumber = 2 },
-        new PfsDirent { Name = "..", Type = DirentType.DotDot, InodeNumber = 2 }
+        super_root_dirents.Add(
+          new PfsDirent { InodeNumber = cr_ino.Number, Name = "collision_resolver", Type = DirentType.File });
+      }
+      super_root_dirents.Add(
+        new PfsDirent { InodeNumber = uroot_ino.Number, Name = "uroot", Type = DirentType.Directory });
+
+      properties.root.name = "uroot";
+      properties.root.ino = uroot_ino;
+      properties.root.Dirents = new List<PfsDirent>
+      {
+        new PfsDirent { Name = ".", Type = DirentType.Dot, InodeNumber = uroot_ino.Number },
+        new PfsDirent { Name = "..", Type = DirentType.DotDot, InodeNumber = uroot_ino.Number }
       };
       if(properties.Sign) // HACK: Outer PFS lacks readonly flags
       {

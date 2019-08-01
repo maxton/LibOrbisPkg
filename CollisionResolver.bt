@@ -1,0 +1,26 @@
+LittleEndian();
+
+typedef struct {
+    local int64 pos = FTell();
+    uint inode;
+    uint type;
+    uint namelen;
+    uint entsize;
+    char name[namelen];
+    char pad[entsize - (FTell() - pos)];
+} Entry;
+
+while (!FEof())
+{
+    Entry e;
+    if(ReadInt() == 0)
+    {
+        while(!FEof()){
+            FSeek(FTell() + 4);
+            if(ReadInt() != 0)
+            {
+                break;
+            }
+        }
+    }
+}
