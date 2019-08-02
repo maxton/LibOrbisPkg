@@ -40,6 +40,8 @@
       this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.combinePKGPartsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.menuStrip.SuspendLayout();
       this.SuspendLayout();
       // 
@@ -56,7 +58,8 @@
       // menuStrip
       // 
       this.menuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.fileToolStripMenuItem});
+            this.fileToolStripMenuItem,
+            this.toolsToolStripMenuItem});
       this.menuStrip.Location = new System.Drawing.Point(0, 0);
       this.menuStrip.Name = "menuStrip";
       this.menuStrip.Size = new System.Drawing.Size(800, 24);
@@ -142,6 +145,21 @@
       this.exitToolStripMenuItem.Text = "E&xit";
       this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
       // 
+      // toolsToolStripMenuItem
+      // 
+      this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.combinePKGPartsToolStripMenuItem});
+      this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
+      this.toolsToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
+      this.toolsToolStripMenuItem.Text = "&Tools";
+      // 
+      // combinePKGPartsToolStripMenuItem
+      // 
+      this.combinePKGPartsToolStripMenuItem.Name = "combinePKGPartsToolStripMenuItem";
+      this.combinePKGPartsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+      this.combinePKGPartsToolStripMenuItem.Text = "Combine PKG parts";
+      this.combinePKGPartsToolStripMenuItem.Click += new System.EventHandler(this.CombinePKGPartsToolStripMenuItem_Click);
+      // 
       // MainWin
       // 
       this.AllowDrop = true;
@@ -177,6 +195,8 @@
     private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
     private System.Windows.Forms.ToolStripMenuItem gP4ProjectToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem sFOFileToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem combinePKGPartsToolStripMenuItem;
   }
 }
 
