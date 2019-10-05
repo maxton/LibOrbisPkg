@@ -6,7 +6,7 @@
     <StartupObject>PkgEditor.Program</StartupObject>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <UseWindowsForms>true</UseWindowsForms>
-    <ApplicationIcon>C:\data\dev\LibOrbisPkg\PkgEditor\pkgtool.ico</ApplicationIcon>
+    <ApplicationIcon>..\PkgEditor\pkgtool.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
