@@ -65,7 +65,7 @@ after_build:
    %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
  - >
    7z a PkgTool.Core-linux-x64-%APPVEYOR_BUILD_VERSION%.zip 
-   %APPVEYOR_BUILD_FOLDER%\PkgTool.Core\bin\Release\netcoreapp3.0\linux-x64\publish\PkgTool.Core
+   "%APPVEYOR_BUILD_FOLDER%\PkgTool.Core\bin\Any CPU\Release\netcoreapp3.0\linux-x64\publish\PkgTool.Core"
    %APPVEYOR_BUILD_FOLDER%\README.md
    %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
  - >
