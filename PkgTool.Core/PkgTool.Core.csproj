@@ -2,29 +2,23 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
-    <RuntimeFrameworkVersion>2.2.0</RuntimeFrameworkVersion>
-    <AssemblyName>PkgTool</AssemblyName>
-    <RootNamespace>PkgTool</RootNamespace>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <StartupObject>PkgTool.Program</StartupObject>
-    <Platforms>AnyCPU</Platforms>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <!-- This is an alpha release of the ILCompiler that allows us to make a single binary -->
-  <!--
-  <ItemGroup>
-    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="1.0.0-*" />
-    <Compile Include="..\PkgTool\Program.cs" Link="Program.cs" />
-  </ItemGroup>
-  -->
-  
   <ItemGroup>
     <Compile Include="..\PkgTool\Program.cs" Link="Program.cs" />
+    <Compile Include="..\PkgTool\Properties\AssemblyInfo.cs" Link="Properties\AssemblyInfo.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\LibOrbisPkg.Core\LibOrbisPkg.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
 
 </Project>

@@ -5,7 +5,7 @@ branches:
   only:
     - master
 
-image: Visual Studio 2017
+image: Visual Studio 2019
 
 configuration: Release
 
@@ -46,10 +46,34 @@ after_build:
    %APPVEYOR_BUILD_FOLDER%\LibOrbisPkg\bin\Release\LibOrbisPkg.dll
    %APPVEYOR_BUILD_FOLDER%\README.md
    %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
+ - >
+   7z a PkgEditor.Core-%APPVEYOR_BUILD_VERSION%.zip 
+   %APPVEYOR_BUILD_FOLDER%\PkgEditor.Core\bin\Release\netcoreapp3.0\PkgEditor.Core.exe
+   %APPVEYOR_BUILD_FOLDER%\PkgEditor.Core\bin\Release\netcoreapp3.0\PkgEditor.Core.dll
+   %APPVEYOR_BUILD_FOLDER%\PkgEditor.Core\bin\Release\netcoreapp3.0\PkgEditor.Core.runtimeconfig.json
+   %APPVEYOR_BUILD_FOLDER%\PkgEditor.Core\bin\Release\netcoreapp3.0\LibOrbisPkg.Core.dll
+   %APPVEYOR_BUILD_FOLDER%\README.md
+   %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
+ - >
+   7z a PkgTool.Core-%APPVEYOR_BUILD_VERSION%.zip 
+   %APPVEYOR_BUILD_FOLDER%\PkgTool\bin\Release\netcoreapp3.0\PkgTool.Core.exe
+   %APPVEYOR_BUILD_FOLDER%\PkgTool\bin\Release\netcoreapp3.0\PkgTool.Core.dll
+   %APPVEYOR_BUILD_FOLDER%\PkgTool\bin\Release\netcoreapp3.0\PkgTool.Core.runtimeconfig.json
+   %APPVEYOR_BUILD_FOLDER%\PkgTool\bin\Release\netcoreapp3.0\LibOrbisPkg.Core.dll
+   %APPVEYOR_BUILD_FOLDER%\README.md
+   %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
+ - >
+   7z a LibOrbisPkg.Core-%APPVEYOR_BUILD_VERSION%.zip 
+   %APPVEYOR_BUILD_FOLDER%\LibOrbisPkg.Core\bin\Release\netcoreapp3.0\LibOrbisPkg.Core.dll
+   %APPVEYOR_BUILD_FOLDER%\README.md
+   %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
 artifacts:
 - path: PkgEditor-%APPVEYOR_BUILD_VERSION%.zip
 - path: PkgTool-%APPVEYOR_BUILD_VERSION%.zip
 - path: LibOrbisPkg-%APPVEYOR_BUILD_VERSION%.zip
+- path: PkgEditor.Core-%APPVEYOR_BUILD_VERSION%.zip
+- path: PkgTool.Core-%APPVEYOR_BUILD_VERSION%.zip
+- path: LibOrbisPkg.Core-%APPVEYOR_BUILD_VERSION%.zip
 
 deploy:
   release: LibOrbisPkg-v$(appveyor_build_version)
