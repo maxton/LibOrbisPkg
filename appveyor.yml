@@ -56,10 +56,10 @@ after_build:
    %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
  - >
    7z a PkgTool.Core-%APPVEYOR_BUILD_VERSION%.zip 
-   %APPVEYOR_BUILD_FOLDER%\PkgTool\bin\Release\netcoreapp3.0\PkgTool.Core.exe
-   %APPVEYOR_BUILD_FOLDER%\PkgTool\bin\Release\netcoreapp3.0\PkgTool.Core.dll
-   %APPVEYOR_BUILD_FOLDER%\PkgTool\bin\Release\netcoreapp3.0\PkgTool.Core.runtimeconfig.json
-   %APPVEYOR_BUILD_FOLDER%\PkgTool\bin\Release\netcoreapp3.0\LibOrbisPkg.Core.dll
+   %APPVEYOR_BUILD_FOLDER%\PkgTool.Core\bin\Release\netcoreapp3.0\PkgTool.Core.exe
+   %APPVEYOR_BUILD_FOLDER%\PkgTool.Core\bin\Release\netcoreapp3.0\PkgTool.Core.dll
+   %APPVEYOR_BUILD_FOLDER%\PkgTool.Core\bin\Release\netcoreapp3.0\PkgTool.Core.runtimeconfig.json
+   %APPVEYOR_BUILD_FOLDER%\PkgTool.Core\bin\Release\netcoreapp3.0\LibOrbisPkg.Core.dll
    %APPVEYOR_BUILD_FOLDER%\README.md
    %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
  - >
