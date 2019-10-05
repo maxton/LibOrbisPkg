@@ -29,6 +29,7 @@ build:
   verbosity: minimal
 
 after_build:
+ - dotnet publish -c Release -r linux-x64 /p:PublishSingleFile=true PkgTool.Core
  - >
    7z a PkgEditor-%APPVEYOR_BUILD_VERSION%.zip 
    %APPVEYOR_BUILD_FOLDER%\PkgEditor\bin\Release\PkgEditor.exe
@@ -63,6 +64,11 @@ after_build:
    %APPVEYOR_BUILD_FOLDER%\README.md
    %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
  - >
+   7z a PkgTool.Core-linux-x64-%APPVEYOR_BUILD_VERSION%.zip 
+   %APPVEYOR_BUILD_FOLDER%\PkgTool.Core\bin\Release\netcoreapp3.0\linux-x64\publish\PkgTool.Core
+   %APPVEYOR_BUILD_FOLDER%\README.md
+   %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
+ - >
    7z a LibOrbisPkg.Core-%APPVEYOR_BUILD_VERSION%.zip 
    %APPVEYOR_BUILD_FOLDER%\LibOrbisPkg.Core\bin\Release\netcoreapp3.0\LibOrbisPkg.Core.dll
    %APPVEYOR_BUILD_FOLDER%\README.md
@@ -74,6 +80,7 @@ artifacts:
 - path: PkgEditor.Core-%APPVEYOR_BUILD_VERSION%.zip
 - path: PkgTool.Core-%APPVEYOR_BUILD_VERSION%.zip
 - path: LibOrbisPkg.Core-%APPVEYOR_BUILD_VERSION%.zip
+- path: PkgTool.Core-linux-x64-%APPVEYOR_BUILD_VERSION%.zip 
 
 deploy:
   release: LibOrbisPkg-v$(appveyor_build_version)
