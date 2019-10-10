@@ -104,10 +104,10 @@ namespace LibOrbisPkg.PFS
     private byte[] sectorBuf;
     private Stream sectorStream;
 
-    public PfsReader(MemoryMappedViewAccessor r, byte[] ekpfs = null)
-    : this(new MemoryMappedViewAccessor_(r), ekpfs)
+    public PfsReader(MemoryMappedViewAccessor r, ulong pfs_flags = 0, byte[] ekpfs = null)
+    : this(new MemoryMappedViewAccessor_(r), pfs_flags, ekpfs)
     { }
-    public PfsReader(IMemoryReader r, byte[] ekpfs = null)
+    public PfsReader(IMemoryReader r, ulong pfs_flags = 0, byte[] ekpfs = null)
     {
       reader = r;
       var buf = new byte[0x400];
@@ -135,7 +135,7 @@ namespace LibOrbisPkg.PFS
       {
         if (ekpfs == null)
           throw new ArgumentException("PFS image is encrypted but no EKPFS was provided");
-        var (tweakKey, dataKey) = Crypto.PfsGenEncKey(ekpfs, hdr.Seed);
+        var (tweakKey, dataKey) = Crypto.PfsGenEncKey(ekpfs, hdr.Seed, (pfs_flags & 0x2000000000000000UL) != 0);
         reader = new XtsDecryptReader(reader, dataKey, tweakKey, 16, 0x1000);
       }
       var total = 0;

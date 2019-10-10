@@ -98,7 +98,7 @@ namespace PkgTool
           var outerPfsOffset = (long)pkg.Header.pfs_image_offset;
           using(var acc = mmf.CreateViewAccessor(outerPfsOffset, (long)pkg.Header.pfs_image_size))
           {
-            var outerPfs = new PfsReader(acc, ekpfs);
+            var outerPfs = new PfsReader(acc, pkg.Header.pfs_flags, ekpfs);
             var inner = new PfsReader(new PFSCReader(outerPfs.GetFile("pfs_image.dat").GetView()));
             ExtractInParallel(inner, outPath, flags["verbose"]);
           }
@@ -138,7 +138,7 @@ namespace PkgTool
           var outerPfsOffset = (long)pkg.Header.pfs_image_offset;
           using(var acc = mmf.CreateViewAccessor(outerPfsOffset, (long)pkg.Header.pfs_image_size))
           {
-            var outerPfs = new PfsReader(acc, ekpfs);
+            var outerPfs = new PfsReader(acc, pkg.Header.pfs_flags, ekpfs);
             var inner = outerPfs.GetFile("pfs_image.dat");
             using(var v = inner.GetView())
             using(var d = new PFSCReader(v))
@@ -283,13 +283,11 @@ namespace PkgTool
           {
             var pkg = new PkgReader(fs).ReadPkg();
             var validator = new PkgValidator(pkg);
-            bool ok = true;
             foreach(var validation in validator.Validations(fs))
             {
               switch(validation.Validate())
               {
                 case PkgValidator.ValidationResult.Fail:
-                  ok = false;
                   Console.WriteLine("[ERROR] {2} invalid at 0x{0:X}: {1}", validation.Location, validation.Name, validation.Type);
                   break;
                 case PkgValidator.ValidationResult.NoKey:

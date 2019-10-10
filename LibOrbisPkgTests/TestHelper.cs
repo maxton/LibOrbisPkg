@@ -70,7 +70,7 @@ namespace LibOrbisPkgTests
         var outerPfsOffset = (long)pkg.Header.pfs_image_offset;
         using (var acc = mmf.CreateViewAccessor(outerPfsOffset, (long)pkg.Header.pfs_image_size))
         {
-          var outerPfs = new PfsReader(acc, ekpfs);
+          var outerPfs = new PfsReader(acc, pkg.Header.pfs_flags, ekpfs);
           var inner = new PfsReader(new PFSCReader(outerPfs.GetFile("pfs_image.dat").GetView()));
           // Check that the sce_sys directory exists
           innerPfsAction(inner);

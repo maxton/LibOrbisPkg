@@ -140,7 +140,7 @@ namespace LibOrbisPkg.GP4
       }
       using (var va = pkgFile.CreateViewAccessor((long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size))
       {
-        var outerPfs = new PfsReader(va, ekpfs);
+        var outerPfs = new PfsReader(va, pkg.Header.pfs_flags, ekpfs);
         var inner = new PfsReader(new PFSCReader(outerPfs.GetFile("pfs_image.dat").GetView()));
         // Convert PFS image timestamp from UNIX time and save it in the project
         project.volume.TimeStamp = new DateTime(1970, 1, 1)

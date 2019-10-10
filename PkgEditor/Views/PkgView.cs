@@ -215,7 +215,7 @@ namespace PkgEditor.Views
       try
       {
         va = pkgFile.CreateViewAccessor((long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size);
-        var outerPfs = new PfsReader(va, ekpfs);
+        var outerPfs = new PfsReader(va, pkg.Header.pfs_flags, ekpfs);
         var inner = new PfsReader(new PFSCReader(outerPfs.GetFile("pfs_image.dat").GetView()));
         var view = new FileView(inner);
         view.Dock = DockStyle.Fill;
