@@ -463,7 +463,7 @@ namespace PkgTool
         (f, _, buf) =>
         {
           var size = f.size;
-          var pos = 0;
+          long pos = 0;
           var view = f.GetView();
           var fullName = f.FullName;
           var path = Path.Combine(outPath, fullName.Replace('/', Path.DirectorySeparatorChar).Substring(1));
