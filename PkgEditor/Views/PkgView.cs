@@ -361,7 +361,7 @@ namespace PkgEditor.Views
 
     void ExtractEntry(MetaEntry entry, bool decrypt = false)
     {
-      if (decrypt && entry.Encrypted && passcode == null)
+      if (decrypt && entry.Encrypted && passcode == null && entry.KeyIndex != 3)
       {
         var gotPasscode = false;
         while (gotPasscode == false)
@@ -386,11 +386,11 @@ namespace PkgEditor.Views
         using (var f = File.OpenWrite(s.FileName))
         using (var entryStream = pkgFile.CreateViewStream(entry.DataOffset, entry.DataSize))
         {
-          if(entry.Encrypted && decrypt && passcode != null)
+          if(entry.Encrypted && decrypt && (passcode != null || entry.KeyIndex == 3))
           {
             var tmp = new byte[(entry.DataSize + 15) & ~15];
             entryStream.Read(tmp, 0, tmp.Length);
-            tmp = Entry.Decrypt(tmp, pkg.Header.content_id, passcode, entry);
+            tmp = entry.KeyIndex == 3 ? Entry.Decrypt(tmp, pkg, entry) : Entry.Decrypt(tmp, pkg.Header.content_id, passcode, entry);
             f.Write(tmp, 0, (int)entry.DataSize);
           }
           else

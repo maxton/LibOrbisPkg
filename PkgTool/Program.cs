@@ -263,7 +263,7 @@ namespace PkgTool
               outFile.SetLength(meta.DataSize);
               if(meta.Encrypted)
               {
-                if(passcode == null)
+                if(passcode == null && meta.KeyIndex != 3)
                 {
                   Console.WriteLine("Warning: Entry is encrypted but no passcode was provided! Saving encrypted bytes.");
                 }
@@ -272,7 +272,7 @@ namespace PkgTool
                   var entry = new SubStream(pkgFile, meta.DataOffset, (meta.DataSize + 15) & ~15);
                   var tmp = new byte[entry.Length];
                   entry.Read(tmp, 0, tmp.Length);
-                  tmp = Entry.Decrypt(tmp, pkg.Header.content_id, passcode, meta);
+                  tmp = meta.KeyIndex == 3 ? Entry.Decrypt(tmp, pkg, meta) : Entry.Decrypt(tmp, pkg.Header.content_id, passcode, meta);
                   outFile.Write(tmp, 0, (int)meta.DataSize);
                   return;
                 }
