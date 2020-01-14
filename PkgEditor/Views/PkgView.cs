@@ -204,32 +204,38 @@ namespace PkgEditor.Views
       nodes.Add(node);
     }
 
-    private byte[] ekpfs;
+    private byte[] ekpfs, data = null, tweak = null;
 
-    private void ReopenFileView()
+    /// <summary>
+    /// Tries to load the PFS image with the ekpfs / data+tweak keys
+    /// </summary>
+    /// <returns>True if the PFS opened successfully</returns>
+    private bool ReopenFileView()
     {
-      if (!pkg.CheckEkpfs(ekpfs))
-        return;
+      if (!pkg.CheckEkpfs(ekpfs) && (data == null || tweak == null))
+        return false;
       if (va != null)
-        return;
+        return false;
       try
       {
         va = pkgFile.CreateViewAccessor((long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size);
-        var outerPfs = new PfsReader(va, pkg.Header.pfs_flags, ekpfs);
+        var outerPfs = new PfsReader(va, pkg.Header.pfs_flags, ekpfs, tweak, data);
         var inner = new PfsReader(new PFSCReader(outerPfs.GetFile("pfs_image.dat").GetView()));
         var view = new FileView(inner);
         view.Dock = DockStyle.Fill;
         filesTab.Controls.Clear();
         filesTab.Controls.Add(view);
+        return true;
       }
       catch(Exception)
       {
         va?.Dispose();
         va = null;
       }
+      return false;
     }
 
-    private void button1_Click(object sender, EventArgs e)
+    private void openWithPasscodeBtn_Click(object sender, EventArgs e)
     {
       if(pkg.CheckPasscode(passcodeTextBox.Text))
       {
@@ -240,6 +246,27 @@ namespace PkgEditor.Views
       else
       {
         MessageBox.Show("Invalid passcode!");
+      }
+    }
+
+    private void openWithEkpfsBtn_Click(object sender, EventArgs e)
+    {
+      ekpfs = ekpfsTextBox.Text.FromHexCompact();
+      if(!ReopenFileView())
+      {
+        ekpfs = null;
+        MessageBox.Show("Invalid EKPFS!");
+      }
+    }
+
+    private void openWithXtsKeysBtn_Click(object sender, EventArgs e)
+    {
+      data = xtsDataTextBox.Text.FromHexCompact();
+      tweak = xtsTweakTextBox.Text.FromHexCompact();
+      if (!ReopenFileView())
+      {
+        data = tweak = null;
+        MessageBox.Show("Invalid data / tweak keys!");
       }
     }
 

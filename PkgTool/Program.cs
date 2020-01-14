@@ -81,7 +81,7 @@ namespace PkgTool
       Verb.Create(
         "pkg_extract",
         "Extracts all the files from a PKG to the given output directory. Use the verbose flag to print filenames as they are extracted.",
-        ArgDef.Multi(ArgDef.Bool("verbose"), ArgDef.Option("passcode"), "input.pkg", "output_directory"),
+        ArgDef.Multi(ArgDef.Bool("verbose"), ArgDef.Option("passcode", "xts_tweak", "xts_data"), "input.pkg", "output_directory"),
         (flags, optionals, args) =>
         {
           var pkgPath = args[1];
@@ -98,7 +98,7 @@ namespace PkgTool
           var outerPfsOffset = (long)pkg.Header.pfs_image_offset;
           using(var acc = mmf.CreateViewAccessor(outerPfsOffset, (long)pkg.Header.pfs_image_size))
           {
-            var outerPfs = new PfsReader(acc, pkg.Header.pfs_flags, ekpfs);
+            var outerPfs = new PfsReader(acc, pkg.Header.pfs_flags, ekpfs, optionals["xts_tweak"]?.FromHexCompact(), optionals["xts_data"]?.FromHexCompact());
             var inner = new PfsReader(new PFSCReader(outerPfs.GetFile("pfs_image.dat").GetView()));
             ExtractInParallel(inner, outPath, flags["verbose"]);
           }
@@ -121,7 +121,7 @@ namespace PkgTool
       Verb.Create(
         "pkg_extractinnerpfs",
         "Extracts the inner PFS image from a PKG file.",
-        ArgDef.Multi(ArgDef.Option("passcode"), "input.pkg", "output_pfs.dat"),
+        ArgDef.Multi(ArgDef.Option("passcode", "xts_tweak", "xts_data"), "input.pkg", "output_pfs.dat"),
         (switches, optionals, args) =>
         {
           var pkgPath = args[1];
@@ -138,7 +138,7 @@ namespace PkgTool
           var outerPfsOffset = (long)pkg.Header.pfs_image_offset;
           using(var acc = mmf.CreateViewAccessor(outerPfsOffset, (long)pkg.Header.pfs_image_size))
           {
-            var outerPfs = new PfsReader(acc, pkg.Header.pfs_flags, ekpfs);
+            var outerPfs = new PfsReader(acc, pkg.Header.pfs_flags, ekpfs, optionals["xts_tweak"]?.FromHexCompact(), optionals["xts_data"]?.FromHexCompact());
             var inner = outerPfs.GetFile("pfs_image.dat");
             using(var v = inner.GetView())
             using(var d = new PFSCReader(v))
@@ -160,7 +160,7 @@ namespace PkgTool
       Verb.Create(
         "pkg_extractouterpfs",
         "Extracts and decrypts the outer PFS image from a PKG file. Use the --encrypted flag to leave the image encrypted.",
-        ArgDef.Multi(ArgDef.Bool("encrypted"), ArgDef.Option("passcode"), "input.pkg", "pfs_image.dat"),
+        ArgDef.Multi(ArgDef.Bool("encrypted"), ArgDef.Option("passcode", "xts_tweak", "xts_data"), "input.pkg", "pfs_image.dat"),
         (switches, optionals, args) =>
         {
           var pkgPath = args[1];
@@ -181,12 +181,21 @@ namespace PkgTool
             }
             else
             {
-              var ekpfs = EkPfsFromPasscode(pkg, passcode);
               var pfs_seed = new byte[16];
               outer_pfs.Position = 0x370;
               outer_pfs.Read(pfs_seed, 0, 16);
               var outerpfs_size = outer_pfs.Length;
-              var (tweakKey, dataKey) = Crypto.PfsGenEncKey(ekpfs, pfs_seed);
+              byte[] tweakKey, dataKey;
+              if (passcode != null)
+              {
+                var ekpfs = EkPfsFromPasscode(pkg, passcode);
+                (tweakKey, dataKey) = Crypto.PfsGenEncKey(ekpfs, pfs_seed);
+              } 
+              else
+              {
+                tweakKey = optionals["xts_tweak"]?.FromHexCompact();
+                dataKey = optionals["xts_data"]?.FromHexCompact();
+              }
               s.Close();
               using (var pkgMM = MemoryMappedFile.CreateFromFile(pkgPath, FileMode.Open))
               using (var o = MemoryMappedFile.CreateFromFile(outPath, capacity: outerpfs_size, mapName: "output_outerpfs", mode: FileMode.Create))

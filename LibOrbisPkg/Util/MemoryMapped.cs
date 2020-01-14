@@ -143,4 +143,31 @@ namespace LibOrbisPkg.Util
       _va.ReadArray(pos, buf, offset, count);
     }
   }
+
+  public class StreamReader : IMemoryReader
+  {
+    bool owns;
+    long startOffset;
+    System.IO.Stream stream;
+
+    public StreamReader(System.IO.Stream s, long offset = 0, bool takeOwnership = false)
+    {
+      stream = s;
+      owns = takeOwnership;
+      startOffset = offset;
+    }
+    public void Dispose()
+    {
+      if(owns)
+      {
+        stream.Dispose();
+      }
+    }
+
+    public void Read(long pos, byte[] buf, int offset, int count)
+    {
+      stream.Position = pos + startOffset;
+      stream.Read(buf, offset, count);
+    }
+  }
 }

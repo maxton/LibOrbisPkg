@@ -73,7 +73,7 @@ namespace LibOrbisPkg.PKG
     /// </summary>
     /// <param name="pkg"></param>
     /// <param name="passcode"></param>
-    /// <returns></returns>
+    /// <returns>The EKPFS if successful; null otherwise</returns>
     public byte[] GetEkpfs()
     {
       try
@@ -91,7 +91,7 @@ namespace LibOrbisPkg.PKG
       }
       catch
       {
-        return new byte[32];
+        return null;
       }
     }
 
@@ -110,6 +110,8 @@ namespace LibOrbisPkg.PKG
 
     public bool CheckEkpfs(byte[] dk1)
     {
+      if (dk1 == null || dk1.Length != 32)
+        return false;
       var digest = Crypto.Sha256(dk1).Xor(dk1);
       return digest.SequenceEqual(EntryKeys.Keys[1].digest);
     }

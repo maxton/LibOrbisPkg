@@ -104,10 +104,10 @@ namespace LibOrbisPkg.PFS
     private byte[] sectorBuf;
     private Stream sectorStream;
 
-    public PfsReader(MemoryMappedViewAccessor r, ulong pfs_flags = 0, byte[] ekpfs = null)
-    : this(new MemoryMappedViewAccessor_(r), pfs_flags, ekpfs)
+    public PfsReader(MemoryMappedViewAccessor r, ulong pfs_flags = 0, byte[] ekpfs = null, byte[] tweak = null, byte[] data = null)
+    : this(new MemoryMappedViewAccessor_(r), pfs_flags, ekpfs, tweak, data)
     { }
-    public PfsReader(IMemoryReader r, ulong pfs_flags = 0, byte[] ekpfs = null)
+    public PfsReader(IMemoryReader r, ulong pfs_flags = 0, byte[] ekpfs = null, byte[] tweak = null, byte[] data = null)
     {
       reader = r;
       var buf = new byte[0x400];
@@ -133,10 +133,17 @@ namespace LibOrbisPkg.PFS
       }
       if (hdr.Mode.HasFlag(PfsMode.Encrypted))
       {
-        if (ekpfs == null)
-          throw new ArgumentException("PFS image is encrypted but no EKPFS was provided");
-        var (tweakKey, dataKey) = Crypto.PfsGenEncKey(ekpfs, hdr.Seed, (pfs_flags & 0x2000000000000000UL) != 0);
-        reader = new XtsDecryptReader(reader, dataKey, tweakKey, 16, 0x1000);
+        if (ekpfs == null && (tweak == null || data == null))
+          throw new ArgumentException("PFS image is encrypted but no decryption key was provided");
+        if (ekpfs != null)
+        {
+          var (tweakKey, dataKey) = Crypto.PfsGenEncKey(ekpfs, hdr.Seed, (pfs_flags & 0x2000000000000000UL) != 0);
+          reader = new XtsDecryptReader(reader, dataKey, tweakKey, 16, 0x1000);
+        }
+        else
+        {
+          reader = new XtsDecryptReader(reader, data, tweak, 16, 0x1000);
+        }
       }
       var total = 0;
 
@@ -182,10 +189,17 @@ namespace LibOrbisPkg.PFS
 
     private Dir LoadDir(uint dinode, Dir parent, string name)
     {
+      // 100M blocks is enough for a 6TB file.
+      const int MAX_BLOCKS = 100_000_000;
       var ret = new Dir() { name = name, parent = parent };
       var ino = dinodes[dinode];
       var postLoad = new List<Func<Dir>>();
-      foreach (var x in Enumerable.Range(ino.StartBlock, (int)ino.Blocks))
+      var blocks = (int)ino.Blocks;
+      if (blocks < 1 || ino.StartBlock < 1 || ino.StartBlock > MAX_BLOCKS || blocks > MAX_BLOCKS)
+      {
+        throw new Exception($"inode {dinode} is corrupt. ");
+      }
+      foreach (var x in Enumerable.Range(ino.StartBlock, blocks))
       {
         var position = hdr.BlockSize * x;
         reader.Read(position, sectorBuf, 0, sectorBuf.Length);

@@ -15,10 +15,10 @@ using System.IO.MemoryMappedFiles;
 namespace LibOrbisPkgTests
 {
   /// <summary>
-  /// Tests functionality of building PKGs
+  /// Tests functionality of building PFS images
   /// </summary>
   [TestClass]
-  public class PfsTests
+  public class PfsBuildTests
   {
     [TestMethod]
     public void TestFptHasCollision()
