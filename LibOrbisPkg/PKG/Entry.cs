@@ -36,18 +36,23 @@ namespace LibOrbisPkg.PKG
       s.Write(tmp, 0, tmp.Length);
     }
 
+    private static byte[] Decrypt(byte[] entryBytes, byte[] keySeed, MetaEntry meta)
+    {
+      var iv_key = Crypto.Sha256(
+             meta.GetBytes()
+             .Concat(keySeed)
+             .ToArray());
+      var tmp = new byte[entryBytes.Length];
+      Crypto.AesCbcCfb128Decrypt(tmp, entryBytes, tmp.Length, iv_key.Skip(16).Take(16).ToArray(), iv_key.Take(16).ToArray());
+      return tmp;
+    }
+
     /// <summary>
     /// Decrypts the given bytes using the entry encryption.
     /// </summary>
     public static byte[] Decrypt(byte[] entryBytes, string contentId, string passcode, MetaEntry meta)
     {
-      var iv_key = Crypto.Sha256(
-             meta.GetBytes()
-             .Concat(Crypto.ComputeKeys(contentId, passcode, meta.KeyIndex))
-             .ToArray());
-      var tmp = new byte[entryBytes.Length];
-      Crypto.AesCbcCfb128Decrypt(tmp, entryBytes, tmp.Length, iv_key.Skip(16).Take(16).ToArray(), iv_key.Take(16).ToArray());
-      return tmp;
+      return Decrypt(entryBytes, Crypto.ComputeKeys(contentId, passcode, meta.KeyIndex), meta);
     }
 
     /// <summary>
@@ -60,13 +65,7 @@ namespace LibOrbisPkg.PKG
       {
         throw new Exception("We only have the key for encryption key 3");
       }
-      var iv_key = Crypto.Sha256(
-              meta.GetBytes()
-              .Concat(Crypto.RSA2048Decrypt(pkg.EntryKeys.Keys[3].key, RSAKeyset.PkgDerivedKey3Keyset))
-              .ToArray());
-      var tmp = new byte[entryBytes.Length];
-      Crypto.AesCbcCfb128Decrypt(tmp, entryBytes, tmp.Length, iv_key.Skip(16).Take(16).ToArray(), iv_key.Take(16).ToArray());
-      return tmp;
+      return Decrypt(entryBytes, Crypto.RSA2048Decrypt(pkg.EntryKeys.Keys[3].key, RSAKeyset.PkgDerivedKey3Keyset), meta);
     }
   }
 
