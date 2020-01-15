@@ -383,12 +383,13 @@ namespace PkgEditor.Views
       var name = entry.NameTableOffset != 0 ? pkg.EntryNames.GetName(entry.NameTableOffset) : entry.id.ToString();
       if (new SaveFileDialog() { FileName = name } is SaveFileDialog s && s.ShowDialog() == DialogResult.OK)
       {
+        var totalEntrySize = entry.Encrypted ? (entry.DataSize + 15) & ~15 : entry.DataSize;
         using (var f = File.OpenWrite(s.FileName))
-        using (var entryStream = pkgFile.CreateViewStream(entry.DataOffset, entry.DataSize))
+        using (var entryStream = pkgFile.CreateViewStream(entry.DataOffset, totalEntrySize))
         {
           if(entry.Encrypted && decrypt && (passcode != null || entry.KeyIndex == 3))
           {
-            var tmp = new byte[(entry.DataSize + 15) & ~15];
+            var tmp = new byte[totalEntrySize];
             entryStream.Read(tmp, 0, tmp.Length);
             tmp = entry.KeyIndex == 3 ? Entry.Decrypt(tmp, pkg, entry) : Entry.Decrypt(tmp, pkg.Header.content_id, passcode, entry);
             f.Write(tmp, 0, (int)entry.DataSize);
