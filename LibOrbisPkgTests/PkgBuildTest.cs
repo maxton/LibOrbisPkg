@@ -79,7 +79,7 @@ namespace LibOrbisPkgTests
     public void ManyFilePkg()
     {
       const int NumFiles = 5000;
-      using (var pkgFile = new TempFile())
+      using (var pkgFile = new MemoryStream())
       {
         var buf = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
         Action<Stream> fileWriter = s => s.Write(buf, 0, 16);
@@ -90,9 +90,9 @@ namespace LibOrbisPkgTests
         {
           filesDir.Files.Add(new FSFile(fileWriter, $"file_{i}", 16) { Parent = filesDir });
         }
-        new PkgBuilder(TestHelper.MakeProperties(RootDir: rootDir)).Write(pkgFile.Path, Console.WriteLine);
+        new PkgBuilder(TestHelper.MakeProperties(RootDir: rootDir)).Write(pkgFile, Console.WriteLine);
         int foundFiles = 0;
-        TestHelper.OpenPkgFilesystem(pkgFile.Path, innerPfs =>
+        TestHelper.OpenPkgFilesystem(pkgFile, innerPfs =>
           {
             var testBuf = new byte[16];
             foreach(var f in innerPfs.GetURoot().GetAllFiles())
@@ -116,17 +116,14 @@ namespace LibOrbisPkgTests
     [TestMethod]
     public void Validate()
     {
-      using (var pkgFile = new TempFile())
+      using (var pkgFile = new MemoryStream())
       {
-        new PkgBuilder(TestHelper.MakeProperties()).Write(pkgFile.Path, s => { });
+        new PkgBuilder(TestHelper.MakeProperties()).Write(pkgFile, s => { });
 
-        using (var pkgStream = File.OpenRead(pkgFile.Path))
+        var pkg = new PkgReader(pkgFile).ReadPkg();
+        foreach(var v in new PkgValidator(pkg).Validate(pkgFile))
         {
-          var pkg = new PkgReader(pkgStream).ReadPkg();
-          foreach(var v in new PkgValidator(pkg).Validate(pkgStream))
-          {
-            Assert.IsTrue(v.Item2 == PkgValidator.ValidationResult.Ok, v.Item1.Name);
-          }
+          Assert.IsTrue(v.Item2 == PkgValidator.ValidationResult.Ok, v.Item1.Name);
         }
       }
     }
