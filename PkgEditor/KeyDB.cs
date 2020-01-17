@@ -34,7 +34,7 @@ namespace PkgEditor
     [DataMember]
     public Dictionary<string, string> EKPFS { get; set; }
     /// <summary>
-    /// Compact hexadecimal encoded XTS keys indexed by Content ID
+    /// Compact hexadecimal encoded XTS keys indexed by Content ID + first 4 bytes of PFS Image Digest
     /// </summary>
     [DataMember]
     public Dictionary<string, XTSKey> XTS { get; set; }

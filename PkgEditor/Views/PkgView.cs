@@ -101,7 +101,10 @@ namespace PkgEditor.Views
       {
         ekpfs = ekpfsBytes;
       }
-      else if (KeyDB.Instance.XTS.TryGetValue(pkg.Header.content_id, out var xtsKey))
+      else if (KeyDB.Instance.XTS.TryGetValue(
+          pkg.Header.content_id + "-" + pkg.Header.pfs_image_digest.ToHexCompact().Substring(0, 8),
+          out var xtsKey)
+      || KeyDB.Instance.XTS.TryGetValue(pkg.Header.content_id, out xtsKey))
       {
         data = xtsKey.Data.FromHexCompact();
         tweak = xtsKey.Tweak.FromHexCompact();
@@ -303,7 +306,7 @@ namespace PkgEditor.Views
       }
       else
       {
-        KeyDB.Instance.XTS[pkg.Header.content_id] = new KeyDB.XTSKey
+        KeyDB.Instance.XTS[pkg.Header.content_id + "-" + pkg.Header.pfs_image_digest.ToHexCompact().Substring(0, 8)] = new KeyDB.XTSKey
         {
           Data = data.ToHexCompact(),
           Tweak = tweak.ToHexCompact()
