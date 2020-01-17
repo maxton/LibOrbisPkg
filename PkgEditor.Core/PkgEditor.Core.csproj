@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\PkgEditor\KeyDB.cs" Link="KeyDB.cs" />
     <Compile Include="..\PkgEditor\LogWindow.cs" Link="LogWindow.cs" />
     <Compile Include="..\PkgEditor\LogWindow.Designer.cs" Link="LogWindow.Designer.cs" />
     <Compile Include="..\PkgEditor\MainWin.cs" Link="MainWin.cs" />

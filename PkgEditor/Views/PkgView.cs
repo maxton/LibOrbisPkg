@@ -48,14 +48,14 @@ namespace PkgEditor.Views
         using (var s = pkgFile.CreateViewStream((long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size))
           ObjectPreview(PfsHeader.ReadFromStream(s), pfsHeaderTreeView);
       }
-      catch(Exception e)
+      catch (Exception e)
       {
         pkgHeaderTabControl.TabPages.Remove(outerPfsHeaderTabPage);
         MessageBox.Show("Error loading outer PFS: " + e.Message + Environment.NewLine + "Please report this issue at https://github.com/maxton/LibOrbisPkg/issues");
       }
       if (pkg.Metas.Metas.Where(entry => entry.id == EntryId.ICON0_PNG).FirstOrDefault() is MetaEntry icon0)
       {
-        using(var s = pkgFile.CreateViewStream(icon0.DataOffset, icon0.DataSize))
+        using (var s = pkgFile.CreateViewStream(icon0.DataOffset, icon0.DataSize))
         {
           pictureBox1.Image = Image.FromStream(s);
         }
@@ -66,7 +66,7 @@ namespace PkgEditor.Views
       var category = pkg.ParamSfo.ParamSfo["CATEGORY"].ToString();
       typeLabel.Text = SFOView.SfoTypes.Where(x => x.Category == category).FirstOrDefault() is SFOView.SfoType t ? t.Description : "Unknown";
       versionLabel.Text = pkg.ParamSfo.ParamSfo["VERSION"]?.ToString();
-      if(pkg.ParamSfo.ParamSfo["APP_VER"] is Utf8Value v)
+      if (pkg.ParamSfo.ParamSfo["APP_VER"] is Utf8Value v)
       {
         appVerLabel.Text = v.Value;
       }
@@ -85,11 +85,35 @@ namespace PkgEditor.Views
         passcode = "00000000000000000000000000000000";
         ekpfs = Crypto.ComputeKeys(pkg.Header.content_id, passcode, 1);
       }
-      else
+      else if (KeyDB.Instance.Passcodes.TryGetValue(pkg.Header.content_id, out var keydbPasscode)
+        && pkg.CheckPasscode(keydbPasscode))
       {
-        ekpfs = pkg.GetEkpfs();
+        passcode = keydbPasscode;
+        ekpfs = Crypto.ComputeKeys(pkg.Header.content_id, passcode, 1);
       }
-      ReopenFileView();
+      else if (pkg.GetEkpfs() is byte[] ek && ek != null)
+      {
+        ekpfs = ek;
+      }
+      else if (KeyDB.Instance.EKPFS.TryGetValue(pkg.Header.content_id, out var keydbEkpfs)
+        && keydbEkpfs.FromHexCompact() is byte[] ekpfsBytes
+        && pkg.CheckEkpfs(ekpfsBytes))
+      {
+        ekpfs = ekpfsBytes;
+      }
+      else if (KeyDB.Instance.XTS.TryGetValue(pkg.Header.content_id, out var xtsKey))
+      {
+        data = xtsKey.Data.FromHexCompact();
+        tweak = xtsKey.Tweak.FromHexCompact();
+      }
+
+      if (!ReopenFileView())
+      {
+        ekpfs = null;
+        passcode = null;
+        data = null;
+        tweak = null;
+      }
 
       foreach(var e in pkg.Metas.Metas)
       {
@@ -241,7 +265,11 @@ namespace PkgEditor.Views
       {
         passcode = passcodeTextBox.Text;
         ekpfs = Crypto.ComputeKeys(pkg.Header.content_id, passcode, 1);
-        ReopenFileView();
+        if (ReopenFileView())
+        {
+          KeyDB.Instance.Passcodes[pkg.Header.content_id] = passcode;
+          KeyDB.Instance.Save();
+        }
       }
       else
       {
@@ -257,6 +285,11 @@ namespace PkgEditor.Views
         ekpfs = null;
         MessageBox.Show("Invalid EKPFS!");
       }
+      else
+      {
+        KeyDB.Instance.EKPFS[pkg.Header.content_id] = ekpfs.ToHexCompact();
+        KeyDB.Instance.Save();
+      }
     }
 
     private void openWithXtsKeysBtn_Click(object sender, EventArgs e)
@@ -267,6 +300,15 @@ namespace PkgEditor.Views
       {
         data = tweak = null;
         MessageBox.Show("Invalid data / tweak keys!");
+      }
+      else
+      {
+        KeyDB.Instance.XTS[pkg.Header.content_id] = new KeyDB.XTSKey
+        {
+          Data = data.ToHexCompact(),
+          Tweak = tweak.ToHexCompact()
+        };
+        KeyDB.Instance.Save();
       }
     }
 

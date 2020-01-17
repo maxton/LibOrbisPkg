@@ -108,13 +108,20 @@ namespace LibOrbisPkg.PKG
       return digest0.SequenceEqual(EntryKeys.Keys[0].digest);
     }
 
-    public bool CheckEkpfs(byte[] dk1)
+    public bool CheckDerivedKey(byte[] dk, int index)
     {
-      if (dk1 == null || dk1.Length != 32)
+      if(index < 0 || index > 6)
+      {
+        throw new ArgumentException("Invalid derived key index: " + index);
+      }
+      if (dk == null || dk.Length != 32)
         return false;
-      var digest = Crypto.Sha256(dk1).Xor(dk1);
-      return digest.SequenceEqual(EntryKeys.Keys[1].digest);
+      var digest = Crypto.Sha256(dk).Xor(dk);
+      return digest.SequenceEqual(EntryKeys.Keys[index].digest);
+
     }
+
+    public bool CheckEkpfs(byte[] dk1) => CheckDerivedKey(dk1, 1);
 
     string CreateMajorParamString()
     {
