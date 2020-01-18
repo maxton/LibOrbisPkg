@@ -66,6 +66,15 @@ namespace LibOrbisPkg.SFO
     {
       var ret = new ParamSfo();
       var start = s.Position;
+      if (s.ReadUInt32BE() == 0x53434543)
+      {
+        start = start + 0x800;
+        s.Position = start;
+      }
+      if (s.ReadUInt32BE() != 0x00505346)
+      {
+        throw new InvalidDataException("File is missing SFO magic");
+      }
       s.Position = start + 8;
       var keyTableStart = s.ReadInt32LE();
       var dataTableStart = s.ReadInt32LE();
