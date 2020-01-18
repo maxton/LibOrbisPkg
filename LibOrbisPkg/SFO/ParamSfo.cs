@@ -69,8 +69,8 @@ namespace LibOrbisPkg.SFO
       if (s.ReadUInt32BE() == 0x53434543)
       {
         start = start + 0x800;
-        s.Position = start;
       }
+      s.Position = start;
       if (s.ReadUInt32BE() != 0x00505346)
       {
         throw new InvalidDataException("File is missing SFO magic");
