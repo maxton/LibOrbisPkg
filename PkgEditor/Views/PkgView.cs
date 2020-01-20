@@ -247,7 +247,9 @@ namespace PkgEditor.Views
       {
         va = pkgFile.CreateViewAccessor((long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size);
         var outerPfs = new PfsReader(va, pkg.Header.pfs_flags, ekpfs, tweak, data);
-        var inner = new PfsReader(new PFSCReader(outerPfs.GetFile("pfs_image.dat").GetView()));
+        var innerPfsView = new PFSCReader(outerPfs.GetFile("pfs_image.dat").GetView());
+        PreviewInnerPfsHeader(innerPfsView);
+        var inner = new PfsReader(innerPfsView);
         var view = new FileView(inner);
         view.Dock = DockStyle.Fill;
         filesTab.Controls.Clear();
@@ -260,6 +262,15 @@ namespace PkgEditor.Views
         va = null;
       }
       return false;
+    }
+
+    private void PreviewInnerPfsHeader(IMemoryReader innerPfs)
+    {
+      var tp = new TabPage("Inner PFS Header");
+      var tv = new TreeView() { Dock = DockStyle.Fill };
+      ObjectPreview(PfsHeader.ReadFromStream(new StreamWrapper(innerPfs, 0x10000)), tv);
+      tp.Controls.Add(tv);
+      pkgHeaderTabControl.TabPages.Add(tp);
     }
 
     private void openWithPasscodeBtn_Click(object sender, EventArgs e)
