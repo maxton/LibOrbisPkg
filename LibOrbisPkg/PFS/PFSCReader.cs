@@ -38,12 +38,6 @@ namespace LibOrbisPkg.PFS
       var num_blocks = (int)(hdr.DataLength / hdr.BlockSz2);
       sectorMap = new long[num_blocks + 1];
       _accessor.ReadArray(hdr.BlockOffsets, sectorMap, 0, num_blocks + 1);
-      for(int i = 0; i < num_blocks; i++)
-      {
-        var sectorSz = sectorMap[i + 1] - sectorMap[i];
-        if (sectorSz > hdr.BlockSz2)
-          throw new ArgumentException($"Not a PFSC file: block {i} too big");
-      }
     }
 
     /// <summary>
@@ -76,6 +70,10 @@ namespace LibOrbisPkg.PFS
       {
         // fast case: uncompressed sector
         _accessor.Read(sectorOffset, output, 0, hdr.BlockSz);
+      }
+      else if (sectorSize > hdr.BlockSz2)
+      {
+        Array.Clear(output, 0, hdr.BlockSz);
       }
       else
       {
