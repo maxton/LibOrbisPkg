@@ -121,7 +121,7 @@ namespace PkgTool
       Verb.Create(
         "pkg_extractinnerpfs",
         "Extracts the inner PFS image from a PKG file.",
-        ArgDef.Multi(ArgDef.Option("passcode", "xts_tweak", "xts_data"), "input.pkg", "output_pfs.dat"),
+        ArgDef.Multi(ArgDef.Bool("compressed"), ArgDef.Option("passcode", "xts_tweak", "xts_data"), "input.pkg", "output_pfs.dat"),
         (switches, optionals, args) =>
         {
           var pkgPath = args[1];
@@ -141,14 +141,25 @@ namespace PkgTool
             var outerPfs = new PfsReader(acc, pkg.Header.pfs_flags, ekpfs, optionals["xts_tweak"]?.FromHexCompact(), optionals["xts_data"]?.FromHexCompact());
             var inner = outerPfs.GetFile("pfs_image.dat");
             using(var v = inner.GetView())
-            using(var d = new PFSCReader(v))
+            using(var d = switches["compressed"] ? v : new PFSCReader(v))
             using(var f = File.OpenWrite(outPath))
             {
-              var buf = new byte[1024 * 1024];
+              var buf = new byte[8 * 1024 * 1024];
               long wrote = 0;
-              while(wrote < inner.compressed_size)
+              var size = switches["compressed"] ? inner.size : inner.compressed_size;
+              while (size - wrote > buf.Length)
               {
-                int toWrite = (int)Math.Min(inner.compressed_size - wrote, buf.Length);
+                const int parallelSlice = 0x100000;
+                Parallel.For(0, buf.Length / parallelSlice - 1, idx => {
+                  int offset = idx * parallelSlice;
+                  d.Read(wrote + offset, buf, offset, parallelSlice);
+                });
+                f.Write(buf, 0, buf.Length);
+                wrote += buf.Length;
+              }
+              while(wrote < size)
+              {
+                int toWrite = (int)Math.Min(size - wrote, buf.Length);
                 if(toWrite <= 0) break;
                 d.Read(wrote, buf, 0, toWrite);
                 f.Write(buf, 0, toWrite);
