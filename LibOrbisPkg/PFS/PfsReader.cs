@@ -250,20 +250,21 @@ namespace LibOrbisPkg.PFS
           blocks[i] = dinodes[dinode].DirectBlocks[i];
         }
 
+        var bufferedReader = new BufferedMemoryReader(reader, 0x10000);
         remainingBlocks -= 12;
         long blockIndexOffset = 12;
         for (int i = 0; i < remainingBlocks && i < sigsPerBlock; i++)
         {
-          reader.Read(dinodes[dinode].IndirectBlocks[0] * hdr.BlockSize + (i * 36) + 32, out blocks[i + blockIndexOffset]);
+          bufferedReader.Read(dinodes[dinode].IndirectBlocks[0] * hdr.BlockSize + (i * 36) + 32, out blocks[i + blockIndexOffset]);
         }
         remainingBlocks -= sigsPerBlock;
         blockIndexOffset += sigsPerBlock;
         for (int j = 0; j * sigsPerBlock < remainingBlocks; j++)
         {
-          reader.Read(dinodes[dinode].IndirectBlocks[1] * hdr.BlockSize + (j * 36) + 32, out int indirectBlockOffset);
+          bufferedReader.Read(dinodes[dinode].IndirectBlocks[1] * hdr.BlockSize + (j * 36) + 32, out int indirectBlockOffset);
           for (int i = 0; i < sigsPerBlock && i + (j * sigsPerBlock) < remainingBlocks; i++)
           {
-            reader.Read(indirectBlockOffset * hdr.BlockSize + (i * 36) + 32, out blocks[i + blockIndexOffset]);
+            bufferedReader.Read(indirectBlockOffset * hdr.BlockSize + (i * 36) + 32, out blocks[i + blockIndexOffset]);
           }
           blockIndexOffset += sigsPerBlock;
         }

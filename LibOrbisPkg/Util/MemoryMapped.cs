@@ -112,6 +112,43 @@ namespace LibOrbisPkg.Util
       }
     }
   }
+  /// <summary>
+  /// Non-thread safe buffered reader
+  /// </summary>
+  class BufferedMemoryReader : IMemoryReader
+  {
+    private long bufferStart;
+    private byte[] buffer;
+    private IMemoryReader reader;
+    public BufferedMemoryReader(IMemoryReader mr, int bufferSize)
+    {
+      buffer = new byte[bufferSize];
+      reader = mr;
+      bufferStart = -buffer.Length - 1;
+    }
+
+    public void Dispose()
+    {
+    }
+
+    public void Read(long pos, byte[] buf, int offset, int count)
+    {
+      while (count > 0 && pos > 0)
+      {
+        if (bufferStart > pos || pos >= bufferStart + buffer.Length)
+        {
+          bufferStart = pos;
+          reader.Read(pos, buffer, 0, buffer.Length);
+        }
+        int offsetIntoBuffer = (int)(pos - bufferStart);
+        int toReadFromChunk = Math.Min(buffer.Length - offsetIntoBuffer, count);
+        Buffer.BlockCopy(buffer, offsetIntoBuffer, buf, offset, toReadFromChunk);
+        pos += toReadFromChunk;
+        offset += toReadFromChunk;
+        count -= toReadFromChunk;
+      }
+    }
+  }
   public class MemoryMappedViewAccessor_ : IMemoryAccessor
   {
     private MemoryMappedViewAccessor _va;
