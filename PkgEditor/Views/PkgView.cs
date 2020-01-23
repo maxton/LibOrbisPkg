@@ -33,19 +33,19 @@ namespace PkgEditor.Views
     private MemoryMappedFile pkgFile;
     private MemoryMappedViewAccessor va;
     private string passcode;
-
+    private static int idx;
     public PkgView(string path)
     {
       InitializeComponent();
       if (path == null) return;
-      pkgFile = MemoryMappedFile.CreateFromFile(path);
-      using (var s = pkgFile.CreateViewStream())
+      pkgFile = MemoryMappedFile.CreateFromFile(path, FileMode.Open, "pkgFile"+idx++, 0, MemoryMappedFileAccess.Read);
+      using (var s = pkgFile.CreateViewStream(0, 0, MemoryMappedFileAccess.Read))
         ObjectPreview(new PkgReader(s).ReadHeader(), pkgHeaderTreeView);
-      using (var s = pkgFile.CreateViewStream())
+      using (var s = pkgFile.CreateViewStream(0, 0, MemoryMappedFileAccess.Read))
         pkg = new PkgReader(s).ReadPkg();
       try
       {
-        using (var s = pkgFile.CreateViewStream((long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size))
+        using (var s = pkgFile.CreateViewStream((long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size, MemoryMappedFileAccess.Read))
           ObjectPreview(PfsHeader.ReadFromStream(s), pfsHeaderTreeView);
       }
       catch (Exception e)
@@ -55,7 +55,7 @@ namespace PkgEditor.Views
       }
       if (pkg.Metas.Metas.Where(entry => entry.id == EntryId.ICON0_PNG).FirstOrDefault() is MetaEntry icon0)
       {
-        using (var s = pkgFile.CreateViewStream(icon0.DataOffset, icon0.DataSize))
+        using (var s = pkgFile.CreateViewStream(icon0.DataOffset, icon0.DataSize, MemoryMappedFileAccess.Read))
         {
           pictureBox1.Image = Image.FromStream(s);
         }
@@ -245,7 +245,7 @@ namespace PkgEditor.Views
         return false;
       try
       {
-        va = pkgFile.CreateViewAccessor((long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size);
+        va = pkgFile.CreateViewAccessor((long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size, MemoryMappedFileAccess.Read);
         var outerPfs = new PfsReader(va, pkg.Header.pfs_flags, ekpfs, tweak, data);
         var innerPfsView = new PFSCReader(outerPfs.GetFile("pfs_image.dat").GetView());
         PreviewInnerPfsHeader(innerPfsView);
@@ -343,7 +343,7 @@ namespace PkgEditor.Views
       listView1.Items.Clear();
       await Task.Run(() =>
       {
-        using (var s = pkgFile.CreateViewStream())
+        using (var s = pkgFile.CreateViewStream(0, 0, MemoryMappedFileAccess.Read))
         {
           foreach (var v in validator.Validate(s).OrderBy((a)=>a.Item1.Location))
           {
@@ -441,7 +441,7 @@ namespace PkgEditor.Views
       {
         var totalEntrySize = entry.Encrypted ? (entry.DataSize + 15) & ~15 : entry.DataSize;
         using (var f = File.OpenWrite(s.FileName))
-        using (var entryStream = pkgFile.CreateViewStream(entry.DataOffset, totalEntrySize))
+        using (var entryStream = pkgFile.CreateViewStream(entry.DataOffset, totalEntrySize, MemoryMappedFileAccess.Read))
         {
           if(entry.Encrypted && decrypt && (passcode != null || entry.KeyIndex == 3))
           {
