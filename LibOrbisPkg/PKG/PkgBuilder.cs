@@ -44,7 +44,7 @@ namespace LibOrbisPkg.PKG
         Logger("Calculating PlayGo digests in parallel...");
         CalcPlaygoDigests(pkg, pkgFile);
       }
-      using (var pkgStream = pkgFile.CreateViewStream(0, (long)pkg.Header.package_size))
+      using (var pkgStream = pkgFile.CreateViewStream(0, (long)pkg.Header.package_size, MemoryMappedFileAccess.ReadWrite))
         FinishPkg(pkgStream);
 
       pkgFile.Dispose();
@@ -186,7 +186,7 @@ namespace LibOrbisPkg.PKG
       int totalChunks = (int)(pkg.Header.pfs_image_size / CHUNK_SIZE);
       int chunkOffset = (int)(pkg.Header.pfs_image_offset / CHUNK_SIZE);
       var FileData = pkg.ChunkSha.FileData;
-      using (var view = file.CreateViewAccessor(0, (long)pkg.Header.package_size))
+      using (var view = file.CreateViewAccessor(0, (long)pkg.Header.package_size, MemoryMappedFileAccess.Read))
       {
         Parallel.ForEach(
           Enumerable.Range(chunkOffset, totalChunks),

@@ -167,11 +167,11 @@ namespace LibOrbisPkg.PFS
     /// <param name="offset">Start offset of the PFS image in the file</param>
     public void WriteImage(MemoryMappedFile file, long offset)
     {
-      using (var viewStream = file.CreateViewStream(offset, CalculatePfsSize()))
+      using (var viewStream = file.CreateViewStream(offset, CalculatePfsSize(), MemoryMappedFileAccess.ReadWrite))
       {
         WriteData(viewStream);
       }
-      using (var view = file.CreateViewAccessor(offset, CalculatePfsSize()))
+      using (var view = file.CreateViewAccessor(offset, CalculatePfsSize(), MemoryMappedFileAccess.ReadWrite))
       {
         if (hdr.Mode.HasFlag(PfsMode.Signed))
         {

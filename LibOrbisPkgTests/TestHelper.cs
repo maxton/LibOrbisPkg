@@ -62,13 +62,13 @@ namespace LibOrbisPkgTests
       Pkg pkg;
       using (var mmf = MemoryMappedFile.CreateFromFile(pkgPath))
       {
-        using (var s = mmf.CreateViewStream())
+        using (var s = mmf.CreateViewStream(0, 0, MemoryMappedFileAccess.Read))
         {
           pkg = new PkgReader(s).ReadPkg();
         }
         var ekpfs = LibOrbisPkg.Util.Crypto.ComputeKeys(pkg.Header.content_id, "00000000000000000000000000000000", 1);
         var outerPfsOffset = (long)pkg.Header.pfs_image_offset;
-        using (var acc = mmf.CreateViewAccessor(outerPfsOffset, (long)pkg.Header.pfs_image_size))
+        using (var acc = mmf.CreateViewAccessor(outerPfsOffset, (long)pkg.Header.pfs_image_size, MemoryMappedFileAccess.Read))
         {
           var outerPfs = new PfsReader(acc, pkg.Header.pfs_flags, ekpfs);
           var inner = new PfsReader(new PFSCReader(outerPfs.GetFile("pfs_image.dat").GetView()));

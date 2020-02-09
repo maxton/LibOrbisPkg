@@ -35,7 +35,7 @@ namespace LibOrbisPkg.GP4
     {
       Directory.CreateDirectory(outputDir);
       Pkg pkg;
-      using (var f = pkgFile.CreateViewStream())
+      using (var f = pkgFile.CreateViewStream(0, 0, MemoryMappedFileAccess.Read))
         pkg = new PkgReader(f).ReadPkg();
 
       passcode = passcode ?? "00000000000000000000000000000000";
@@ -89,7 +89,7 @@ namespace LibOrbisPkg.GP4
         });
 
         // Save to the filesystem
-        using (var s = pkgFile.CreateViewStream(meta.DataOffset, meta.DataSize))
+        using (var s = pkgFile.CreateViewStream(meta.DataOffset, meta.DataSize, MemoryMappedFileAccess.Read))
         using (var entryFile = File.Create(filename))
         {
           s.CopyTo(entryFile);
@@ -138,7 +138,7 @@ namespace LibOrbisPkg.GP4
       {
         ekpfs = pkg.GetEkpfs();
       }
-      using (var va = pkgFile.CreateViewAccessor((long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size))
+      using (var va = pkgFile.CreateViewAccessor((long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size, MemoryMappedFileAccess.Read))
       {
         var outerPfs = new PfsReader(va, pkg.Header.pfs_flags, ekpfs);
         var inner = new PfsReader(new PFSCReader(outerPfs.GetFile("pfs_image.dat").GetView()));

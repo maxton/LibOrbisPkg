@@ -90,13 +90,13 @@ namespace PkgTool
           Pkg pkg;
 
           var mmf = MemoryMappedFile.CreateFromFile(pkgPath);
-          using (var s = mmf.CreateViewStream())
+          using (var s = mmf.CreateViewStream(0, 0, MemoryMappedFileAccess.Read))
           {
             pkg = new PkgReader(s).ReadPkg();
           }
           var ekpfs = EkPfsFromPasscode(pkg, passcode);
           var outerPfsOffset = (long)pkg.Header.pfs_image_offset;
-          using(var acc = mmf.CreateViewAccessor(outerPfsOffset, (long)pkg.Header.pfs_image_size))
+          using(var acc = mmf.CreateViewAccessor(outerPfsOffset, (long)pkg.Header.pfs_image_size, MemoryMappedFileAccess.Read))
           {
             var outerPfs = new PfsReader(acc, pkg.Header.pfs_flags, ekpfs, optionals["xts_tweak"]?.FromHexCompact(), optionals["xts_data"]?.FromHexCompact());
             var inner = new PfsReader(new PFSCReader(outerPfs.GetFile("pfs_image.dat").GetView()));
@@ -112,7 +112,7 @@ namespace PkgTool
           var pfsPath = args[1];
           var outPath = args[2];
           using(var mmf = MemoryMappedFile.CreateFromFile(pfsPath))
-          using(var acc = mmf.CreateViewAccessor())
+          using(var acc = mmf.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read))
           {
             var pfs = new PfsReader(acc);
             ExtractInParallel(pfs, outPath, flags["verbose"]);
@@ -130,13 +130,13 @@ namespace PkgTool
 
           Pkg pkg;
           var mmf = MemoryMappedFile.CreateFromFile(pkgPath);
-          using (var s = mmf.CreateViewStream())
+          using (var s = mmf.CreateViewStream(0, 0, MemoryMappedFileAccess.Read))
           {
             pkg = new PkgReader(s).ReadPkg();
           }
           var ekpfs = EkPfsFromPasscode(pkg, passcode);
           var outerPfsOffset = (long)pkg.Header.pfs_image_offset;
-          using(var acc = mmf.CreateViewAccessor(outerPfsOffset, (long)pkg.Header.pfs_image_size))
+          using(var acc = mmf.CreateViewAccessor(outerPfsOffset, (long)pkg.Header.pfs_image_size, MemoryMappedFileAccess.Read))
           {
             var outerPfs = new PfsReader(acc, pkg.Header.pfs_flags, ekpfs, optionals["xts_tweak"]?.FromHexCompact(), optionals["xts_data"]?.FromHexCompact());
             var inner = outerPfs.GetFile("pfs_image.dat");
@@ -210,9 +210,9 @@ namespace PkgTool
               s.Close();
               using (var pkgMM = MemoryMappedFile.CreateFromFile(pkgPath, FileMode.Open))
               using (var o = MemoryMappedFile.CreateFromFile(outPath, capacity: outerpfs_size, mapName: "output_outerpfs", mode: FileMode.Create))
-              using (var outputView = o.CreateViewAccessor())
+              using (var outputView = o.CreateViewAccessor(0, 0, MemoryMappedFileAccess.ReadWrite))
               using (var outerPfs = new MemoryMappedViewAccessor_(
-                  pkgMM.CreateViewAccessor((long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size),
+                  pkgMM.CreateViewAccessor((long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size, MemoryMappedFileAccess.Read),
                   true))
               {
                 var transform = new XtsDecryptReader(outerPfs, dataKey, tweakKey);
