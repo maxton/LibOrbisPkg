@@ -259,6 +259,8 @@ namespace LibOrbisPkg.GP4
           volume.Package.AppType = null;
           volume.chunk_info = null;
           break;
+        case VolumeType.pkg_ps4_ac_nodata:
+          goto case VolumeType.pkg_ps4_ac_data;
         default:
           throw new Exception("Sorry, don't know how to make that project type!");
       }

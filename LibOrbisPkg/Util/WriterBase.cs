@@ -84,6 +84,8 @@ namespace LibOrbisPkg.Util
     }
     protected void Write(byte[] b)
     {
+      if (b == null)
+        return;
       s.Write(b, 0, b.Length);
     }
     //protected unsafe void Write(byte* b, int count)

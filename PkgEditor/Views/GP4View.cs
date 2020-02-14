@@ -69,6 +69,10 @@ namespace PkgEditor.Views
           pkgTypeDropdown.SelectedIndex = 1;
           entitlementKeyTextbox.Enabled = true;
           break;
+        case VolumeType.pkg_ps4_ac_nodata:
+          pkgTypeDropdown.SelectedIndex = 2;
+          entitlementKeyTextbox.Enabled = true;
+          break;
         default:
           break;
       }
@@ -427,6 +431,10 @@ namespace PkgEditor.Views
           break;
         case 1: // AC
           proj.SetType(VolumeType.pkg_ps4_ac_data);
+          ReloadView();
+          break;
+        case 2: // AL
+          proj.SetType(VolumeType.pkg_ps4_ac_nodata);
           ReloadView();
           break;
         default:

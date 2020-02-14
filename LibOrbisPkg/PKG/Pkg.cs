@@ -194,7 +194,7 @@ namespace LibOrbisPkg.PKG
     /// </summary>
     public Dictionary<GeneralDigest, byte[]> CalcGeneralDigests()
     {
-      return new Dictionary<GeneralDigest, byte[]>
+      var digests = new Dictionary<GeneralDigest, byte[]>
       {
         { GeneralDigest.HeaderDigest, ComputeHeaderDigest() },
         { GeneralDigest.GameDigest, Header.pfs_image_digest },
@@ -202,6 +202,11 @@ namespace LibOrbisPkg.PKG
         { GeneralDigest.MajorParamDigest, ComputeMajorParamDigest() },
         { GeneralDigest.ParamDigest, Crypto.Sha256(ParamSfo.ParamSfo.Serialize()) },
       };
+      if (Header.content_type == ContentType.AL)
+      {
+        digests.Remove(GeneralDigest.GameDigest);
+      }
+      return digests;
     }
   }
 

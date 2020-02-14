@@ -248,7 +248,8 @@
       this.pkgTypeDropdown.FormattingEnabled = true;
       this.pkgTypeDropdown.Items.AddRange(new object[] {
             "Game Package",
-            "Additional Content"});
+            "Additional Content",
+            "Additional Content w/ No Data"});
       this.pkgTypeDropdown.Location = new System.Drawing.Point(284, 16);
       this.pkgTypeDropdown.Name = "pkgTypeDropdown";
       this.pkgTypeDropdown.Size = new System.Drawing.Size(186, 21);

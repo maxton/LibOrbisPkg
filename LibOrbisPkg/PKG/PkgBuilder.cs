@@ -36,15 +36,22 @@ namespace LibOrbisPkg.PKG
     {
       Logger = logger ?? Console.WriteLine;
       InitPkg();
-      
-      var pkgFile = MemoryMappedFile.CreateFromFile(filename, FileMode.Create, "pkgFile", (long)pkg.Header.package_size);
-      outerPfs.WriteImage(pkgFile, (long)pkg.Header.pfs_image_offset);
-      if (pkg.Header.content_type == ContentType.GD)
+      var totalSize = (long)(pkg.Header.body_offset + pkg.Header.body_size + pkg.Header.pfs_image_size);
+      var pkgFile = MemoryMappedFile.CreateFromFile(
+        filename, 
+        FileMode.Create,
+        "pkgFile",
+        totalSize);
+      if (pkg.Header.content_type != ContentType.AL)
       {
-        Logger("Calculating PlayGo digests in parallel...");
-        CalcPlaygoDigests(pkg, pkgFile);
+        outerPfs.WriteImage(pkgFile, (long)pkg.Header.pfs_image_offset);
+        if (pkg.Header.content_type == ContentType.GD)
+        {
+          Logger("Calculating PlayGo digests in parallel...");
+          CalcPlaygoDigests(pkg, pkgFile);
+        }
       }
-      using (var pkgStream = pkgFile.CreateViewStream(0, (long)pkg.Header.package_size, MemoryMappedFileAccess.ReadWrite))
+      using (var pkgStream = pkgFile.CreateViewStream(0, totalSize, MemoryMappedFileAccess.ReadWrite))
         FinishPkg(pkgStream);
 
       pkgFile.Dispose();
@@ -63,13 +70,16 @@ namespace LibOrbisPkg.PKG
       Logger = logger ?? Console.WriteLine;
       s.SetLength(0);
       InitPkg();
-      s.SetLength((long)pkg.Header.package_size);
-      s.Position = (long)pkg.Header.pfs_image_offset;
-      outerPfs.WriteImage(new OffsetStream(s, (long)pkg.Header.pfs_image_offset));
-      if (pkg.Header.content_type == ContentType.GD)
+      s.SetLength((long)(pkg.Header.body_offset + pkg.Header.body_size + pkg.Header.pfs_image_size));
+      if (pkg.Header.content_type != ContentType.AL)
       {
-        Logger("Calculating PlayGo digests...");
-        CalcPlaygoDigests(pkg, s);
+        s.Position = (long)pkg.Header.pfs_image_offset;
+        outerPfs.WriteImage(new OffsetStream(s, (long)pkg.Header.pfs_image_offset));
+        if (pkg.Header.content_type == ContentType.GD)
+        {
+          Logger("Calculating PlayGo digests...");
+          CalcPlaygoDigests(pkg, s);
+        }
       }
       FinishPkg(s);
       return pkg;
@@ -80,13 +90,21 @@ namespace LibOrbisPkg.PKG
     /// </summary>
     private void InitPkg()
     {
-      // Write PFS first, to get stream length
-      Logger("Preparing inner PFS...");
-      innerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeInnerPFSProps(project), x => Logger($" [innerpfs] {x}"));
-      Logger("Preparing outer PFS...");
-      outerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeOuterPFSProps(project, innerPfs, EKPFS), x => Logger($" [outerpfs] {x}"));
-      Logger("Preparing PKG header and body...");
-      BuildPkg(outerPfs.CalculatePfsSize());
+      if (project.VolumeType == GP4.VolumeType.pkg_ps4_ac_nodata)
+      {
+        Logger("Preparing PKG header and body...");
+        BuildPkg(0);
+      }
+      else
+      {
+        // Write PFS first, to get stream length
+        Logger("Preparing inner PFS...");
+        innerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeInnerPFSProps(project), x => Logger($" [innerpfs] {x}"));
+        Logger("Preparing outer PFS...");
+        outerPfs = new PFS.PfsBuilder(PFS.PfsProperties.MakeOuterPFSProps(project, innerPfs, EKPFS), x => Logger($" [outerpfs] {x}"));
+        Logger("Preparing PKG header and body...");
+        BuildPkg(outerPfs.CalculatePfsSize());
+      }
     }
 
     /// <summary>
@@ -95,10 +113,13 @@ namespace LibOrbisPkg.PKG
     /// <param name="pkgStream">PKG file stream</param>
     private void FinishPkg(Stream pkgStream)
     {
-      Logger("Calculating SHA256 of finished outer PFS...");
-      // Set PFS Image 1st block and full SHA256 hashes (mount image)
-      pkg.Header.pfs_signed_digest = Crypto.Sha256(pkgStream, (long)pkg.Header.pfs_image_offset, 0x10000);
-      pkg.Header.pfs_image_digest = Crypto.Sha256(pkgStream, (long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size);
+      if (pkg.Header.content_type != ContentType.AL)
+      {
+        Logger("Calculating SHA256 of finished outer PFS...");
+        // Set PFS Image 1st block and full SHA256 hashes (mount image)
+        pkg.Header.pfs_signed_digest = Crypto.Sha256(pkgStream, (long)pkg.Header.pfs_image_offset, 0x10000);
+        pkg.Header.pfs_image_digest = Crypto.Sha256(pkgStream, (long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size);
+      }
 
       foreach(var a in pkg.CalcGeneralDigests())
         pkg.GeneralDigests.Set(a.Key, a.Value);
@@ -240,21 +261,24 @@ namespace LibOrbisPkg.PKG
         sc_entries2_hash = new byte[32],
         digest_table_hash = new byte[32],
         body_digest = new byte[32],
-        unk_0x400 = 1,
-        pfs_image_count = 1,
-        pfs_flags = 0x80000000000003CC,
-        pfs_image_offset = 0x80000,
-        pfs_image_size = (ulong)pfsSize,
-        mount_image_offset = 0,
-        mount_image_size = 0,
-        package_size = (ulong)(0x80000 + pfsSize),
-        pfs_signed_size = 0x10000,
-        pfs_cache_size = 0xD0000,
-        pfs_image_digest = new byte[32],
-        pfs_signed_digest = new byte[32],
-        pfs_split_size_nth_0 = 0,
-        pfs_split_size_nth_1 = 0
+        unk_0x400 = 1
       };
+      if (pkg.Header.content_type != ContentType.AL)
+      {
+        pkg.Header.pfs_image_count = 1;
+        pkg.Header.pfs_flags = 0x80000000000003CC;
+        pkg.Header.pfs_image_offset = 0x80000;
+        pkg.Header.pfs_image_size = (ulong)pfsSize;
+        pkg.Header.mount_image_offset = 0;
+        pkg.Header.mount_image_size = 0;
+        pkg.Header.package_size = (ulong)(0x80000 + pfsSize);
+        pkg.Header.pfs_signed_size = 0x10000;
+        pkg.Header.pfs_cache_size = 0xD0000;
+        pkg.Header.pfs_image_digest = new byte[32];
+        pkg.Header.pfs_signed_digest = new byte[32];
+        pkg.Header.pfs_split_size_nth_0 = 0;
+        pkg.Header.pfs_split_size_nth_1 = 0;
+      }
       pkg.HeaderDigest = new byte[32];
       pkg.HeaderSignature = new byte[0x100];
       pkg.EntryKeys = new KeysEntry(
@@ -294,10 +318,10 @@ namespace LibOrbisPkg.PKG
           if (project.UseCreationTime)
             time = ",c_time=" + project.CreationDate.ToString("HHmmss");
         }
-        var sizeInfo = $",img0_l0_size={(pkg.Header.package_size + 0xFFFFF) / (1024 * 1024)}" +
+        var sizeInfo = pkg.Header.content_type != ContentType.AL ? $",img0_l0_size={(pkg.Header.package_size + 0xFFFFF) / (1024 * 1024)}" +
           $",img0_l1_size=0" +
           $",img0_sc_ksize=512" +
-          $",img0_pc_ksize=832";
+          $",img0_pc_ksize=832" : "";
         sfo["PUBTOOLINFO"] = new SFO.Utf8Value("PUBTOOLINFO", date+time+sizeInfo, 0x200);
         sfo["PUBTOOLVER"] = new SFO.IntegerValue("PUBTOOLVER", 0x02890000);
       }
@@ -349,22 +373,6 @@ namespace LibOrbisPkg.PKG
       {
         pkg.EntryNames.GetOffset(entry.Name);
       }
-      // estimate size for playgo
-      if (pkg.Header.content_type == ContentType.GD)
-      {
-        long bodySize = 0;
-        foreach(var e in pkg.Entries)
-        {
-          bodySize += (e.Length + 15) & ~15; // round up to nearest 16
-        }
-        bodySize += 32 * pkg.Entries.Count; // metas
-        bodySize += 4 * (pfsSize / 0x10000); // playgo hashes of pfs
-        if (bodySize + (long)pkg.Header.body_offset >= (long)pkg.Header.pfs_image_offset)
-        {
-          pkg.Header.pfs_image_offset = (ulong)((bodySize + (long)pkg.Header.body_offset + 0xFFFF) & ~0xFFFFL);
-        }
-        pkg.ChunkSha.FileData = new byte[4 * ((pkg.Header.pfs_image_offset + pkg.Header.pfs_image_size) / 0x10000)];
-      }
       // 2nd pass: set sizes, offsets in meta table
       var dataOffset = 0x2000u;
       var flagMap = new Dictionary<EntryId,uint>() {
@@ -383,7 +391,7 @@ namespace LibOrbisPkg.PKG
         { EntryId.LICENSE_DAT, 3u << 12 },
         { EntryId.LICENSE_INFO, 2u << 12 },
       };
-      foreach(var entry in pkg.Entries)
+      foreach (var entry in pkg.Entries)
       {
         var e = new MetaEntry
         {
@@ -408,15 +416,29 @@ namespace LibOrbisPkg.PKG
           dataOffset += 16 - align;
         entry.meta = e;
       }
+      long bodySize = 0;
+      foreach (var e in pkg.Entries)
+      {
+        bodySize += (e.Length + 15) & ~15; // round up to nearest 16
+      }
+      // estimate size for playgo
+      if (pkg.Header.content_type == ContentType.GD)
+      {
+        bodySize += 4 * (pfsSize / 0x10000);
+      }
       pkg.Metas.Metas.Sort((e1, e2) => e1.id.CompareTo(e2.id));
       pkg.Header.entry_count = (uint)pkg.Entries.Count;
       pkg.Header.entry_count_2 = (ushort)pkg.Entries.Count;
-      pkg.Header.body_size = pkg.Header.pfs_image_offset - pkg.Header.body_offset;
-      pkg.Header.package_size = pkg.Header.mount_image_size = pkg.Header.pfs_image_offset + pkg.Header.pfs_image_size;
-      
+      pkg.Header.body_size = (ulong)((bodySize + 0xFFFF) & ~0xFFFFL);
+      if (pkg.Header.content_type != ContentType.AL)
+      {
+        pkg.Header.pfs_image_offset = pkg.Header.body_offset + pkg.Header.body_size;
+        pkg.Header.package_size = pkg.Header.mount_image_size = pkg.Header.body_size + pkg.Header.body_offset + pkg.Header.pfs_image_size;
+      }
       if (pkg.Header.content_type == ContentType.GD)
       {
         // Important sizes for PlayGo ChunkDat
+        pkg.ChunkSha.FileData = new byte[4 * (pkg.Header.package_size / 0x10000)];
         pkg.ChunkDat.MchunkAttrs[0].size = pkg.Header.package_size;
         pkg.ChunkDat.InnerMChunkAttrs[0].size = (ulong)innerPfs.CalculatePfsSize();
         // GD pkgs set promote_size to the size of the PKG before the PFS image?
@@ -482,7 +504,7 @@ namespace LibOrbisPkg.PKG
           return ContentFlags.SUBSEQUENT_PATCH;
         case GP4.VolumeType.pkg_ps4_ac_nodata:
           // TODO
-          return ContentFlags.NON_GAME;
+          return 0;
         default:
           return 0;
       }
