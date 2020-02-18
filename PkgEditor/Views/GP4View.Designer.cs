@@ -38,8 +38,10 @@
       this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
       this.fileViewContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
       this.renameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-      this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.addFilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.newFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+      this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.passcodeTextBox = new System.Windows.Forms.TextBox();
       this.label1 = new System.Windows.Forms.Label();
       this.label2 = new System.Windows.Forms.Label();
@@ -111,6 +113,7 @@
       this.filesListView.ContextMenuStrip = this.fileViewContextMenu;
       this.filesListView.Dock = System.Windows.Forms.DockStyle.Fill;
       this.filesListView.FullRowSelect = true;
+      this.filesListView.HideSelection = false;
       this.filesListView.LabelEdit = true;
       this.filesListView.Location = new System.Drawing.Point(0, 0);
       this.filesListView.Name = "filesListView";
@@ -139,10 +142,12 @@
       // 
       this.fileViewContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.renameToolStripMenuItem,
-            this.deleteToolStripMenuItem,
-            this.newFolderToolStripMenuItem});
+            this.addFilesToolStripMenuItem,
+            this.newFolderToolStripMenuItem,
+            this.toolStripSeparator1,
+            this.deleteToolStripMenuItem});
       this.fileViewContextMenu.Name = "contextMenuStrip1";
-      this.fileViewContextMenu.Size = new System.Drawing.Size(135, 70);
+      this.fileViewContextMenu.Size = new System.Drawing.Size(135, 98);
       this.fileViewContextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.fileViewContextMenu_Opening);
       // 
       // renameToolStripMenuItem
@@ -152,12 +157,12 @@
       this.renameToolStripMenuItem.Text = "Rename";
       this.renameToolStripMenuItem.Click += new System.EventHandler(this.renameToolStripMenuItem_Click);
       // 
-      // deleteToolStripMenuItem
+      // addFilesToolStripMenuItem
       // 
-      this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
-      this.deleteToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
-      this.deleteToolStripMenuItem.Text = "Delete";
-      this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
+      this.addFilesToolStripMenuItem.Name = "addFilesToolStripMenuItem";
+      this.addFilesToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+      this.addFilesToolStripMenuItem.Text = "Add files...";
+      this.addFilesToolStripMenuItem.Click += new System.EventHandler(this.addFilesToolStripMenuItem_Click);
       // 
       // newFolderToolStripMenuItem
       // 
@@ -165,6 +170,18 @@
       this.newFolderToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
       this.newFolderToolStripMenuItem.Text = "New Folder";
       this.newFolderToolStripMenuItem.Click += new System.EventHandler(this.newFolderToolStripMenuItem_Click);
+      // 
+      // toolStripSeparator1
+      // 
+      this.toolStripSeparator1.Name = "toolStripSeparator1";
+      this.toolStripSeparator1.Size = new System.Drawing.Size(131, 6);
+      // 
+      // deleteToolStripMenuItem
+      // 
+      this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
+      this.deleteToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+      this.deleteToolStripMenuItem.Text = "Delete";
+      this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
       // 
       // passcodeTextBox
       // 
@@ -389,5 +406,7 @@
     private System.Windows.Forms.CheckBox useTimeOfBuildCheckBox;
     private System.Windows.Forms.CheckBox includeTimeCheckBox;
     private System.Windows.Forms.ImageList imageList1;
+    private System.Windows.Forms.ToolStripMenuItem addFilesToolStripMenuItem;
+    private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
   }
 }
