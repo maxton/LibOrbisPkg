@@ -175,8 +175,10 @@ namespace LibOrbisPkg.PKG
           new SubStream(s, entry.meta.DataOffset, entry.meta.DataSize).CopyTo(ms);
         }
         pkg.Header.sc_entries1_hash = Crypto.Sha256(ms);
-        pkg.Header.main_ent_data_size = (uint)ms.Length;
-
+        if (ms.Length != pkg.Header.main_ent_data_size)
+        {
+          throw new Exception("main_ent_data_size did not match SC entries 1 size. Report this bug.");
+        }
         // SC Entries Hash 2: Hash of 4 SC entries
         ms.SetLength(0);
         foreach (var entry in new Entry[] { pkg.EntryKeys, pkg.ImageKey, pkg.GeneralDigests, pkg.Metas })
@@ -408,6 +410,18 @@ namespace LibOrbisPkg.PKG
         {
           e.DataSize = (uint)pkg.Entries.Count * 32;
         }
+        if(entry == pkg.ChunkSha)
+        {
+          // Estimate size of PKG without the ChunkSHA
+          long pkgSize = (
+            (long)pkg.Header.body_offset
+            + ((pkg.Entries.Sum(x => (x.Length + 15) & ~15) + 0xFFFF) & ~0xFFFF)
+            + pfsSize
+          );
+          // Add the size of the chunk SHAs, plus an extra 16 bytes for good measure
+          pkgSize += (pkgSize + 16 / 0x10000) * 4;
+          e.DataSize = (uint)(pkgSize / 0x10000L) * 4;
+        }
 
         dataOffset += e.DataSize;
 
@@ -421,15 +435,11 @@ namespace LibOrbisPkg.PKG
       {
         bodySize += (e.Length + 15) & ~15; // round up to nearest 16
       }
-      // estimate size for playgo
-      if (pkg.Header.content_type == ContentType.GD)
-      {
-        bodySize += 4 * (pfsSize / 0x10000);
-      }
       pkg.Metas.Metas.Sort((e1, e2) => e1.id.CompareTo(e2.id));
       pkg.Header.entry_count = (uint)pkg.Entries.Count;
       pkg.Header.entry_count_2 = (ushort)pkg.Entries.Count;
       pkg.Header.body_size = (ulong)((bodySize + 0xFFFF) & ~0xFFFFL);
+      pkg.Header.main_ent_data_size = (uint)(new Entry[] { pkg.EntryKeys, pkg.ImageKey, pkg.GeneralDigests, pkg.Metas, pkg.Digests }).Sum(x => x.Length);
       if (pkg.Header.content_type != ContentType.AL)
       {
         pkg.Header.pfs_image_offset = pkg.Header.body_offset + pkg.Header.body_size;
@@ -439,6 +449,11 @@ namespace LibOrbisPkg.PKG
       {
         // Important sizes for PlayGo ChunkDat
         pkg.ChunkSha.FileData = new byte[4 * (pkg.Header.package_size / 0x10000)];
+        if (pkg.ChunkSha.FileData.Length > pkg.ChunkSha.meta.DataSize)
+        {
+          throw new Exception("Playgo Chunk hash file was not allocated enough space. Report this as a bug");
+        }
+        pkg.ChunkSha.meta.DataSize = (uint)pkg.ChunkSha.FileData.Length;
         pkg.ChunkDat.MchunkAttrs[0].size = pkg.Header.package_size;
         pkg.ChunkDat.InnerMChunkAttrs[0].size = (ulong)innerPfs.CalculatePfsSize();
         // GD pkgs set promote_size to the size of the PKG before the PFS image?

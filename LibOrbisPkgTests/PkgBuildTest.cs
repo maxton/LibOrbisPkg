@@ -114,7 +114,7 @@ namespace LibOrbisPkgTests
     /// Tests that a PKG passes all validation checks.
     /// </summary>
     [TestMethod]
-    public void Validate()
+    public void ValidateAC()
     {
       using (var pkgFile = new MemoryStream())
       {
@@ -122,6 +122,24 @@ namespace LibOrbisPkgTests
 
         var pkg = new PkgReader(pkgFile).ReadPkg();
         foreach(var v in new PkgValidator(pkg).Validate(pkgFile))
+        {
+          Assert.IsTrue(v.Item2 == PkgValidator.ValidationResult.Ok, v.Item1.Name);
+        }
+      }
+    }
+
+    /// <summary>
+    /// Tests that a PKG passes all validation checks.
+    /// </summary>
+    [TestMethod]
+    public void ValidateGD()
+    {
+      using (var pkgFile = new MemoryStream())
+      {
+        new PkgBuilder(TestHelper.MakeProperties(VolumeType: VolumeType.pkg_ps4_app)).Write(pkgFile, s => { });
+
+        var pkg = new PkgReader(pkgFile).ReadPkg();
+        foreach (var v in new PkgValidator(pkg).Validate(pkgFile))
         {
           Assert.IsTrue(v.Item2 == PkgValidator.ValidationResult.Ok, v.Item1.Name);
         }
