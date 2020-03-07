@@ -13,6 +13,7 @@ namespace LibOrbisPkg.PFS
   /// </summary>
   public class PFSCReader : IMemoryReader
   {
+    public const int Magic = 0x43534650;
     private IMemoryAccessor _accessor;
     private PFSCHdr hdr;
     private long[] sectorMap;
@@ -26,7 +27,7 @@ namespace LibOrbisPkg.PFS
     {
       _accessor = va;
       _accessor.Read(0, out hdr);
-      if (hdr.Magic != 0x43534650)
+      if (hdr.Magic != Magic)
         throw new ArgumentException("Not a PFSC file: missing PFSC magic");
       if (hdr.Unk4 != 0)
         throw new ArgumentException($"Not a PFSC file: unknown data at 0x4 (expected 0, got {hdr.Unk4})");

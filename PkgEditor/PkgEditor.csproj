@@ -78,6 +78,12 @@
     <Compile Include="Views\FileView.Designer.cs">
       <DependentUpon>FileView.cs</DependentUpon>
     </Compile>
+    <Compile Include="Views\PFSView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\PFSView.Designer.cs">
+      <DependentUpon>PFSView.cs</DependentUpon>
+    </Compile>
     <Compile Include="Views\SFOView.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -126,6 +132,9 @@
     </Compile>
     <EmbeddedResource Include="Views\FileView.resx">
       <DependentUpon>FileView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Views\PFSView.resx">
+      <DependentUpon>PFSView.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Views\SFOView.resx">
       <DependentUpon>SFOView.cs</DependentUpon>

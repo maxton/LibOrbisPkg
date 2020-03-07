@@ -57,6 +57,11 @@ namespace PkgEditor
       }
     }
 
+    private void openPFS(string filename)
+    {
+      OpenTab(new Views.PFSView(filename), Path.GetFileName(filename));
+    }
+
     public void OpenTab(Views.View c, string name)
     {
       var x = new TabPage(name);
@@ -90,15 +95,26 @@ namespace PkgEditor
         case "sfo":
           openSfo(file);
           break;
+        case "pfs":
+        case "dat":
+          openPFS(file);
+          break;
       }
     }
 
     private void openToolStripMenuItem_Click(object sender, EventArgs e)
     {
-      ShowOpenFileDialog("Open a GP4, PKG, SFO", "All Supported|*.gp4;*.pkg;*.sfo|GP4 Projects (*.gp4)|*.gp4|PKG Files (*.pkg)|*.pkg|SFO Files (*.sfo)|*.sfo", f =>
-      {
-        openFile(f);
-      });
+      ShowOpenFileDialog(
+        "Open a GP4, PKG, SFO",
+        "All Supported|*.gp4;*.pkg;*.sfo;*.pfs;*.dat"
+        + "|GP4 Projects (*.gp4)|*.gp4"
+        + "|PKG Files (*.pkg)|*.pkg"
+        + "|SFO Files (*.sfo)|*.sfo"
+        + "|PFS Images (*.pfs, *.dat)|*.pfs;*.dat",
+        f =>
+        {
+          openFile(f);
+        });
     }
 
     private void closeToolStripMenuItem_Click(object sender, EventArgs e)

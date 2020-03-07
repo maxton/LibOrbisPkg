@@ -25,6 +25,8 @@
     <Compile Include="..\PkgEditor\Views\GP4View.Designer.cs" Link="Views\GP4View.Designer.cs" />
     <Compile Include="..\PkgEditor\Views\ObjectView.cs" Link="Views\ObjectView.cs" />
     <Compile Include="..\PkgEditor\Views\ObjectView.Designer.cs" Link="Views\ObjectView.Designer.cs" />
+    <Compile Include="..\PkgEditor\Views\PFSView.cs" Link="Views\PFSView.cs" />
+    <Compile Include="..\PkgEditor\Views\PFSView.Designer.cs" Link="Views\PFSView.Designer.cs" />
     <Compile Include="..\PkgEditor\Views\PkgView.cs" Link="Views\PkgView.cs" />
     <Compile Include="..\PkgEditor\Views\PkgView.Designer.cs" Link="Views\PkgView.Designer.cs" />
     <Compile Include="..\PkgEditor\Views\SFOView.cs" Link="Views\SFOView.cs" />
@@ -43,6 +45,7 @@
     <EmbeddedResource Include="..\PkgEditor\Views\FileView.resx" Link="Views\FileView.resx" />
     <EmbeddedResource Include="..\PkgEditor\Views\GP4View.resx" Link="Views\GP4View.resx" />
     <EmbeddedResource Include="..\PkgEditor\Views\ObjectView.resx" Link="Views\ObjectView.resx" />
+    <EmbeddedResource Include="..\PkgEditor\Views\PFSView.resx" Link="Views\PFSView.resx" />
     <EmbeddedResource Include="..\PkgEditor\Views\PkgView.resx" Link="Views\PkgView.resx" />
     <EmbeddedResource Include="..\PkgEditor\Views\SFOView.resx" Link="Views\SFOView.resx" />
   </ItemGroup>
