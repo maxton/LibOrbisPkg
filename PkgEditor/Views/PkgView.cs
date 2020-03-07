@@ -250,7 +250,9 @@ namespace PkgEditor.Views
         var innerPfsView = new PFSCReader(outerPfs.GetFile("pfs_image.dat").GetView());
         PreviewInnerPfsHeader(innerPfsView);
         var inner = new PfsReader(innerPfsView);
-        var view = new FileView(inner);
+        var view = new FileView();
+        view.AddRoot(outerPfs, "Outer PFS Image");
+        view.AddRoot(inner, "Inner PFS Image");
         view.Dock = DockStyle.Fill;
         filesTab.Controls.Clear();
         filesTab.Controls.Add(view);

@@ -17,18 +17,15 @@ namespace PkgEditor.Views
 {
   public partial class FileView : UserControl
   {
-    private PfsReader reader;
-    public FileView(PfsReader p = null)
+    public FileView()
     {
-      reader = p;
       InitializeComponent();
-      InitializeTree();
     }
 
-    private void InitializeTree()
+    public void AddRoot(PfsReader p, string name)
     {
-      var superroot = reader.GetSuperRoot();
-      var root = new TreeNode("Inner PFS Image") { Tag = superroot };
+      var superroot = p.GetSuperRoot();
+      var root = new TreeNode(name) { Tag = superroot };
       directoryTreeView.Nodes.Add(root);
       root.Nodes.Add("Loading", "Loading...", 0);
       ExpandNode(root);
