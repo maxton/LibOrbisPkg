@@ -419,7 +419,7 @@ namespace LibOrbisPkg.PKG
             + pfsSize
           );
           // Add the size of the chunk SHAs, plus an extra 16 bytes for good measure
-          pkgSize += (pkgSize + 16 / 0x10000) * 4;
+          pkgSize += ((pkgSize + 16) / 0x10000) * 4;
           e.DataSize = (uint)(pkgSize / 0x10000L) * 4;
         }
 
