@@ -23,7 +23,8 @@ namespace LibOrbisPkgTests
         string Passcode = "00000000000000000000000000000000",
         DateTime? TimeStamp = null,
         bool UseCreationTime = true,
-        FSDir RootDir = null)
+        FSDir RootDir = null,
+        FSFile[] sc0Files = null)
     {
       return new PkgProperties()
       {
@@ -34,11 +35,11 @@ namespace LibOrbisPkgTests
         Passcode = Passcode,
         TimeStamp = TimeStamp ?? PkgDate,
         UseCreationTime = UseCreationTime,
-        RootDir = RootDir ?? MakeRoot(),
+        RootDir = RootDir ?? MakeRoot(sc0Files: sc0Files),
       };
     }
 
-    public static FSDir MakeRoot(ParamSfo sfo = null)
+    public static FSDir MakeRoot(ParamSfo sfo = null, FSFile[] sc0Files = null)
     {
       if (sfo == null)
         sfo = ParamSfo.DefaultAC;
@@ -52,6 +53,14 @@ namespace LibOrbisPkgTests
       {
         Parent = sysDir
       });
+      if (sc0Files != null)
+      {
+        foreach (var f in sc0Files)
+        {
+          sysDir.Files.Add(f);
+          f.Parent = sysDir;
+        }
+      }
       root.Dirs.Add(sysDir);
       return root;
     }

@@ -44,7 +44,7 @@ namespace LibOrbisPkg.PFS
       s.WriteLE(HeaderSize);
       s.WriteLE(num_blocks * BlockSize);
       s.Position = start + 0x400L;
-      for(var i = 0; i <= num_blocks; i++)
+      for(long i = 0; i <= num_blocks; i++)
       {
         s.WriteLE(HeaderSize + (i * BlockSize));
       }

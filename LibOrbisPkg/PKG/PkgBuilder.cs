@@ -376,7 +376,7 @@ namespace LibOrbisPkg.PKG
         pkg.EntryNames.GetOffset(entry.Name);
       }
       // 2nd pass: set sizes, offsets in meta table
-      var dataOffset = 0x2000u;
+      var dataOffset = pkg.Header.body_offset;
       var flagMap = new Dictionary<EntryId,uint>() {
         { EntryId.DIGESTS, 0x40000000 },
         { EntryId.ENTRY_KEYS, 0x60000000 },
@@ -399,7 +399,7 @@ namespace LibOrbisPkg.PKG
         {
           id = entry.Id,
           NameTableOffset = pkg.EntryNames.GetOffset(entry.Name),
-          DataOffset = dataOffset,
+          DataOffset = (uint)dataOffset,
           DataSize = entry.Length,
           // TODO
           Flags1 = flagMap.GetOrDefault(entry.Id),
@@ -430,15 +430,11 @@ namespace LibOrbisPkg.PKG
           dataOffset += 16 - align;
         entry.meta = e;
       }
-      long bodySize = 0;
-      foreach (var e in pkg.Entries)
-      {
-        bodySize += (e.Length + 15) & ~15; // round up to nearest 16
-      }
+      ulong bodySize = dataOffset - pkg.Header.body_offset;
       pkg.Metas.Metas.Sort((e1, e2) => e1.id.CompareTo(e2.id));
       pkg.Header.entry_count = (uint)pkg.Entries.Count;
       pkg.Header.entry_count_2 = (ushort)pkg.Entries.Count;
-      pkg.Header.body_size = (ulong)((bodySize + 0xFFFF) & ~0xFFFFL);
+      pkg.Header.body_size = (bodySize + 0xFFFFUL) & ~0xFFFFUL;
       pkg.Header.main_ent_data_size = (uint)(new Entry[] { pkg.EntryKeys, pkg.ImageKey, pkg.GeneralDigests, pkg.Metas, pkg.Digests }).Sum(x => x.Length);
       if (pkg.Header.content_type != ContentType.AL)
       {
