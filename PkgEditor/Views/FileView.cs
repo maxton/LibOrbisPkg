@@ -40,6 +40,7 @@ namespace PkgEditor.Views
         currentFolderListView.Items.Add(
           new ListViewItem(new[] {
             child.name,
+            child is PfsDir ? "" : HumanReadableFileSize(child.compressed_size),
             child is PfsDir ? "" : HumanReadableFileSize(child.size),
           },
           child is PfsDir ? 1 : 0)

@@ -32,13 +32,14 @@
       System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FileView));
       this.splitContainer1 = new System.Windows.Forms.SplitContainer();
       this.directoryTreeView = new System.Windows.Forms.TreeView();
+      this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+      this.extractToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.imageList1 = new System.Windows.Forms.ImageList(this.components);
       this.currentFolderListView = new System.Windows.Forms.ListView();
       this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
       this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
       this.imageList2 = new System.Windows.Forms.ImageList(this.components);
-      this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-      this.extractToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
       ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
       this.splitContainer1.Panel1.SuspendLayout();
       this.splitContainer1.Panel2.SuspendLayout();
@@ -59,8 +60,8 @@
       // splitContainer1.Panel2
       // 
       this.splitContainer1.Panel2.Controls.Add(this.currentFolderListView);
-      this.splitContainer1.Size = new System.Drawing.Size(479, 382);
-      this.splitContainer1.SplitterDistance = 159;
+      this.splitContainer1.Size = new System.Drawing.Size(600, 382);
+      this.splitContainer1.SplitterDistance = 199;
       this.splitContainer1.TabIndex = 0;
       // 
       // directoryTreeView
@@ -73,10 +74,24 @@
       this.directoryTreeView.Location = new System.Drawing.Point(0, 0);
       this.directoryTreeView.Name = "directoryTreeView";
       this.directoryTreeView.SelectedImageIndex = 1;
-      this.directoryTreeView.Size = new System.Drawing.Size(159, 382);
+      this.directoryTreeView.Size = new System.Drawing.Size(199, 382);
       this.directoryTreeView.TabIndex = 0;
       this.directoryTreeView.BeforeExpand += new System.Windows.Forms.TreeViewCancelEventHandler(this.DirectoryTreeView_BeforeExpand);
       this.directoryTreeView.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.DirectoryTreeView_AfterSelect);
+      // 
+      // contextMenuStrip1
+      // 
+      this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.extractToolStripMenuItem});
+      this.contextMenuStrip1.Name = "contextMenuStrip1";
+      this.contextMenuStrip1.Size = new System.Drawing.Size(111, 26);
+      // 
+      // extractToolStripMenuItem
+      // 
+      this.extractToolStripMenuItem.Name = "extractToolStripMenuItem";
+      this.extractToolStripMenuItem.Size = new System.Drawing.Size(110, 22);
+      this.extractToolStripMenuItem.Text = "Extract";
+      this.extractToolStripMenuItem.Click += new System.EventHandler(this.ExtractToolStripMenuItem_Click);
       // 
       // imageList1
       // 
@@ -89,13 +104,15 @@
       // 
       this.currentFolderListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1,
-            this.columnHeader2});
+            this.columnHeader2,
+            this.columnHeader3});
       this.currentFolderListView.ContextMenuStrip = this.contextMenuStrip1;
       this.currentFolderListView.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.currentFolderListView.HideSelection = false;
       this.currentFolderListView.LargeImageList = this.imageList2;
       this.currentFolderListView.Location = new System.Drawing.Point(0, 0);
       this.currentFolderListView.Name = "currentFolderListView";
-      this.currentFolderListView.Size = new System.Drawing.Size(316, 382);
+      this.currentFolderListView.Size = new System.Drawing.Size(397, 382);
       this.currentFolderListView.SmallImageList = this.imageList1;
       this.currentFolderListView.TabIndex = 0;
       this.currentFolderListView.UseCompatibleStateImageBehavior = false;
@@ -117,19 +134,10 @@
       this.imageList2.Images.SetKeyName(0, "File_large.png");
       this.imageList2.Images.SetKeyName(1, "Folder_large.png");
       // 
-      // contextMenuStrip1
+      // columnHeader3
       // 
-      this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.extractToolStripMenuItem});
-      this.contextMenuStrip1.Name = "contextMenuStrip1";
-      this.contextMenuStrip1.Size = new System.Drawing.Size(110, 26);
-      // 
-      // extractToolStripMenuItem
-      // 
-      this.extractToolStripMenuItem.Name = "extractToolStripMenuItem";
-      this.extractToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-      this.extractToolStripMenuItem.Text = "Extract";
-      this.extractToolStripMenuItem.Click += new System.EventHandler(this.ExtractToolStripMenuItem_Click);
+      this.columnHeader3.Text = "Comp. Size";
+      this.columnHeader3.Width = 75;
       // 
       // FileView
       // 
@@ -137,7 +145,7 @@
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.Controls.Add(this.splitContainer1);
       this.Name = "FileView";
-      this.Size = new System.Drawing.Size(479, 382);
+      this.Size = new System.Drawing.Size(600, 382);
       this.splitContainer1.Panel1.ResumeLayout(false);
       this.splitContainer1.Panel2.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
@@ -158,5 +166,6 @@
     private System.Windows.Forms.ColumnHeader columnHeader2;
     private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
     private System.Windows.Forms.ToolStripMenuItem extractToolStripMenuItem;
+    private System.Windows.Forms.ColumnHeader columnHeader3;
   }
 }
