@@ -66,7 +66,7 @@ namespace LibOrbisPkg.GP4
       {
         if(file.OrigPath == null)
         {
-          file.OrigPath = file.TargetPath.Replace('/','\\');
+          file.OrigPath = file.TargetPath.Replace('/', System.IO.Path.DirectorySeparatorChar);
         }
       }
 
