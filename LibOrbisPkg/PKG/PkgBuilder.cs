@@ -225,6 +225,21 @@ namespace LibOrbisPkg.PKG
       }
     }
 
+    private ulong Align(ulong value, ulong align)
+    {
+      var remainder = value % align;
+      if (remainder != 0)
+        value += align - remainder;
+      return value;
+    }
+    private long Align(long value, long align)
+    {
+      var remainder = value % align;
+      if (remainder != 0)
+        value += align - remainder;
+      return value;
+    }
+
     /// <summary>
     /// Creates the Pkg object. Initializes the header and body.
     /// </summary>
@@ -413,28 +428,22 @@ namespace LibOrbisPkg.PKG
         if(entry == pkg.ChunkSha)
         {
           // Estimate size of PKG without the ChunkSHA
-          long pkgSize = (
-            (long)pkg.Header.body_offset
-            + ((pkg.Entries.Sum(x => (x.Length + 15) & ~15) + 0xFFFF) & ~0xFFFF)
-            + pfsSize
-          );
+          long pkgSize = Align(
+            (long)pkg.Header.body_offset + pkg.Entries.Sum(x => (x.Length + 15) & ~15),
+            0x80000) + pfsSize;
           // Add the size of the chunk SHAs, plus an extra 16 bytes for good measure
           pkgSize += ((pkgSize + 16) / 0x10000) * 4;
           e.DataSize = (uint)(pkgSize / 0x10000L) * 4;
         }
 
-        dataOffset += e.DataSize;
-
-        var align = dataOffset % 16;
-        if (align != 0)
-          dataOffset += 16 - align;
+        dataOffset = Align(dataOffset + e.DataSize, 16);
         entry.meta = e;
       }
       ulong bodySize = dataOffset - pkg.Header.body_offset;
       pkg.Metas.Metas.Sort((e1, e2) => e1.id.CompareTo(e2.id));
       pkg.Header.entry_count = (uint)pkg.Entries.Count;
       pkg.Header.entry_count_2 = (ushort)pkg.Entries.Count;
-      pkg.Header.body_size = (bodySize + 0xFFFFUL) & ~0xFFFFUL;
+      pkg.Header.body_size = Align(pkg.Header.body_offset + bodySize, 0x80000) - pkg.Header.body_offset;
       pkg.Header.main_ent_data_size = (uint)(new Entry[] { pkg.EntryKeys, pkg.ImageKey, pkg.GeneralDigests, pkg.Metas, pkg.Digests }).Sum(x => x.Length);
       if (pkg.Header.content_type != ContentType.AL)
       {

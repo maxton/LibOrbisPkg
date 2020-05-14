@@ -11,7 +11,8 @@ namespace LibOrbisPkg.PKG
     public enum ValidationType
     {
       Hash,
-      Signature
+      Signature,
+      Limit
     }
     public enum ValidationResult
     {
@@ -131,6 +132,14 @@ namespace LibOrbisPkg.PKG
     public List<Validation> Validations(Stream pkgStream)
     {
       var validations = new List<Validation>();
+
+      if (pkg.Header.content_type != ContentType.AL)
+      {
+        validations.Add(new Validation(ValidationType.Limit, "PKG Size", "The PKG should be aligned to 0x8000 and have a minimum size of 1MB", 0x418)
+        {
+          Validate = () => pkg.Header.mount_image_size % 0x8000 == 0 && pkg.Header.mount_image_size >= 0x100000 ? ValidationResult.Ok : ValidationResult.Fail
+        });
+      }
 
       // Create validators for PKG general digests
       foreach(var d in pkg.GeneralDigests.Digests)
