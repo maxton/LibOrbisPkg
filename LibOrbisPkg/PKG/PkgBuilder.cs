@@ -429,7 +429,7 @@ namespace LibOrbisPkg.PKG
         {
           // Estimate size of PKG without the ChunkSHA
           long pkgSize = Align(
-            (long)pkg.Header.body_offset + pkg.Entries.Sum(x => (x.Length + 15) & ~15),
+            (long)pkg.Header.body_offset + pkg.Entries.Sum(x => Align(x.Length, 16)),
             0x80000) + pfsSize;
           // Add the size of the chunk SHAs, plus an extra 16 bytes for good measure
           pkgSize += ((pkgSize + 16) / 0x10000) * 4;
