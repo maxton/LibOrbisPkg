@@ -74,7 +74,7 @@ namespace LibOrbisPkg.PFS
           return new ChunkedMemoryReader(reader, 0x10000, blocks);
         return new MemoryAccessor(reader, offset);
       }
-      public void Save(string path)
+      public void Save(string path, bool decompress = false)
       {
         var buf = new byte[0x10000];
         using (var file = System.IO.File.OpenWrite(path))
@@ -83,6 +83,11 @@ namespace LibOrbisPkg.PFS
           file.SetLength(sz);
           long pos = 0;
           var reader = GetView();
+          if (decompress && size != compressed_size)
+          {
+            sz = compressed_size;
+            reader = new PFSCReader(reader);
+          }
           while (sz > 0)
           {
             var toRead = (int)Math.Min(sz, buf.Length);

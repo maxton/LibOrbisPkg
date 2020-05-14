@@ -34,12 +34,13 @@
       this.directoryTreeView = new System.Windows.Forms.TreeView();
       this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
       this.extractToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.extractCompressedPFSCToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.imageList1 = new System.Windows.Forms.ImageList(this.components);
       this.currentFolderListView = new System.Windows.Forms.ListView();
       this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
       this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-      this.imageList2 = new System.Windows.Forms.ImageList(this.components);
       this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+      this.imageList2 = new System.Windows.Forms.ImageList(this.components);
       ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
       this.splitContainer1.Panel1.SuspendLayout();
       this.splitContainer1.Panel2.SuspendLayout();
@@ -51,6 +52,7 @@
       // 
       this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
       this.splitContainer1.Location = new System.Drawing.Point(0, 0);
+      this.splitContainer1.Margin = new System.Windows.Forms.Padding(4);
       this.splitContainer1.Name = "splitContainer1";
       // 
       // splitContainer1.Panel1
@@ -60,8 +62,9 @@
       // splitContainer1.Panel2
       // 
       this.splitContainer1.Panel2.Controls.Add(this.currentFolderListView);
-      this.splitContainer1.Size = new System.Drawing.Size(600, 382);
-      this.splitContainer1.SplitterDistance = 199;
+      this.splitContainer1.Size = new System.Drawing.Size(800, 470);
+      this.splitContainer1.SplitterDistance = 265;
+      this.splitContainer1.SplitterWidth = 5;
       this.splitContainer1.TabIndex = 0;
       // 
       // directoryTreeView
@@ -72,26 +75,38 @@
       this.directoryTreeView.ImageIndex = 1;
       this.directoryTreeView.ImageList = this.imageList1;
       this.directoryTreeView.Location = new System.Drawing.Point(0, 0);
+      this.directoryTreeView.Margin = new System.Windows.Forms.Padding(4);
       this.directoryTreeView.Name = "directoryTreeView";
       this.directoryTreeView.SelectedImageIndex = 1;
-      this.directoryTreeView.Size = new System.Drawing.Size(199, 382);
+      this.directoryTreeView.Size = new System.Drawing.Size(265, 470);
       this.directoryTreeView.TabIndex = 0;
       this.directoryTreeView.BeforeExpand += new System.Windows.Forms.TreeViewCancelEventHandler(this.DirectoryTreeView_BeforeExpand);
       this.directoryTreeView.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.DirectoryTreeView_AfterSelect);
       // 
       // contextMenuStrip1
       // 
+      this.contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
       this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.extractToolStripMenuItem});
+            this.extractToolStripMenuItem,
+            this.extractCompressedPFSCToolStripMenuItem});
       this.contextMenuStrip1.Name = "contextMenuStrip1";
-      this.contextMenuStrip1.Size = new System.Drawing.Size(111, 26);
+      this.contextMenuStrip1.Size = new System.Drawing.Size(254, 80);
+      this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
       // 
       // extractToolStripMenuItem
       // 
       this.extractToolStripMenuItem.Name = "extractToolStripMenuItem";
-      this.extractToolStripMenuItem.Size = new System.Drawing.Size(110, 22);
+      this.extractToolStripMenuItem.Size = new System.Drawing.Size(253, 24);
       this.extractToolStripMenuItem.Text = "Extract";
       this.extractToolStripMenuItem.Click += new System.EventHandler(this.ExtractToolStripMenuItem_Click);
+      // 
+      // extractCompressedPFSCToolStripMenuItem
+      // 
+      this.extractCompressedPFSCToolStripMenuItem.Enabled = false;
+      this.extractCompressedPFSCToolStripMenuItem.Name = "extractCompressedPFSCToolStripMenuItem";
+      this.extractCompressedPFSCToolStripMenuItem.Size = new System.Drawing.Size(253, 24);
+      this.extractCompressedPFSCToolStripMenuItem.Text = "Extract compressed (PFSC)";
+      this.extractCompressedPFSCToolStripMenuItem.Click += new System.EventHandler(this.extractCompressedPFSCToolStripMenuItem_Click);
       // 
       // imageList1
       // 
@@ -111,8 +126,9 @@
       this.currentFolderListView.HideSelection = false;
       this.currentFolderListView.LargeImageList = this.imageList2;
       this.currentFolderListView.Location = new System.Drawing.Point(0, 0);
+      this.currentFolderListView.Margin = new System.Windows.Forms.Padding(4);
       this.currentFolderListView.Name = "currentFolderListView";
-      this.currentFolderListView.Size = new System.Drawing.Size(397, 382);
+      this.currentFolderListView.Size = new System.Drawing.Size(530, 470);
       this.currentFolderListView.SmallImageList = this.imageList1;
       this.currentFolderListView.TabIndex = 0;
       this.currentFolderListView.UseCompatibleStateImageBehavior = false;
@@ -127,6 +143,11 @@
       // 
       this.columnHeader2.Text = "Size";
       // 
+      // columnHeader3
+      // 
+      this.columnHeader3.Text = "Comp. Size";
+      this.columnHeader3.Width = 75;
+      // 
       // imageList2
       // 
       this.imageList2.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList2.ImageStream")));
@@ -134,18 +155,14 @@
       this.imageList2.Images.SetKeyName(0, "File_large.png");
       this.imageList2.Images.SetKeyName(1, "Folder_large.png");
       // 
-      // columnHeader3
-      // 
-      this.columnHeader3.Text = "Comp. Size";
-      this.columnHeader3.Width = 75;
-      // 
       // FileView
       // 
-      this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+      this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.Controls.Add(this.splitContainer1);
+      this.Margin = new System.Windows.Forms.Padding(4);
       this.Name = "FileView";
-      this.Size = new System.Drawing.Size(600, 382);
+      this.Size = new System.Drawing.Size(800, 470);
       this.splitContainer1.Panel1.ResumeLayout(false);
       this.splitContainer1.Panel2.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
@@ -167,5 +184,6 @@
     private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
     private System.Windows.Forms.ToolStripMenuItem extractToolStripMenuItem;
     private System.Windows.Forms.ColumnHeader columnHeader3;
+    private System.Windows.Forms.ToolStripMenuItem extractCompressedPFSCToolStripMenuItem;
   }
 }

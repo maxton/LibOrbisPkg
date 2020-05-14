@@ -96,7 +96,7 @@ namespace PkgEditor.Views
       }
     }
 
-    private void Extract(PfsNode n)
+    private void Extract(PfsNode n, bool compressed = false)
     {
       var sfd = new SaveFileDialog()
       {
@@ -111,7 +111,7 @@ namespace PkgEditor.Views
         }
         else if (n is PfsFile f)
         {
-          f.Save(sfd.FileName);
+          f.Save(sfd.FileName, !compressed);
         }
       }
     }
@@ -166,6 +166,23 @@ namespace PkgEditor.Views
             stuff.Add((i as ListViewItem)?.Tag as PfsNode);
           ExtractMultiple(stuff);
         }
+      }
+    }
+
+    private void extractCompressedPFSCToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      if (currentFolderListView.Focused && currentFolderListView.SelectedItems.Count == 1 && currentFolderListView.SelectedItems[0].Tag is PfsNode n)
+      {
+        Extract(n, compressed: true);
+      }
+    }
+
+    private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
+    {
+      extractCompressedPFSCToolStripMenuItem.Enabled = false;
+      if (currentFolderListView.Focused && currentFolderListView.SelectedItems.Count == 1 && currentFolderListView.SelectedItems[0].Tag is PfsNode n)
+      {
+        extractCompressedPFSCToolStripMenuItem.Enabled = n.compressed_size != n.size;
       }
     }
   }
