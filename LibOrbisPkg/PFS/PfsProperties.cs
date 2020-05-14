@@ -14,6 +14,7 @@ namespace LibOrbisPkg.PFS
     public FSDir root;
     public long FileTime;
     public uint BlockSize;
+    public uint MinBlocks = 0;
     public bool Encrypt;
     public bool Sign;
     public byte[] EKPFS;
@@ -36,6 +37,8 @@ namespace LibOrbisPkg.PFS
       {
         root = props.RootDir,
         BlockSize = 0x10000,
+        // Hack: allocate a minimum of 5.5MiB of blocks for GP
+        MinBlocks = props.VolumeType == GP4.VolumeType.pkg_ps4_app ? 0x55u : 0,
         Encrypt = false,
         Sign = false,
         FileTime = GetTimeStamp(props),

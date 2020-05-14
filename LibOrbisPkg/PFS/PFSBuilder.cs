@@ -506,6 +506,8 @@ namespace LibOrbisPkg.PFS
           hdr.Ndblock += blocks;
         }
       }
+      // Hack: set a minimum size for the PFS image.
+      hdr.Ndblock = Math.Max(hdr.Ndblock, properties.MinBlocks);
     }
 
     inode MakeInode(InodeMode Mode, uint Blocks, long Size = 0, long SizeCompressed = 0, ushort Nlink = 1, uint Number = 0, InodeFlags Flags = 0)
