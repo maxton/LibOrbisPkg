@@ -30,6 +30,7 @@ build:
 
 after_build:
  - dotnet publish -c Release -r linux-x64 /p:PublishSingleFile=true PkgTool.Core
+ - dotnet publish -c Release -r osx-x64 /p:PublishSingleFile=true PkgTool.Core
  - >
    7z a PkgEditor-%APPVEYOR_BUILD_VERSION%.zip 
    %APPVEYOR_BUILD_FOLDER%\PkgEditor\bin\Release\PkgEditor.exe
@@ -66,6 +67,11 @@ after_build:
  - >
    7z a PkgTool.Core-linux-x64-%APPVEYOR_BUILD_VERSION%.zip 
    "%APPVEYOR_BUILD_FOLDER%\PkgTool.Core\bin\Any CPU\Release\netcoreapp3.0\linux-x64\publish\PkgTool.Core"
+   %APPVEYOR_BUILD_FOLDER%\README.md
+   %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
+ - >
+   7z a PkgTool.Core-osx-x64-%APPVEYOR_BUILD_VERSION%.zip 
+   "%APPVEYOR_BUILD_FOLDER%\PkgTool.Core\bin\Any CPU\Release\netcoreapp3.0\osx-x64\publish\PkgTool.Core"
    %APPVEYOR_BUILD_FOLDER%\README.md
    %APPVEYOR_BUILD_FOLDER%\LICENSE.txt
  - >
