@@ -8,6 +8,7 @@ using System.Text;
 using System.IO;
 using LibOrbisPkg;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace PkgEditor
 {
@@ -262,6 +263,24 @@ namespace PkgEditor
     private void cryptoDebuggerToolStripMenuItem_Click(object sender, EventArgs e)
     {
       OpenTab(new Views.CryptoDebug(), "Crypto Debugger");
+    }
+
+    private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+      var version = FileVersionInfo.GetVersionInfo(assembly.Location).FileVersion;
+      var libAssembly = System.Reflection.Assembly.GetAssembly(typeof(LibOrbisPkg.PKG.Pkg));
+      var libVersion = FileVersionInfo.GetVersionInfo(libAssembly.Location).FileVersion;
+      MessageBox.Show(this, 
+        "PkgEditor (c) 2020 Maxton" + Environment.NewLine +
+        "LibOrbisPkg version "+ libVersion + Environment.NewLine +
+        "PkgEditor version " + version,
+        "About PkgEditor");
+    }
+
+    private void visitGitHubRepoToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      Process.Start("https://github.com/maxton/LibOrbisPkg");
     }
   }
 }

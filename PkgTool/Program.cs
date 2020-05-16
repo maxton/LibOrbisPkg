@@ -473,6 +473,19 @@ namespace PkgTool
             new ParamSfo().Write(f);
           }
         }),
+      Verb.Create(
+        "version",
+        "Print the version and exit.",
+        new List<ArgDef>(),
+        _ => {
+          var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+          var version = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location).FileVersion;
+          var libAssembly = System.Reflection.Assembly.GetAssembly(typeof(Pkg));
+          var libVersion = System.Diagnostics.FileVersionInfo.GetVersionInfo(libAssembly.Location).FileVersion;
+          Console.WriteLine("PkgTool (c) 2020 Maxton");
+          Console.WriteLine("LibOrbisPkg version " + libVersion);
+          Console.WriteLine("PkgTool version " + version);
+        }),
     };
 
     private static void ExtractInParallel(PfsReader inner, string outPath, bool verbose)
@@ -582,6 +595,8 @@ namespace PkgTool
     }
     public override string ToString()
     {
+      if (Args == null || Args.Count == 0)
+        return Name;
       var options = Args
         .Select(x => 
           x.Type == ArgType.Boolean ? $"[--{x.Name}]" :

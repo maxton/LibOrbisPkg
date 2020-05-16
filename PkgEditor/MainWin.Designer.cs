@@ -43,6 +43,10 @@
       this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.combinePKGPartsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.cryptoDebuggerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.visitGitHubRepoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
       this.menuStrip.SuspendLayout();
       this.SuspendLayout();
       // 
@@ -60,7 +64,8 @@
       // 
       this.menuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
-            this.toolsToolStripMenuItem});
+            this.toolsToolStripMenuItem,
+            this.helpToolStripMenuItem});
       this.menuStrip.Location = new System.Drawing.Point(0, 0);
       this.menuStrip.Name = "menuStrip";
       this.menuStrip.Size = new System.Drawing.Size(800, 24);
@@ -169,6 +174,35 @@
       this.cryptoDebuggerToolStripMenuItem.Text = "Crypto debugger";
       this.cryptoDebuggerToolStripMenuItem.Click += new System.EventHandler(this.cryptoDebuggerToolStripMenuItem_Click);
       // 
+      // helpToolStripMenuItem
+      // 
+      this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.visitGitHubRepoToolStripMenuItem,
+            this.toolStripSeparator1,
+            this.aboutToolStripMenuItem});
+      this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+      this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+      this.helpToolStripMenuItem.Text = "&Help";
+      // 
+      // aboutToolStripMenuItem
+      // 
+      this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+      this.aboutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+      this.aboutToolStripMenuItem.Text = "&About...";
+      this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
+      // 
+      // visitGitHubRepoToolStripMenuItem
+      // 
+      this.visitGitHubRepoToolStripMenuItem.Name = "visitGitHubRepoToolStripMenuItem";
+      this.visitGitHubRepoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+      this.visitGitHubRepoToolStripMenuItem.Text = "Visit GitHub Repo";
+      this.visitGitHubRepoToolStripMenuItem.Click += new System.EventHandler(this.visitGitHubRepoToolStripMenuItem_Click);
+      // 
+      // toolStripSeparator1
+      // 
+      this.toolStripSeparator1.Name = "toolStripSeparator1";
+      this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
+      // 
       // MainWin
       // 
       this.AllowDrop = true;
@@ -207,6 +241,10 @@
     private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem combinePKGPartsToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem cryptoDebuggerToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem visitGitHubRepoToolStripMenuItem;
+    private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
   }
 }
 

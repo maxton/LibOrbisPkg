@@ -7,6 +7,7 @@
     <Platforms>AnyCPU</Platforms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>CORE</DefineConstants>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -43,6 +44,7 @@
     <Compile Include="..\LibOrbisPkg\PKG\PkgWriter.cs" Link="PKG\PkgWriter.cs" />
     <Compile Include="..\LibOrbisPkg\PlayGo\ChunkDat.cs" Link="PlayGo\ChunkDat.cs" />
     <Compile Include="..\LibOrbisPkg\PlayGo\Manifest.cs" Link="PlayGo\Manifest.cs" />
+    <Compile Include="..\LibOrbisPkg\Properties\AssemblyInfo.cs" Link="Properties\AssemblyInfo.cs" />
     <Compile Include="..\LibOrbisPkg\Rif\LicenseDat.cs" Link="Rif\LicenseDat.cs" />
     <Compile Include="..\LibOrbisPkg\Rif\LicenseInfo.cs" Link="Rif\LicenseInfo.cs" />
     <Compile Include="..\LibOrbisPkg\SFO\ParamSfo.cs" Link="SFO\ParamSfo.cs" />
@@ -60,6 +62,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Properties\" />
     <Folder Include="PlayGo\" />
     <Folder Include="Util\" />
     <Folder Include="Rif\" />
