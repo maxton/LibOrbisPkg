@@ -87,6 +87,7 @@ artifacts:
 - path: PkgTool.Core-%APPVEYOR_BUILD_VERSION%.zip
 - path: LibOrbisPkg.Core-%APPVEYOR_BUILD_VERSION%.zip
 - path: PkgTool.Core-linux-x64-%APPVEYOR_BUILD_VERSION%.zip 
+- path: PkgTool.Core-osx-x64-%APPVEYOR_BUILD_VERSION%.zip 
 
 deploy:
   release: LibOrbisPkg-v$(appveyor_build_version)
