@@ -17,11 +17,10 @@ namespace PkgEditor.Views
     private MemoryMappedFile pfsFile;
     private MemoryMappedViewAccessor va;
     private PfsReader reader;
-    private static int idx = 0;
     public PFSView(string filename)
     {
       InitializeComponent();
-      pfsFile = MemoryMappedFile.CreateFromFile(filename, System.IO.FileMode.Open, "pfsFile" + idx++, 0, MemoryMappedFileAccess.Read);
+      pfsFile = MemoryMappedFile.CreateFromFile(filename, System.IO.FileMode.Open, mapName: null, 0, MemoryMappedFileAccess.Read);
       va = pfsFile.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read);
       va.Read(0, out int val);
       if (val == PFSCReader.Magic)

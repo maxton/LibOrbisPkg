@@ -40,7 +40,7 @@ namespace LibOrbisPkg.PKG
       var pkgFile = MemoryMappedFile.CreateFromFile(
         filename, 
         FileMode.Create,
-        "pkgFile",
+        mapName: null,
         totalSize);
       if (pkg.Header.content_type != ContentType.AL)
       {

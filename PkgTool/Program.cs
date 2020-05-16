@@ -209,7 +209,7 @@ namespace PkgTool
               }
               s.Close();
               using (var pkgMM = MemoryMappedFile.CreateFromFile(pkgPath, FileMode.Open))
-              using (var o = MemoryMappedFile.CreateFromFile(outPath, capacity: outerpfs_size, mapName: "output_outerpfs", mode: FileMode.Create))
+              using (var o = MemoryMappedFile.CreateFromFile(outPath, capacity: outerpfs_size, mapName: null, mode: FileMode.Create))
               using (var outputView = o.CreateViewAccessor(0, 0, MemoryMappedFileAccess.ReadWrite))
               using (var outerPfs = new MemoryMappedViewAccessor_(
                   pkgMM.CreateViewAccessor((long)pkg.Header.pfs_image_offset, (long)pkg.Header.pfs_image_size, MemoryMappedFileAccess.Read),

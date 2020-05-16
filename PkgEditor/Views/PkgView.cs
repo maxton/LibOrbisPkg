@@ -33,12 +33,11 @@ namespace PkgEditor.Views
     private MemoryMappedFile pkgFile;
     private MemoryMappedViewAccessor va;
     private string passcode;
-    private static int idx;
     public PkgView(string path)
     {
       InitializeComponent();
       if (path == null) return;
-      pkgFile = MemoryMappedFile.CreateFromFile(path, FileMode.Open, "pkgFile"+idx++, 0, MemoryMappedFileAccess.Read);
+      pkgFile = MemoryMappedFile.CreateFromFile(path, FileMode.Open, mapName: null, 0, MemoryMappedFileAccess.Read);
       using (var s = pkgFile.CreateViewStream(0, 0, MemoryMappedFileAccess.Read))
         ObjectPreview(new PkgReader(s).ReadHeader(), pkgHeaderTreeView);
       using (var s = pkgFile.CreateViewStream(0, 0, MemoryMappedFileAccess.Read))
