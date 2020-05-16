@@ -19,6 +19,8 @@
     <Compile Include="..\PkgEditor\PasscodeEntry.Designer.cs" Link="PasscodeEntry.Designer.cs" />
     <Compile Include="..\PkgEditor\Program.cs" Link="Program.cs" />
     <Compile Include="..\PkgEditor\Properties\AssemblyInfo.cs" Link="Properties\AssemblyInfo.cs" />
+    <Compile Include="..\PkgEditor\Views\CryptoDebug.cs" Link="Views\CryptoDebug.cs" />
+    <Compile Include="..\PkgEditor\Views\CryptoDebug.Designer.cs" Link="Views\CryptoDebug.Designer.cs" />
     <Compile Include="..\PkgEditor\Views\FileView.cs" Link="Views\FileView.cs" />
     <Compile Include="..\PkgEditor\Views\FileView.Designer.cs" Link="Views\FileView.Designer.cs" />
     <Compile Include="..\PkgEditor\Views\GP4View.cs" Link="Views\GP4View.cs" />
@@ -42,6 +44,7 @@
     <EmbeddedResource Include="..\PkgEditor\LogWindow.resx" Link="LogWindow.resx" />
     <EmbeddedResource Include="..\PkgEditor\MainWin.resx" Link="MainWin.resx" />
     <EmbeddedResource Include="..\PkgEditor\PasscodeEntry.resx" Link="PasscodeEntry.resx" />
+    <EmbeddedResource Include="..\PkgEditor\Views\CryptoDebug.resx" Link="Views\CryptoDebug.resx" />
     <EmbeddedResource Include="..\PkgEditor\Views\FileView.resx" Link="Views\FileView.resx" />
     <EmbeddedResource Include="..\PkgEditor\Views\GP4View.resx" Link="Views\GP4View.resx" />
     <EmbeddedResource Include="..\PkgEditor\Views\ObjectView.resx" Link="Views\ObjectView.resx" />

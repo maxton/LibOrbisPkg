@@ -15,6 +15,7 @@ namespace PkgEditor.Views
     public override bool CanSave => false;
     public override bool CanSaveAs => false;
 
+    public ObjectView() : this(null) { }
     public ObjectView(object obj)
     {
       InitializeComponent();
@@ -22,7 +23,7 @@ namespace PkgEditor.Views
     }
 
     object previewObj;
-    void ObjectPreview(object obj)
+    public void ObjectPreview(object obj)
     {
       treeView1.Nodes.Clear();
       AddObjectNodes(obj, treeView1.Nodes);
@@ -39,9 +40,14 @@ namespace PkgEditor.Views
       foreach (var f in fields)
       {
         if (f.IsLiteral) continue;
-        if (f.FieldType.IsPrimitive || f.FieldType == typeof(string) || f.FieldType.IsEnum)
+
+        var val = f.GetValue(obj);
+        if (val is byte[] b)
         {
-          var val = f.GetValue(obj);
+          nodes.Add(f.Name + " = " + LibOrbisPkg.Util.Crypto.AsHexCompact(b));
+        }
+        else if (f.FieldType.IsPrimitive || f.FieldType == typeof(string) || f.FieldType.IsEnum)
+        {
           if (val != null)
           {
             nodes.Add(f.Name + " = " + val.ToString());

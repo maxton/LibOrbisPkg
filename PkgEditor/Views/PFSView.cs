@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using LibOrbisPkg.PFS;
+using LibOrbisPkg.Util;
 using System.IO.MemoryMappedFiles;
 
 namespace PkgEditor.Views
@@ -26,7 +27,31 @@ namespace PkgEditor.Views
       if (val == PFSCReader.Magic)
         reader = new PfsReader(new PFSCReader(va));
       else
-        reader = new PfsReader(va);
+      {
+        PfsHeader header;
+        using (var h = pfsFile.CreateViewStream(0, 0x600, MemoryMappedFileAccess.Read))
+        {
+          header = PfsHeader.ReadFromStream(h);
+        }
+        byte[] tweak = null, data = null;
+        if (header.Mode.HasFlag(PfsMode.Encrypted))
+        {
+          var passcode = new PasscodeEntry("Please enter data key", 32);
+          passcode.Text = "PFS is encrypted";
+          passcode.ShowDialog();
+          data = passcode.Passcode.FromHexCompact();
+
+          passcode = new PasscodeEntry("Please enter tweak key", 32);
+          passcode.Text = "PFS is encrypted";
+          passcode.ShowDialog();
+          data = passcode.Passcode.FromHexCompact();
+          reader = new PfsReader(va, data: data, tweak: tweak);
+        }
+        else
+        {
+          reader = new PfsReader(va);
+        }
+      }
       fileView1.AddRoot(reader, filename);
     }
 

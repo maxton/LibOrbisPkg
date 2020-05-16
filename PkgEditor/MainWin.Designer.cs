@@ -42,6 +42,7 @@
       this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.combinePKGPartsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.cryptoDebuggerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.menuStrip.SuspendLayout();
       this.SuspendLayout();
       // 
@@ -148,9 +149,10 @@
       // toolsToolStripMenuItem
       // 
       this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.combinePKGPartsToolStripMenuItem});
+            this.combinePKGPartsToolStripMenuItem,
+            this.cryptoDebuggerToolStripMenuItem});
       this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
-      this.toolsToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
+      this.toolsToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
       this.toolsToolStripMenuItem.Text = "&Tools";
       // 
       // combinePKGPartsToolStripMenuItem
@@ -159,6 +161,13 @@
       this.combinePKGPartsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.combinePKGPartsToolStripMenuItem.Text = "Combine PKG parts";
       this.combinePKGPartsToolStripMenuItem.Click += new System.EventHandler(this.CombinePKGPartsToolStripMenuItem_Click);
+      // 
+      // cryptoDebuggerToolStripMenuItem
+      // 
+      this.cryptoDebuggerToolStripMenuItem.Name = "cryptoDebuggerToolStripMenuItem";
+      this.cryptoDebuggerToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+      this.cryptoDebuggerToolStripMenuItem.Text = "Crypto debugger";
+      this.cryptoDebuggerToolStripMenuItem.Click += new System.EventHandler(this.cryptoDebuggerToolStripMenuItem_Click);
       // 
       // MainWin
       // 
@@ -197,6 +206,7 @@
     private System.Windows.Forms.ToolStripMenuItem sFOFileToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem combinePKGPartsToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem cryptoDebuggerToolStripMenuItem;
   }
 }
 

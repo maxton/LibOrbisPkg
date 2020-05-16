@@ -258,5 +258,10 @@ namespace PkgEditor
         }
       }
     }
+
+    private void cryptoDebuggerToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      OpenTab(new Views.CryptoDebug(), "Crypto Debugger");
+    }
   }
 }

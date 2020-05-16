@@ -12,9 +12,11 @@ namespace PkgEditor
 {
   public partial class PasscodeEntry : Form
   {
-    public PasscodeEntry()
+    public PasscodeEntry(string prompt = "Please enter the package's passcode.", int length = 32)
     {
       InitializeComponent();
+      label1.Text = prompt;
+      textBox1.MaxLength = length;
     }
     public string Passcode => textBox1.Text;
   }

@@ -138,16 +138,18 @@ namespace LibOrbisPkg.PFS
       }
       if (hdr.Mode.HasFlag(PfsMode.Encrypted))
       {
+        const int XtsSectorSize = 0x1000;
+        uint XtsStartSector = hdr.BlockSize / XtsSectorSize;
         if (ekpfs == null && (tweak == null || data == null))
           throw new ArgumentException("PFS image is encrypted but no decryption key was provided");
         if (ekpfs != null)
         {
           var (tweakKey, dataKey) = Crypto.PfsGenEncKey(ekpfs, hdr.Seed, (pfs_flags & 0x2000000000000000UL) != 0);
-          reader = new XtsDecryptReader(reader, dataKey, tweakKey, 16, 0x1000);
+          reader = new XtsDecryptReader(reader, dataKey, tweakKey, XtsStartSector, XtsSectorSize);
         }
         else
         {
-          reader = new XtsDecryptReader(reader, data, tweak, 16, 0x1000);
+          reader = new XtsDecryptReader(reader, data, tweak, XtsStartSector, XtsSectorSize);
         }
       }
       var total = 0;
