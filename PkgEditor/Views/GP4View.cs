@@ -230,10 +230,14 @@ namespace PkgEditor.Views
 
     private async void buildPkg_Click(object sender, EventArgs e)
     {
-      if(proj.files.Items.Where(f => f.TargetPath == "sce_sys/param.sfo").Count() == 0)
+      var validateResults = Gp4Validator.ValidateProject(proj, Path.GetDirectoryName(path));
+      if (validateResults.Count != 0)
       {
-        MessageBox.Show("You need to add a param.sfo to the sce_sys directory before building.");
-        return;
+        var validateDialog = new ValidationDialog(validateResults);
+        if (validateDialog.ShowDialog() == DialogResult.Cancel)
+        {
+          return;
+        }
       }
       var ofd = new SaveFileDialog();
       ofd.Filter = "PKG Image|*.pkg";

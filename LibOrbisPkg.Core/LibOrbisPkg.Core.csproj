@@ -25,6 +25,7 @@
   <ItemGroup>
     <Compile Include="..\LibOrbisPkg\GP4\Gp4Creator.cs" Link="GP4\Gp4Creator.cs" />
     <Compile Include="..\LibOrbisPkg\GP4\Gp4Project.cs" Link="GP4\Gp4Project.cs" />
+    <Compile Include="..\LibOrbisPkg\GP4\Gp4Validator.cs" Link="GP4\Gp4Validator.cs" />
     <Compile Include="..\LibOrbisPkg\PFS\FlatPathTable.cs" Link="PFS\FlatPathTable.cs" />
     <Compile Include="..\LibOrbisPkg\PFS\FSTree.cs" Link="PFS\FSTree.cs" />
     <Compile Include="..\LibOrbisPkg\PFS\PFSBuilder.cs" Link="PFS\PFSBuilder.cs" />

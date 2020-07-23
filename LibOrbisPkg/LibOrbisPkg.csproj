@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="GP4\Gp4Creator.cs" />
     <Compile Include="GP4\Gp4Project.cs" />
+    <Compile Include="GP4\Gp4Validator.cs" />
     <Compile Include="PFS\PFSCReader.cs" />
     <Compile Include="PFS\PFSCWriter.cs" />
     <Compile Include="PFS\PfsReader.cs" />

@@ -63,6 +63,28 @@ namespace PkgTool
         {
           var proj = args[1];
           var project = Gp4Project.ReadFrom(File.OpenRead(proj));
+          var validation = Gp4Validator.ValidateProject(project, Path.GetDirectoryName(proj));
+          bool ok = true;
+          if (validation.Count > 0)
+          {
+            Console.WriteLine("Found {0} issue(s) with GP4 project:", validation.Count);
+          }
+          foreach (ValidateResult v in validation)
+          {
+            if (v.Type == ValidateResult.ResultType.Fatal)
+            {
+              ok = false;
+            }
+            Console.WriteLine("{0}: {1}",
+              v.Type == ValidateResult.ResultType.Fatal ? "FATAL ERROR" : "WARNING    ",
+              v.Message);
+          }
+          if (!ok)
+          {
+            Console.WriteLine("Cannot build PKG due to fatal errors.");
+            Environment.Exit(1);
+            return;
+          }
           var props = PkgProperties.FromGp4(project, Path.GetDirectoryName(proj));
           var outputPath = args[2];
           new PkgBuilder(props).Write(Path.Combine(
