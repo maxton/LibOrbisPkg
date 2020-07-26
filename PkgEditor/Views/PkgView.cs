@@ -63,7 +63,7 @@ namespace PkgEditor.Views
       titleTextBox.Text = pkg.ParamSfo.ParamSfo["TITLE"]?.ToString();
       sizeLabel.Text = FileView.HumanReadableFileSize((long)pkg.Header.package_size);
       var category = pkg.ParamSfo.ParamSfo["CATEGORY"].ToString();
-      typeLabel.Text = SFOView.SfoTypes.Where(x => x.Category == category).FirstOrDefault() is SFOView.SfoType t ? t.Description : "Unknown";
+      typeLabel.Text = SfoData.SfoTypes.Where(x => x.Category == category).FirstOrDefault() is SfoType t ? t.Description : "Unknown";
       versionLabel.Text = pkg.ParamSfo.ParamSfo["VERSION"]?.ToString();
       if (pkg.ParamSfo.ParamSfo["APP_VER"] is Utf8Value v)
       {

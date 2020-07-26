@@ -277,21 +277,21 @@ namespace PkgEditor.Views
       attributesListBox.Items.Clear();
       for (var i = 0; i < 32; i++)
       {
-        attributesListBox.Items.Add(AttributeNames[i], false);
-        attributes2ListBox.Items.Add(Attribute2Names[i], false);
+        attributesListBox.Items.Add(SfoData.AttributeNames[i], false);
+        attributes2ListBox.Items.Add(SfoData.Attribute2Names[i], false);
       }
       sfoTypeCombobox.Items.Clear();
-      foreach (var t in SfoTypes)
+      foreach (var t in SfoData.SfoTypes)
       {
         sfoTypeCombobox.Items.Add(t);
       }
       appTypeComboBox.Items.Clear();
-      foreach (var t in AppTypes)
+      foreach (var t in SfoData.AppTypes)
       {
         appTypeComboBox.Items.Add(t);
       }
       downloadSizeComboBox.Items.Clear();
-      foreach (var d in DownloadSizes)
+      foreach (var d in SfoData.DownloadSizes)
       {
         downloadSizeComboBox.Items.Add(d);
       }
@@ -323,7 +323,7 @@ namespace PkgEditor.Views
       }
       if (sender != sfoTypeCombobox)
       {
-        sfoTypeCombobox.SelectedItem = SfoTypes.FirstOrDefault(x => x.Category == proj["CATEGORY"]?.ToString());
+        sfoTypeCombobox.SelectedItem = SfoData.SfoTypes.FirstOrDefault(x => x.Category == proj["CATEGORY"]?.ToString());
       }
       if (sender != titleTextBox)
       {
@@ -464,147 +464,5 @@ namespace PkgEditor.Views
     }
 
     private void DeleteToolStripMenuItem_Click(object sender, EventArgs e) => TableEditor_DeleteSelected();
-
-    // Source: https://psdevwiki.com/ps4/param.sfo
-    private static string[] AttributeNames =
-    {
-      "The application does support the initial user's logout",
-      "Enter Button Assignment for the common dialog: Cross button",
-      "Menu for Warning Dialog for PS Move is displayed in the option menu",
-      "The application supports Stereoscopic 3D",
-      "The application is suspended when PS button is pressed (e.g. Amazon Instant Video)",
-      "Enter Button Assignment for the common dialog: Assigned by the System Software",
-      "The application overwrites the default behavior of the Share Menu",
-      "Unknown(8)",
-      "The application is suspended when the special output resolution is set and PS button is pressed",
-      "HDCP is enabled",
-      "HDCP is disabled for non games app",
-      "Unknown(12)",
-      "Unknown(13)",
-      "Unknown(14)",
-      "This Application supports PlayStation VR",
-      "CPU mode (6 CPU)",
-      "CPU mode (7 CPU)",
-      "Unknown(18)",
-      "Unknown(19)",
-      "Unknown(20)",
-      "Unknown(21)",
-      "Unknown(22)",
-      "Unknown(23)",
-      "The application supports NEO mode (PS4 pro)",
-      "Unknown(25)",
-      "Unknown(26)",
-      "The Application Requires PlayStation VR",
-      "Unknown(28)",
-      "Unknown(29)",
-      "This Application Supports HDR",
-      "Unknown(31)",
-      "Display Location (?)"
-    };
-
-    private static string[] Attribute2Names = new[]
-    {
-      "Unknown(1)",
-      "The application supports Video Recording Feature",
-      "The application supports Content Search Feature",
-      "Unknown(4)",
-      "PSVR Personal Eye-to-Eye distance setting disabled",
-      "PSVR Personal Eye-to-Eye distance dynamically changeable",
-      "Unknown(7)",
-      "Unknown(8)",
-      "The application supports broadcast separate mode",
-      "The library does not apply dummy load for tracking Playstation Move to CPU",
-      "Unknown(11)",
-      "The application supports One on One match event with an old SDK",
-      "The application supports Team on team tournament with an old SDK",
-      "Unknown(14)",
-      "Unknown(15)",
-      "Unknown(16)",
-      "Unknown(17)",
-      "Unknown(18)",
-      "Unknown(19)",
-      "Unknown(20)",
-      "Unknown(21)",
-      "Unknown(22)",
-      "Unknown(23)",
-      "Unknown(24)",
-      "Unknown(25)",
-      "Unknown(26)",
-      "Unknown(27)",
-      "Unknown(28)",
-      "Unknown(29)",
-      "Unknown(30)",
-      "Unknown(31)",
-      "Unknown(32)",
-    };
-
-    public class SfoType
-    {
-      public string Category;
-      public string Description;
-      public SfoType(string formatCode, string description)
-      {
-        Category = formatCode;
-        Description = description;
-      }
-      public override string ToString()
-      {
-        return $"{Category} - {Description}";
-      }
-    }
-    public static readonly List<SfoType> SfoTypes = new List<SfoType> {
-      new SfoType( "ac", "Additional Content" ),
-      new SfoType( "bd", "Blu-ray Disc?" ),
-      new SfoType( "gc", "Game Content(?)" ),
-      new SfoType( "gd", "Game Digital Application" ),
-      new SfoType( "gda", "System Application" ),
-      new SfoType( "gdb", "Unknown" ),
-      new SfoType( "gdc", "Non-Game Big Application" ),
-      new SfoType( "gdd", "BG Application" ),
-      new SfoType( "gde", "Non-Game Mini App / Video Service Native App" ),
-      new SfoType( "gdk", "Video Service Web App" ),
-      new SfoType( "gdl", "PS Cloud Beta App" ),
-      new SfoType( "gdO", "PS2 Classic" ),
-      new SfoType( "gp", "Game Application Patch" ),
-      new SfoType( "gpc", "Non-Game Big App Patch" ),
-      new SfoType( "gpd", "BG Application patch" ),
-      new SfoType( "gpe", "Non-Game Mini App Patch / Video Service Native App Patch" ),
-      new SfoType( "gpk", "Video Service Web App Patch" ),
-      new SfoType( "gpl", "PS Cloud Beta App Patch" ),
-      new SfoType( "sd", "Save Data" ),
-      new SfoType( "la", "License Area (Vita)?" ),
-      new SfoType( "wda", "Unknown" ),
-    };
-
-    private class AppType
-    {
-      public int Type;
-      public string Description;
-      public AppType(int type, string description)
-      {
-        Type = type;
-        Description = description;
-      }
-      public override string ToString()
-      {
-        return $"{Type} - {Description}";
-      }
-    }
-    private static List<AppType> AppTypes = new List<AppType> {
-      new AppType( 0, "Not Specified" ),
-      new AppType( 1, "Paid standalone full app" ),
-      new AppType( 2, "Upgradable app" ),
-      new AppType( 3, "Demo app" ),
-      new AppType( 4, "Freemium app" ),
-    };
-    private static string[] DownloadSizes = new[]
-    {
-      "0MiB (Disable)",
-      "64MiB",
-      "128MiB",
-      "256MiB",
-      "512MiB",
-      "1GiB"
-    };
   }
 }
