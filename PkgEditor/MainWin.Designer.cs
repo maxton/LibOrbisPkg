@@ -44,9 +44,10 @@
       this.combinePKGPartsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.cryptoDebuggerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-      this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.visitGitHubRepoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+      this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.setPKGPFSFileMetadataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.menuStrip.SuspendLayout();
       this.SuspendLayout();
       // 
@@ -155,7 +156,8 @@
       // 
       this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.combinePKGPartsToolStripMenuItem,
-            this.cryptoDebuggerToolStripMenuItem});
+            this.cryptoDebuggerToolStripMenuItem,
+            this.setPKGPFSFileMetadataToolStripMenuItem});
       this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
       this.toolsToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
       this.toolsToolStripMenuItem.Text = "&Tools";
@@ -163,14 +165,14 @@
       // combinePKGPartsToolStripMenuItem
       // 
       this.combinePKGPartsToolStripMenuItem.Name = "combinePKGPartsToolStripMenuItem";
-      this.combinePKGPartsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+      this.combinePKGPartsToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
       this.combinePKGPartsToolStripMenuItem.Text = "Combine PKG parts";
       this.combinePKGPartsToolStripMenuItem.Click += new System.EventHandler(this.CombinePKGPartsToolStripMenuItem_Click);
       // 
       // cryptoDebuggerToolStripMenuItem
       // 
       this.cryptoDebuggerToolStripMenuItem.Name = "cryptoDebuggerToolStripMenuItem";
-      this.cryptoDebuggerToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+      this.cryptoDebuggerToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
       this.cryptoDebuggerToolStripMenuItem.Text = "Crypto debugger";
       this.cryptoDebuggerToolStripMenuItem.Click += new System.EventHandler(this.cryptoDebuggerToolStripMenuItem_Click);
       // 
@@ -184,24 +186,31 @@
       this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
       this.helpToolStripMenuItem.Text = "&Help";
       // 
-      // aboutToolStripMenuItem
-      // 
-      this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-      this.aboutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-      this.aboutToolStripMenuItem.Text = "&About...";
-      this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
-      // 
       // visitGitHubRepoToolStripMenuItem
       // 
       this.visitGitHubRepoToolStripMenuItem.Name = "visitGitHubRepoToolStripMenuItem";
-      this.visitGitHubRepoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+      this.visitGitHubRepoToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
       this.visitGitHubRepoToolStripMenuItem.Text = "Visit GitHub Repo";
       this.visitGitHubRepoToolStripMenuItem.Click += new System.EventHandler(this.visitGitHubRepoToolStripMenuItem_Click);
       // 
       // toolStripSeparator1
       // 
       this.toolStripSeparator1.Name = "toolStripSeparator1";
-      this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
+      this.toolStripSeparator1.Size = new System.Drawing.Size(164, 6);
+      // 
+      // aboutToolStripMenuItem
+      // 
+      this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+      this.aboutToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
+      this.aboutToolStripMenuItem.Text = "&About...";
+      this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
+      // 
+      // setPKGPFSFileMetadataToolStripMenuItem
+      // 
+      this.setPKGPFSFileMetadataToolStripMenuItem.Name = "setPKGPFSFileMetadataToolStripMenuItem";
+      this.setPKGPFSFileMetadataToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
+      this.setPKGPFSFileMetadataToolStripMenuItem.Text = "Set PKG/PFS file metadata";
+      this.setPKGPFSFileMetadataToolStripMenuItem.Click += new System.EventHandler(this.setPKGPFSFileMetadataToolStripMenuItem_Click);
       // 
       // MainWin
       // 
@@ -245,6 +254,7 @@
     private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem visitGitHubRepoToolStripMenuItem;
     private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+    private System.Windows.Forms.ToolStripMenuItem setPKGPFSFileMetadataToolStripMenuItem;
   }
 }
 

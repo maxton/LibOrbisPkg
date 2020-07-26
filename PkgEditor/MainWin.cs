@@ -9,6 +9,8 @@ using System.IO;
 using LibOrbisPkg;
 using System.Windows.Forms;
 using System.Diagnostics;
+using LibOrbisPkg.PKG;
+using LibOrbisPkg.PFS;
 
 namespace PkgEditor
 {
@@ -281,6 +283,45 @@ namespace PkgEditor
     private void visitGitHubRepoToolStripMenuItem_Click(object sender, EventArgs e)
     {
       Process.Start("https://github.com/maxton/LibOrbisPkg");
+    }
+
+    private void setPKGPFSFileMetadataToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      using (var ofd = new OpenFileDialog() {
+        Title = "Select files",
+        Filter = "PKG/PFS Files (*.pkg, *.dat)|*.pkg;*.dat",
+        Multiselect = true
+      })
+      {
+        if (ofd.ShowDialog() != DialogResult.OK)
+          return;
+        foreach(var filename in ofd.FileNames)
+        {
+          DateTime creationTime = File.GetCreationTimeUtc(filename);
+          DateTime modifiedTime = File.GetLastWriteTime(filename);
+          using (var f = File.OpenRead(filename))
+          {
+            if (filename.ToLowerInvariant().EndsWith(".dat"))
+            {
+              var header = PfsHeader.ReadFromStream(f);
+              creationTime = modifiedTime =
+                new DateTime(1970, 1, 1)
+                .AddSeconds(header.InodeBlockSig.Time1_sec);
+            }
+            else if (filename.ToLowerInvariant().EndsWith(".pkg"))
+            {
+              var pkgHeader = new PkgReader(f).ReadHeader();
+              f.Position = (long)pkgHeader.pfs_image_offset;
+              var header = PfsHeader.ReadFromStream(f);
+              creationTime = modifiedTime =
+                new DateTime(1970, 1, 1)
+                .AddSeconds(header.InodeBlockSig.Time1_sec);
+            }
+          }
+          File.SetCreationTimeUtc(filename, creationTime);
+          File.SetLastWriteTimeUtc(filename, modifiedTime);
+        }
+      }
     }
   }
 }
