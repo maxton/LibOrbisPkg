@@ -1,0 +1,15 @@
+LittleEndian();
+
+char magic[4];
+int num;
+char i;
+char title[23];
+struct {
+    char name[16];
+    int64 offset;
+    int64 size;
+    char unk;
+    char unk2;
+    char hmac[8];
+    char pad[6];
+} rifs[num];

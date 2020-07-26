@@ -1,0 +1,33 @@
+typedef struct {
+    #include "Rif.bt"
+} Rif<read=RIF_READ>;
+
+string approx_date(int64 time) {
+    string ret;
+    local int64 secs_per_year = 31557600;
+    local int64 secs_per_month = secs_per_year / 12;
+    SPrintf(ret, "%4d-%02d", (time / secs_per_year)+1970, (time / secs_per_month) % 12 + 1);
+    return ret;
+}
+
+string RIF_READ(Rif &r) {
+    string ret;
+    SPrintf(ret, "V%d T%x U%d C%d %s - %s", 
+        r.version,
+        r.license_type,
+        r.unk_flag,
+        r.content_type,
+        approx_date(r.startTime),
+        r.contentId);
+    return ret;
+}
+
+BigEndian();
+if (ReadInt() == 0x72696661) {
+  char rifaMagic[4];
+  char ServiceID[0x14];
+  FSeek(0x400);
+  while(!FEof()) {
+    Rif rif;
+ }
+}
