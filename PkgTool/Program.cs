@@ -111,7 +111,7 @@ namespace PkgTool
           var passcode = optionals["passcode"];
           Pkg pkg;
 
-          var mmf = MemoryMappedFile.CreateFromFile(pkgPath);
+          var mmf = MemoryMappedFile.CreateFromFile(pkgPath, FileMode.Open, null, 0, MemoryMappedFileAccess.Read);
           using (var s = mmf.CreateViewStream(0, 0, MemoryMappedFileAccess.Read))
           {
             pkg = new PkgReader(s).ReadPkg();
@@ -133,7 +133,7 @@ namespace PkgTool
         {
           var pfsPath = args[1];
           var outPath = args[2];
-          using(var mmf = MemoryMappedFile.CreateFromFile(pfsPath))
+          using(var mmf = MemoryMappedFile.CreateFromFile(pfsPath, FileMode.Open, null, 0, MemoryMappedFileAccess.Read))
           using(var acc = mmf.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read))
           {
             var pfs = new PfsReader(acc);
@@ -151,7 +151,7 @@ namespace PkgTool
           var passcode = optionals["passcode"];
 
           Pkg pkg;
-          var mmf = MemoryMappedFile.CreateFromFile(pkgPath);
+          var mmf = MemoryMappedFile.CreateFromFile(pkgPath, FileMode.Open, null, 0, MemoryMappedFileAccess.Read);
           using (var s = mmf.CreateViewStream(0, 0, MemoryMappedFileAccess.Read))
           {
             pkg = new PkgReader(s).ReadPkg();
@@ -230,7 +230,7 @@ namespace PkgTool
                 dataKey = optionals["xts_data"]?.FromHexCompact();
               }
               s.Close();
-              using (var pkgMM = MemoryMappedFile.CreateFromFile(pkgPath, FileMode.Open))
+              using (var pkgMM = MemoryMappedFile.CreateFromFile(pkgPath, FileMode.Open, null, 0, MemoryMappedFileAccess.Read))
               using (var o = MemoryMappedFile.CreateFromFile(outPath, capacity: outerpfs_size, mapName: null, mode: FileMode.Create))
               using (var outputView = o.CreateViewAccessor(0, 0, MemoryMappedFileAccess.ReadWrite))
               using (var outerPfs = new MemoryMappedViewAccessor_(
