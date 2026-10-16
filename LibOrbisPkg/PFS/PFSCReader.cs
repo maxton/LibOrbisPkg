@@ -84,7 +84,15 @@ namespace LibOrbisPkg.PFS
         using (var bufStream = new MemoryStream(sectorBuf))
         using (var ds = new DeflateStream(bufStream, CompressionMode.Decompress))
         {
-          ds.Read(output, 0, hdr.BlockSz);
+          // .NET Core's DeflateStream.Read may return fewer bytes than asked: read until the sector is full.
+          int total = 0;
+          while (total < hdr.BlockSz)
+          {
+            int n = ds.Read(output, total, hdr.BlockSz - total);
+            if (n == 0)
+              throw new InvalidDataException($"PFSC sector {idx}: inflated {total} of {hdr.BlockSz} bytes");
+            total += n;
+          }
         }
       }
     }
