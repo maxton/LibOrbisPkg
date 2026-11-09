@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using System.IO.MemoryMappedFiles;
 using System.IO;
@@ -84,7 +84,15 @@ namespace LibOrbisPkg.PFS
         using (var bufStream = new MemoryStream(sectorBuf))
         using (var ds = new DeflateStream(bufStream, CompressionMode.Decompress))
         {
-          ds.Read(output, 0, hdr.BlockSz);
+          // DeflateStream.Read may legitimately return fewer bytes than requested;
+          // a single Read call leaves the rest of the sector zeroed.
+          int totalRead = 0;
+          while (totalRead < hdr.BlockSz)
+          {
+            int n = ds.Read(output, totalRead, hdr.BlockSz - totalRead);
+            if (n <= 0) break;
+            totalRead += n;
+          }
         }
       }
     }

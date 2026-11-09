@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.MemoryMappedFiles;
@@ -111,7 +111,7 @@ namespace PkgTool
           var passcode = optionals["passcode"];
           Pkg pkg;
 
-          var mmf = MemoryMappedFile.CreateFromFile(pkgPath);
+          var mmf = MemoryMappedFile.CreateFromFile(pkgPath, FileMode.Open, null, 0, MemoryMappedFileAccess.Read);
           using (var s = mmf.CreateViewStream(0, 0, MemoryMappedFileAccess.Read))
           {
             pkg = new PkgReader(s).ReadPkg();
@@ -126,6 +126,70 @@ namespace PkgTool
           }
         }),
       Verb.Create(
+        "pkg_readfile",
+        "Reads a byte range from a file inside a PKG (inner PFS). --allblocks prints every chunk index.",
+        ArgDef.Multi(ArgDef.Multi(ArgDef.Bool("allblocks"), ArgDef.Bool("outer")), ArgDef.Option("passcode", "xts_tweak", "xts_data"), "input.pkg", "file_path", "offset", "length", "output.bin"),
+        (flags, optionals, args) =>
+        {
+          var pkgPath = args[1];
+          var filePath = args[2];
+          var off = long.Parse(args[3]);
+          var len = int.Parse(args[4]);
+          var outp = args[5];
+          var passcode = optionals["passcode"];
+          Pkg pkg;
+          var mmf = MemoryMappedFile.CreateFromFile(pkgPath, FileMode.Open, null, 0, MemoryMappedFileAccess.Read);
+          using (var s = mmf.CreateViewStream(0, 0, MemoryMappedFileAccess.Read))
+          {
+            pkg = new PkgReader(s).ReadPkg();
+          }
+          var ekpfs = EkPfsFromPasscode(pkg, passcode);
+          var outerPfsOffset = (long)pkg.Header.pfs_image_offset;
+          using(var acc = mmf.CreateViewAccessor(outerPfsOffset, (long)pkg.Header.pfs_image_size, MemoryMappedFileAccess.Read))
+          {
+            var outerPfs = new PfsReader(acc, pkg.Header.pfs_flags, ekpfs, optionals["xts_tweak"]?.FromHexCompact(), optionals["xts_data"]?.FromHexCompact());
+            var inner = new PfsReader(new PFSCReader(outerPfs.GetFile("pfs_image.dat").GetView()));
+            var f = flags["outer"] ? outerPfs.GetFile(filePath) : inner.GetFile(filePath);
+            if (f == null) { Console.WriteLine("file not found: " + filePath); return; }
+            Console.WriteLine($"size={f.size} compressed_size={f.compressed_size} offset={f.offset} ino={f.ino} blocks={(f.blocks == null ? "null" : f.blocks.Length.ToString())}");
+            if (f.blocks != null)
+            {
+              Console.WriteLine("blocks: " + string.Join(",", flags["allblocks"] ? f.blocks.Select(x => x.ToString()).ToArray() : f.blocks.Take(24).Select(x => x.ToString()).ToArray()));
+            }
+            var view = f.GetView();
+            var buf = new byte[len];
+            view.Read(off, buf, 0, len);
+            File.WriteAllBytes(outp, buf);
+            Console.WriteLine("wrote " + len + " bytes from offset " + off + " to " + outp);
+          }
+        }),
+      Verb.Create(
+        "pkg_listfiles",
+        "Lists the files of the outer and inner PFS in a PKG (size and name).",
+        ArgDef.Multi(ArgDef.Option("passcode", "xts_tweak", "xts_data"), "input.pkg"),
+        (flags, optionals, args) =>
+        {
+          var pkgPath = args[1];
+          var passcode = optionals["passcode"];
+          var mmf = MemoryMappedFile.CreateFromFile(pkgPath, FileMode.Open, null, 0, MemoryMappedFileAccess.Read);
+          Pkg pkg;
+          using (var s = mmf.CreateViewStream(0, 0, MemoryMappedFileAccess.Read))
+          {
+            pkg = new PkgReader(s).ReadPkg();
+          }
+          var ekpfs = EkPfsFromPasscode(pkg, passcode);
+          var outerPfsOffset = (long)pkg.Header.pfs_image_offset;
+          using (var acc = mmf.CreateViewAccessor(outerPfsOffset, (long)pkg.Header.pfs_image_size, MemoryMappedFileAccess.Read))
+          {
+            var outerPfs = new PfsReader(acc, pkg.Header.pfs_flags, ekpfs, optionals["xts_tweak"]?.FromHexCompact(), optionals["xts_data"]?.FromHexCompact());
+            Console.WriteLine("outer pfs files:");
+            foreach (var f in outerPfs.GetAllFiles()) Console.WriteLine($"  {f.size,12} {f.FullName}");
+            var inner = new PfsReader(new PFSCReader(outerPfs.GetFile("pfs_image.dat").GetView()));
+            Console.WriteLine("inner pfs files:");
+            foreach (var f in inner.GetAllFiles()) Console.WriteLine($"  {f.size,12} {f.FullName}");
+          }
+        }),
+      Verb.Create(
         "pfs_extract",
         "Extracts all the files from a PFS image to the given output directory. Use the verbose flag to print filenames as they are extracted.",
         ArgDef.Multi(ArgDef.Bool("verbose"), "input.dat", "output_directory"),
@@ -133,7 +197,7 @@ namespace PkgTool
         {
           var pfsPath = args[1];
           var outPath = args[2];
-          using(var mmf = MemoryMappedFile.CreateFromFile(pfsPath))
+          using(var mmf = MemoryMappedFile.CreateFromFile(pfsPath, FileMode.Open, null, 0, MemoryMappedFileAccess.Read))
           using(var acc = mmf.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read))
           {
             var pfs = new PfsReader(acc);
@@ -151,7 +215,7 @@ namespace PkgTool
           var passcode = optionals["passcode"];
 
           Pkg pkg;
-          var mmf = MemoryMappedFile.CreateFromFile(pkgPath);
+          var mmf = MemoryMappedFile.CreateFromFile(pkgPath, FileMode.Open, null, 0, MemoryMappedFileAccess.Read);
           using (var s = mmf.CreateViewStream(0, 0, MemoryMappedFileAccess.Read))
           {
             pkg = new PkgReader(s).ReadPkg();
@@ -230,7 +294,7 @@ namespace PkgTool
                 dataKey = optionals["xts_data"]?.FromHexCompact();
               }
               s.Close();
-              using (var pkgMM = MemoryMappedFile.CreateFromFile(pkgPath, FileMode.Open))
+              using (var pkgMM = MemoryMappedFile.CreateFromFile(pkgPath, FileMode.Open, null, 0, MemoryMappedFileAccess.Read))
               using (var o = MemoryMappedFile.CreateFromFile(outPath, capacity: outerpfs_size, mapName: null, mode: FileMode.Create))
               using (var outputView = o.CreateViewAccessor(0, 0, MemoryMappedFileAccess.ReadWrite))
               using (var outerPfs = new MemoryMappedViewAccessor_(
@@ -513,8 +577,18 @@ namespace PkgTool
     private static void ExtractInParallel(PfsReader inner, string outPath, bool verbose)
     {
       Console.WriteLine("Extracting in parallel...");
+      // Pre-create every directory on a single thread: concurrent
+      // Directory.CreateDirectory calls on the same path can fail with
+      // "Access to the path ... is denied" on Windows.
+      var allFiles = inner.GetAllFiles().ToList();
+      foreach (var pf in allFiles)
+      {
+        var p = Path.Combine(outPath, pf.FullName.Replace('/', Path.DirectorySeparatorChar).Substring(1));
+        var d = p.Substring(0, p.LastIndexOf(Path.DirectorySeparatorChar));
+        if (!Directory.Exists(d)) Directory.CreateDirectory(d);
+      }
       Parallel.ForEach(
-        inner.GetAllFiles(),
+        allFiles,
         () => new byte[0x10000],
         (f, _, buf) =>
         {
@@ -528,7 +602,8 @@ namespace PkgTool
           {
             Console.WriteLine($"{fullName} -> {path}");
           }
-          Directory.CreateDirectory(dir);
+          try { if (!Directory.Exists(dir)) Directory.CreateDirectory(dir); }
+          catch (IOException) { Directory.CreateDirectory(dir); }
           using (var file = File.OpenWrite(path))
           {
             file.SetLength(size);
